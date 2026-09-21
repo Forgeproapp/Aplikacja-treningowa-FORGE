@@ -8,35 +8,35 @@
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
 
   :root{
-    --bg: #eef2f8;
-    --bg-elev: #f8fafc;
-    --bg-card: #ffffff;
+    --bg: #0b111e;
+    --bg-elev: #131d2e;
+    --bg-card: #182337;
     
-    --line: #cbd5e1;
-    --line-soft: #e2e8f0;
-    --line-strong: #94a3b8;
+    --line: #22324d;
+    --line-soft: #1a273e;
+    --line-strong: #3b5074;
     
-    --text: #090d16;
-    --text-dim: #334155;
+    --text: #f1f5f9;
+    --text-dim: #94a3b8;
     --text-faint: #64748b;
     
-    --accent: #1d4ed8;
-    --accent-hover: #1e40af;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
     --accent-dim: #3b82f6;
-    --accent-deep: #dbeafe;
+    --accent-deep: rgba(37, 99, 235, 0.18);
     --accent-ink: #ffffff;
     
-    --done: #15803d;
-    --done-bg: #dcfce7;
-    --done-border: #86efac;
-    --warn: #c2410c;
-    --warn-bg: #ffedd5;
-    --danger: #dc2626;
-    --danger-bg: #fee2e2;
+    --done: #10b981;
+    --done-bg: rgba(16, 185, 129, 0.14);
+    --done-border: #059669;
+    --warn: #f59e0b;
+    --warn-bg: rgba(245, 158, 11, 0.14);
+    --danger: #ef4444;
+    --danger-bg: rgba(239, 68, 68, 0.14);
 
     --radius: 16px;
     --radius-sm: 10px;
-    --shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.08);
+    --shadow: 0 4px 16px rgba(0, 0, 0, 0.35), 0 1px 3px rgba(0, 0, 0, 0.2);
   }
   
   *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
@@ -44,7 +44,6 @@
   body{padding-bottom: 110px;}
   .mono{font-family:'JetBrains Mono', monospace;}
 
-  /* Zapobieganie automatycznemu przybliżaniu ekranu (iOS Safari auto-zoom przy font-size < 16px) */
   input, select, textarea {
     font-size: 16px !important;
     touch-action: manipulation;
@@ -52,26 +51,27 @@
 
   header.top{
     position: sticky; top:0; z-index: 20;
-    background: rgba(238, 242, 248, 0.94);
-    backdrop-filter: blur(12px);
-    border-bottom: 2px solid var(--line);
+    background: rgba(11, 17, 30, 0.88);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--line);
     padding: 14px 20px;
   }
   .top-row{display:flex; justify-content:space-between; align-items:center;}
   .brand{font-size:16px; font-weight:700; letter-spacing:0.02em; color:var(--text);}
-  .brand b{color:var(--accent); background:var(--accent-deep); padding:2px 6px; border-radius:6px; margin-left:2px;}
+  .brand b{color:#60a5fa; background:var(--accent-deep); padding:2px 8px; border-radius:6px; margin-left:3px;}
   .top-actions{display:flex; align-items:center; gap:8px;}
   .cloud-badge-btn{
     font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:700;
-    background:#ffffff; border:1.5px solid var(--line-strong); padding:4px 10px; border-radius:20px;
-    color:var(--text-dim); display:flex; align-items:center; gap:5px; cursor:pointer;
+    background:var(--bg-elev); border:1px solid var(--line-strong); padding:5px 12px; border-radius:20px;
+    color:var(--text); display:flex; align-items:center; gap:6px; cursor:pointer;
+    transition: all 0.2s;
   }
-  .cloud-badge-btn.online{border-color:var(--done); color:var(--done); background:var(--done-bg);}
-  .cloud-badge-btn.syncing{border-color:var(--accent); color:var(--accent); background:var(--accent-deep);}
+  .cloud-badge-btn.online{border-color:var(--done); color:#34d399; background:var(--done-bg);}
+  .cloud-badge-btn.syncing{border-color:var(--accent-dim); color:#60a5fa; background:var(--accent-deep);}
   .cloud-dot{width:7px; height:7px; border-radius:50%; background:currentColor;}
   .week-badge{
     font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;
-    background:#ffffff; border:1.5px solid var(--line-strong); padding:4px 10px; border-radius:20px; color:var(--text-dim);
+    background:var(--bg-elev); border:1px solid var(--line-strong); padding:5px 12px; border-radius:20px; color:var(--text-dim);
   }
 
   main{padding: 18px;}
@@ -84,30 +84,30 @@
   }
   .week-selector::-webkit-scrollbar{display:none;}
   .week-pill{
-    flex-shrink:0; padding:9px 15px; border-radius:24px; border:2px solid var(--line);
+    flex-shrink:0; padding:9px 16px; border-radius:24px; border:1px solid var(--line);
     background:var(--bg-card); color:var(--text-dim); font-size:13px; font-weight:700;
     font-family:'JetBrains Mono',monospace; cursor:pointer; white-space:nowrap;
     transition: all 0.15s ease;
   }
-  .week-pill.active{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); box-shadow:0 4px 12px rgba(29,78,216,0.3);}
+  .week-pill.active{background:var(--accent); color:var(--accent-ink); border-color:var(--accent-dim); box-shadow:0 4px 16px rgba(37,99,235,0.4);}
 
   .day-card{
-    background:var(--bg-card); border:2px solid var(--line); border-radius:var(--radius);
+    background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
     padding:18px; margin-bottom:16px; position:relative; overflow:hidden; box-shadow:var(--shadow);
-    transition:border-color 0.2s;
+    transition:border-color 0.2s, background 0.2s;
     scroll-margin-top: 85px;
     scroll-margin-bottom: 95px;
   }
-  .day-card.complete{border-color:var(--done); background:#fbfdfc;}
+  .day-card.complete{border-color:var(--done); background:#0e1e24;}
   .day-card.complete::before{
-    content:''; position:absolute; top:0; left:0; bottom:0; width:5px; background:var(--done);
+    content:''; position:absolute; top:0; left:0; bottom:0; width:4px; background:var(--done);
   }
   .day-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;}
   .day-title{font-size:18px; font-weight:700; color:var(--text);}
   .day-check{
-    width:34px; height:34px; border-radius:50%; border:2.5px solid var(--line-strong);
+    width:34px; height:34px; border-radius:50%; border:2px solid var(--line-strong);
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
-    background:#ffffff; padding:0; cursor:pointer; transition:all 0.15s ease;
+    background:var(--bg-elev); padding:0; cursor:pointer; transition:all 0.15s ease;
   }
   .day-check:active{transform:scale(0.9);}
   .day-check.done{background:var(--done); border-color:var(--done); color:#ffffff;}
@@ -119,73 +119,82 @@
   }
   .ex-mini{display:flex; justify-content:space-between; font-size:13px; font-weight:600; color:var(--text-dim); padding:2px 0;}
   .ex-mini .n{color:var(--text); font-weight:600;}
-  .ex-mini .d{font-family:'JetBrains Mono',monospace; color:var(--accent); font-weight:700; font-size:12px;}
+  .ex-mini .d{font-family:'JetBrains Mono',monospace; color:#60a5fa; font-weight:700; font-size:12px;}
   .start-btn{
     width:100%; padding:14px; border-radius:12px; border:none; background:var(--accent);
     color:var(--accent-ink); font-weight:700; font-size:15px; font-family:'Space Grotesk',sans-serif; cursor:pointer;
-    box-shadow: 0 4px 12px rgba(29,78,216,0.25); transition: background 0.15s;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35); transition: background 0.15s, transform 0.15s;
   }
   .start-btn:active{background:var(--accent-hover); transform:scale(0.98);}
-  .start-btn.secondary{background:var(--bg-elev); color:var(--text); border:2px solid var(--line); box-shadow:none;}
+  .start-btn.secondary{background:var(--bg-elev); color:var(--text); border:1px solid var(--line); box-shadow:none;}
 
   .session-header{margin-bottom:14px;}
   .session-header .back{
-    background:none; border:none; color:var(--accent); font-family:'Space Grotesk',sans-serif;
+    background:none; border:none; color:#60a5fa; font-family:'Space Grotesk',sans-serif;
     font-size:14px; font-weight:700; padding:0 0 10px; cursor:pointer; display:inline-flex; align-items:center; gap:4px;
   }
   .progress-track{height:6px; background:var(--line); border-radius:3px; overflow:hidden; margin-bottom:14px;}
-  .progress-fill{height:100%; background:var(--accent); transition:width 0.3s ease;}
+  .progress-fill{height:100%; background:linear-gradient(90deg, #2563eb, #38bdf8); transition:width 0.3s ease;}
+
+  .session-title-row{
+    display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; gap:12px;
+  }
+  .session-reset-btn{
+    background:rgba(239, 68, 68, 0.12); border:1px solid rgba(239, 68, 68, 0.35);
+    color:#f87171; border-radius:10px; padding:8px 12px; font-size:12px; font-weight:700;
+    font-family:'Space Grotesk',sans-serif; cursor:pointer; display:inline-flex; align-items:center;
+    gap:6px; flex-shrink:0; transition:all 0.15s ease;
+  }
+  .session-reset-btn:active{background:rgba(239, 68, 68, 0.25); transform:scale(0.96);}
 
   .exercise-card{
-    background:var(--bg-card); border:2px solid var(--line); border-radius:var(--radius);
+    background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
     padding:16px; margin-bottom:16px; box-shadow:var(--shadow);
   }
-  .exercise-card.current{border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-deep), var(--shadow);}
-  .exercise-card.done{opacity:0.65; border-color:var(--done-border);}
+  .exercise-card.current{border-color:var(--accent-dim); box-shadow:0 0 0 2px var(--accent-deep), var(--shadow);}
+  .exercise-card.done{opacity:0.75; border-color:var(--done-border);}
   .ex-top{display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;}
   .ex-name{font-size:17px; font-weight:700; line-height:1.25; color:var(--text);}
   .ex-badges{display:flex; flex-direction:column; gap:6px; margin-top:6px;}
   .badge-row{display:flex; gap:6px; flex-wrap:wrap; align-items:center;}
   .badge{
-    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; padding:3px 7px; border-radius:6px;
-    background:var(--bg-elev); color:var(--text-dim); border:1.5px solid var(--line); white-space:nowrap;
+    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;
+    background:var(--bg-elev); color:var(--text-dim); border:1px solid var(--line); white-space:nowrap;
   }
-  .badge.rir{color:var(--accent); background:var(--accent-deep); border-color:#bfdbfe;}
-  .badge.rest{color:var(--warn); background:var(--warn-bg); border-color:#fed7aa;}
-  .badge.target{color:#7c3aed; background:#ede9fe; border-color:#ddd6fe;}
-  .badge.secondary-target{color:#0284c7; background:#e0f2fe; border-color:#bae6fd;}
+  .badge.rir{color:#93c5fd; background:rgba(37,99,235,0.22); border-color:#2563eb;}
+  .badge.rest{color:#fcd34d; background:rgba(245,158,11,0.18); border-color:rgba(245,158,11,0.4);}
+  .badge.target{color:#c4b5fd; background:rgba(124,58,237,0.22); border-color:#7c3aed;}
+  .badge.secondary-target{color:#7dd3fc; background:rgba(2,132,199,0.22); border-color:#0284c7;}
 
-  /* Ghost Data (podgląd z poprzedniego treningu) */
   .ghost-box{
-    background:var(--bg-elev); border:1.5px dashed var(--line-strong); border-radius:8px;
+    background:var(--bg-elev); border:1px dashed var(--line-strong); border-radius:8px;
     padding:6px 10px; margin-bottom:10px; font-size:12px; color:var(--text-dim);
     display:flex; align-items:center; justify-content:space-between; gap:6px;
   }
   .ghost-label{font-weight:700; color:var(--text-faint); text-transform:uppercase; font-size:10px;}
-  .ghost-val{font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent);}
+  .ghost-val{font-family:'JetBrains Mono',monospace; font-weight:700; color:#60a5fa;}
 
-  /* Notatka do ćwiczenia (wyświetlana tylko gdy istnieje) */
   .ex-note-display{
-    background:var(--bg-elev); border:1.5px solid var(--line-soft); border-radius:8px;
+    background:var(--bg-elev); border:1px solid var(--line-soft); border-radius:8px;
     padding:6px 10px; margin-bottom:10px; font-size:12px; font-weight:600; color:var(--text-dim);
     display:flex; align-items:center; gap:6px;
   }
-  .ex-note-display b{color:var(--accent); font-weight:700;}
+  .ex-note-display b{color:#60a5fa; font-weight:700;}
 
   .set-row{
     display:grid; grid-template-columns: 28px 1fr 1fr 40px; gap:8px; align-items:center;
-    padding:8px 0; border-top:1.5px solid var(--line-soft);
+    padding:8px 0; border-top:1px solid var(--line-soft);
   }
   .set-row:first-of-type{border-top:none;}
   .set-num{font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:var(--text-faint);}
   .set-input{
-    background:var(--bg-elev); border:2px solid var(--line); border-radius:10px; color:var(--text);
+    background:var(--bg-elev); border:1.5px solid var(--line); border-radius:10px; color:var(--text);
     font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; padding:8px 4px; width:100%; text-align:center;
   }
-  .set-input:focus{outline:none; border-color:var(--accent); background:#ffffff;}
-  .set-input::placeholder{color:#94a3b8; font-weight:500;}
+  .set-input:focus{outline:none; border-color:var(--accent-dim); background:#1e293b;}
+  .set-input::placeholder{color:#475569; font-weight:500;}
   .set-check{
-    width:36px; height:36px; border-radius:10px; border:2.5px solid var(--line-strong); background:#ffffff;
+    width:36px; height:36px; border-radius:10px; border:2px solid var(--line-strong); background:var(--bg-elev);
     display:flex; align-items:center; justify-content:center; cursor:pointer; justify-self:end;
   }
   .set-check.done{background:var(--done); border-color:var(--done);}
@@ -193,12 +202,11 @@
   .col-label{font-size:10px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em;}
   .set-header-row{display:grid; grid-template-columns: 28px 1fr 1fr 40px; gap:8px; margin-bottom:4px;}
 
-  /* Pływający stoper przerw (Rest Timer) */
   .rest-timer-bar{
-    position:fixed; bottom:74px; left:16px; right:16px; z-index:45;
-    background:var(--text); color:#ffffff; border-radius:14px; padding:10px 16px;
+    position:fixed; bottom:84px; left:16px; right:16px; z-index:45;
+    background:#0f172a; color:#ffffff; border-radius:14px; padding:12px 18px;
     display:none; align-items:center; justify-content:space-between;
-    box-shadow:0 8px 24px rgba(0,0,0,0.35); border:1.5px solid rgba(255,255,255,0.15);
+    box-shadow:0 10px 30px rgba(0,0,0,0.6); border:1px solid var(--line-strong);
     animation: slideUpTimer 0.25s ease forwards;
   }
   .rest-timer-bar.active{display:flex;}
@@ -206,47 +214,71 @@
   .timer-clock{font-family:'JetBrains Mono',monospace; font-size:20px; font-weight:800; color:#38bdf8;}
   .timer-actions{display:flex; gap:6px;}
   .timer-btn{
-    background:rgba(255,255,255,0.18); border:none; color:#ffffff; border-radius:8px;
+    background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.15); color:#ffffff; border-radius:8px;
     padding:6px 10px; font-size:12px; font-weight:700; cursor:pointer; font-family:'JetBrains Mono',monospace;
   }
-  .timer-btn:active{background:rgba(255,255,255,0.3);}
-  .timer-btn.close{background:var(--danger); color:#ffffff;}
+  .timer-btn:active{background:rgba(255,255,255,0.25);}
+  .timer-btn.close{background:var(--danger); color:#ffffff; border-color:transparent;}
 
   .next-btn{
     width:100%; padding:16px; border-radius:12px; border:none; background:var(--accent);
     color:#ffffff; font-weight:700; font-size:16px; margin-top:10px; cursor:pointer;
     display:flex; align-items:center; justify-content:center; gap:8px;
-    box-shadow: 0 4px 14px rgba(29,78,216,0.3);
+    box-shadow: 0 4px 16px rgba(37,99,235,0.4);
   }
   .next-btn:active{background:var(--accent-hover); transform:scale(0.98);}
-  .next-btn:disabled{background:#94a3b8; color:#ffffff; box-shadow:none; opacity:0.7;}
+  .next-btn:disabled{background:#334155; color:#94a3b8; box-shadow:none; opacity:0.7;}
 
-  .stats-subtabs{display:flex; gap:6px; margin-bottom:16px; background:var(--bg-elev); padding:4px; border-radius:12px; border:1.5px solid var(--line);}
+  .stats-subtabs{display:flex; gap:6px; margin-bottom:16px; background:var(--bg-elev); padding:4px; border-radius:12px; border:1px solid var(--line);}
   .stats-subtab-btn{
-    flex:1; padding:8px 6px; border:none; background:none; font-family:'Space Grotesk',sans-serif;
+    flex:1; padding:9px 6px; border:none; background:none; font-family:'Space Grotesk',sans-serif;
     font-size:12px; font-weight:700; border-radius:8px; color:var(--text-dim); cursor:pointer;
+    transition: all 0.15s;
   }
-  .stats-subtab-btn.active{background:#ffffff; color:var(--accent); box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+  .stats-subtab-btn.active{background:var(--bg-card); color:#60a5fa; box-shadow:0 2px 8px rgba(0,0,0,0.3); border:1px solid var(--line);}
 
   .analytics-card{
-    background:var(--bg-card); border:2px solid var(--line); border-radius:var(--radius);
+    background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
     padding:16px; margin-bottom:16px; box-shadow:var(--shadow);
   }
   .analytics-title{font-size:15px; font-weight:800; color:var(--text); margin-bottom:4px;}
   .analytics-desc{font-size:12px; color:var(--text-faint); font-weight:600; margin-bottom:14px;}
 
-  /* Wykres objętości partii */
+  .volume-landmarks-grid{
+    display:grid; grid-template-columns: repeat(2, 1fr); gap:8px; margin-bottom:14px;
+    background:var(--bg-elev); padding:10px; border-radius:12px; border:1px solid var(--line-soft);
+  }
+  @media (min-width: 640px){
+    .volume-landmarks-grid{ grid-template-columns: repeat(4, 1fr); }
+  }
+  .landmark-pill{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:8px;
+    padding:7px 9px; display:flex; flex-direction:column; gap:2px;
+  }
+  .landmark-pill.mv{border-left:3.5px solid #64748b;}
+  .landmark-pill.mev{border-left:3.5px solid #38bdf8;}
+  .landmark-pill.mav{border-left:3.5px solid #10b981; background:rgba(16,185,129,0.08);}
+  .landmark-pill.mrv{border-left:3.5px solid #ef4444;}
+  .landmark-tag{
+    font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:800;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .landmark-val{
+    font-size:12px; font-weight:700; color:#60a5fa; font-family:'JetBrains Mono',monospace;
+  }
+  .landmark-sub{
+    font-size:10px; font-weight:600; color:var(--text-faint); line-height:1.25; margin-top:2px;
+  }
+
   .vol-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
   .vol-name{width:86px; font-size:13px; font-weight:700; color:var(--text); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;}
-  .vol-bar-bg{flex:1; height:12px; background:var(--bg-elev); border-radius:6px; overflow:hidden; border:1px solid var(--line);}
-  .vol-bar-fill{height:100%; background:var(--accent); border-radius:6px; transition:width 0.4s ease;}
-  .vol-count{width:46px; text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:800; color:var(--accent);}
+  .vol-bar-bg{flex:1; height:12px; background:var(--bg-elev); border-radius:6px; overflow:hidden; border:1px solid var(--line-soft);}
+  .vol-bar-fill{height:100%; background:linear-gradient(90deg, #2563eb, #38bdf8); border-radius:6px; transition:width 0.4s ease;}
+  .vol-count{width:46px; text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:800; color:#60a5fa;}
 
-  /* Canvas wykres progresji */
   .chart-canvas-wrap{width:100%; height:190px; position:relative; margin-top:8px;}
   canvas#progressChart{width:100%; height:100%; display:block;}
 
-  /* Rejestr wagi i pomiarów */
   .body-entry-grid{
     display:grid; grid-template-columns: repeat(2, 1fr); gap:10px; margin-bottom:14px; width:100%;
   }
@@ -257,36 +289,36 @@
   }
   .body-input{
     width:100%; min-width:0; box-sizing:border-box;
-    padding:10px 8px; border-radius:8px; border:2px solid var(--line);
-    font-size:16px; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text); background:#ffffff; text-align:center;
+    padding:10px 8px; border-radius:8px; border:1.5px solid var(--line);
+    font-size:16px; font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text); background:var(--bg-elev); text-align:center;
   }
-  .body-input:focus{outline:none; border-color:var(--accent);}
+  .body-input:focus{outline:none; border-color:var(--accent-dim); background:#1e293b;}
   .body-save-btn{
     width:100%; padding:12px; border-radius:10px; border:none; background:var(--accent);
     color:#ffffff; font-weight:700; font-size:13px; cursor:pointer; font-family:'Space Grotesk',sans-serif;
-    box-shadow: 0 4px 12px rgba(29,78,216,0.25); transition:background 0.15s;
+    box-shadow: 0 4px 14px rgba(37,99,235,0.35); transition:background 0.15s, transform 0.15s;
   }
   .body-save-btn:active{background:var(--accent-hover); transform:scale(0.98);}
 
   .body-card-item{
-    background:var(--bg-elev); border:1.5px solid var(--line); border-radius:12px;
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:12px;
     padding:12px 14px; margin-bottom:10px;
   }
   .body-card-top{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
   .body-card-date{font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700; color:var(--text-faint);}
   .body-weight-badge{
-    font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:800; color:var(--accent);
-    background:var(--accent-deep); padding:2px 8px; border-radius:6px;
+    font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:800; color:#93c5fd;
+    background:var(--accent-deep); padding:2px 8px; border-radius:6px; border:1px solid rgba(37,99,235,0.3);
   }
   .body-pills-wrap{display:flex; flex-wrap:wrap; gap:6px;}
   .body-pill{
-    font-size:11px; font-weight:600; color:var(--text-dim); background:#ffffff; border:1px solid var(--line);
+    font-size:11px; font-weight:600; color:var(--text-dim); background:var(--bg-card); border:1px solid var(--line);
     border-radius:6px; padding:3px 7px; font-family:'JetBrains Mono',monospace;
   }
   .body-pill b{color:var(--text); font-weight:700;}
 
   .editor-section{
-    background:var(--bg-card); border:2px solid var(--line); border-radius:var(--radius);
+    background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
     padding:16px; margin-bottom:16px; box-shadow:var(--shadow);
   }
   .editor-section-title{font-size:16px; font-weight:800; color:var(--text); margin-bottom:12px;}
@@ -294,42 +326,74 @@
     display:flex; align-items:center; justify-content:space-between; gap:12px; font-weight:600;
   }
   .stepper-btn{
-    width:40px; height:40px; border-radius:10px; border:2px solid var(--line-strong);
-    background:#ffffff; font-size:20px; font-weight:800; cursor:pointer;
+    width:40px; height:40px; border-radius:10px; border:1px solid var(--line-strong);
+    background:var(--bg-elev); font-size:20px; font-weight:800; cursor:pointer;
     display:flex; align-items:center; justify-content:center; color:var(--text);
+    transition: background 0.15s;
   }
   .stepper-btn:active{background:var(--line-soft);}
-  .weeks-value{font-size:18px; font-weight:800; font-family:'JetBrains Mono',monospace; color:var(--accent);}
+  .weeks-value{font-size:18px; font-weight:800; font-family:'JetBrains Mono',monospace; color:#60a5fa;}
+
+  .week-meta-card{
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:12px;
+    padding:12px; display:flex; flex-direction:column; gap:8px;
+  }
+  .week-meta-top{
+    display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:14px; color:var(--text);
+  }
+  .week-meta-grid{
+    display:grid; grid-template-columns: 1fr 1fr; gap:10px; align-items:center;
+  }
+  .week-meta-field label{
+    display:block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); margin-bottom:3px;
+  }
+  .week-meta-field select, .week-meta-field input{
+    width:100%; padding:8px 6px; border-radius:8px; border:1px solid var(--line);
+    font-size:14px; font-weight:700; font-family:'Space Grotesk',sans-serif; color:var(--text); background:var(--bg-card);
+  }
+  .week-meta-field select:focus, .week-meta-field input:focus{
+    outline:none; border-color:var(--accent-dim);
+  }
 
   .edit-day-block{
-    background:var(--bg-elev); border:2px solid var(--line); border-radius:var(--radius);
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:var(--radius);
     padding:14px; margin-bottom:16px;
   }
   .edit-day-head{
-    display:grid; grid-template-columns: 1fr 1fr; gap:10px; margin-bottom:12px;
+    display:flex; align-items:flex-end; gap:10px; margin-bottom:12px;
   }
+  .edit-day-head .edit-input-group{
+    flex:1;
+  }
+  .btn-del-day{
+    height:42px; padding:0 14px; border-radius:8px; border:1px solid rgba(239,68,68,0.3);
+    background:var(--danger-bg); color:#f87171; font-family:'Space Grotesk',sans-serif;
+    font-size:13px; font-weight:700; cursor:pointer; display:flex; align-items:center;
+    gap:6px; white-space:nowrap; flex-shrink:0; transition:all 0.15s ease;
+  }
+  .btn-del-day:active{transform:scale(0.96); background:rgba(239,68,68,0.25);}
   .edit-input-group label{
     display:block; font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-dim); margin-bottom:4px;
   }
   .edit-input-group input{
-    width:100%; padding:9px 10px; border-radius:8px; border:2px solid var(--line);
-    font-size:16px; font-weight:600; font-family:'Space Grotesk',sans-serif; color:var(--text); background:#ffffff;
+    width:100%; padding:9px 10px; border-radius:8px; border:1.5px solid var(--line);
+    font-size:16px; font-weight:600; font-family:'Space Grotesk',sans-serif; color:var(--text); background:var(--bg-card);
   }
-  .edit-input-group input:focus{outline:none; border-color:var(--accent);}
+  .edit-input-group input:focus{outline:none; border-color:var(--accent-dim);}
   
   .edit-ex-item{
-    background:#ffffff; border:2px solid var(--line); border-radius:12px;
+    background:var(--bg-card); border:1px solid var(--line); border-radius:12px;
     padding:12px; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;
-    box-shadow:0 2px 6px rgba(15, 23, 42, 0.04);
+    box-shadow:0 2px 8px rgba(0, 0, 0, 0.2);
   }
   .edit-ex-top-row{
     display:flex; gap:8px; align-items:center;
   }
   .edit-ex-name-input{
-    flex:1; width:100%; padding:10px 12px; border-radius:8px; border:2px solid var(--line);
+    flex:1; width:100%; padding:10px 12px; border-radius:8px; border:1.5px solid var(--line);
     font-size:16px; font-weight:700; font-family:'Space Grotesk',sans-serif; color:var(--text); background:var(--bg-elev);
   }
-  .edit-ex-name-input:focus{outline:none; border-color:var(--accent); background:#ffffff;}
+  .edit-ex-name-input:focus{outline:none; border-color:var(--accent-dim); background:#1e293b;}
   .edit-ex-bottom-row{
     display:grid; grid-template-columns: 1.1fr 1.1fr 0.7fr 0.9fr; gap:6px; align-items:center;
   }
@@ -337,10 +401,10 @@
     display:block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); margin-bottom:3px;
   }
   .edit-subfield input, .edit-subfield select{
-    width:100%; padding:8px 4px; border-radius:8px; border:2px solid var(--line);
+    width:100%; padding:8px 4px; border-radius:8px; border:1.5px solid var(--line);
     font-size:16px; font-weight:700; font-family:'Space Grotesk',sans-serif; color:var(--text); background:var(--bg-elev);
   }
-  .edit-subfield input:focus, .edit-subfield select:focus{outline:none; border-color:var(--accent); background:#ffffff;}
+  .edit-subfield input:focus, .edit-subfield select:focus{outline:none; border-color:var(--accent-dim); background:#1e293b;}
   .edit-subfield input.mono{font-family:'JetBrains Mono',monospace; text-align:center;}
   .edit-ex-note-row{
     display:flex; flex-direction:column; gap:3px;
@@ -349,46 +413,54 @@
     font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint);
   }
   .edit-ex-note-row input{
-    width:100%; padding:8px 10px; border-radius:8px; border:2px solid var(--line);
+    width:100%; padding:8px 10px; border-radius:8px; border:1.5px solid var(--line);
     font-size:16px; font-weight:600; font-family:'Space Grotesk',sans-serif; color:var(--text); background:var(--bg-elev);
   }
-  .edit-ex-note-row input:focus{outline:none; border-color:var(--accent); background:#ffffff;}
+  .edit-ex-note-row input:focus{outline:none; border-color:var(--accent-dim); background:#1e293b;}
   .btn-del-ex{
-    width:38px; height:38px; border-radius:8px; border:1.5px solid #fca5a5;
-    background:var(--danger-bg); color:var(--danger); cursor:pointer; font-size:15px; font-weight:800;
+    width:38px; height:38px; border-radius:8px; border:1px solid rgba(239,68,68,0.3);
+    background:var(--danger-bg); color:#f87171; cursor:pointer; font-size:15px; font-weight:800;
     display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
   .btn-del-ex:active{transform:scale(0.94);}
   .btn-add-ex{
-    width:100%; padding:11px; border-radius:10px; border:2px dashed var(--accent);
-    background:var(--accent-deep); color:var(--accent); font-weight:700; font-size:13px; cursor:pointer;
-    margin-top:8px;
+    width:100%; padding:11px; border-radius:10px; border:1px dashed var(--accent-dim);
+    background:var(--accent-deep); color:#60a5fa; font-weight:700; font-size:13px; cursor:pointer;
+    margin-top:8px; transition: background 0.15s;
   }
+  .btn-add-ex:active{background:rgba(37,99,235,0.35);}
 
-  /* Centrum kopii zapasowej */
+  .btn-add-day{
+    width:100%; padding:14px; border-radius:12px; border:1px dashed var(--accent-dim);
+    background:var(--accent-deep); color:#60a5fa; font-weight:800; font-size:14px;
+    font-family:'Space Grotesk',sans-serif; cursor:pointer; margin-top:14px;
+    display:flex; align-items:center; justify-content:center; gap:8px; transition:all 0.15s;
+  }
+  .btn-add-day:active{background:rgba(37,99,235,0.35); transform:scale(0.99);}
+
   .backup-box{display:flex; gap:10px; flex-wrap:wrap;}
   .backup-btn{
-    flex:1; padding:12px; border-radius:10px; border:2px solid var(--line);
-    background:#ffffff; color:var(--text); font-weight:700; font-size:13px; cursor:pointer;
-    display:flex; align-items:center; justify-content:center; gap:6px;
+    flex:1; padding:12px; border-radius:10px; border:1px solid var(--line);
+    background:var(--bg-elev); color:var(--text); font-weight:700; font-size:13px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; gap:6px; transition: all 0.15s;
   }
-  .backup-btn:active{background:var(--bg-elev);}
+  .backup-btn:active{background:var(--line-soft);}
 
   .hist-empty{text-align:center; padding:60px 20px; color:var(--text-faint); font-weight:600;}
   .hist-empty .big{font-size:44px; margin-bottom:12px;}
   .clear-history-btn{
     display:block; width:100%; margin-bottom:16px; padding:12px; border-radius:10px;
-    background:var(--warn-bg); border:2px solid #fdba74; color:var(--warn); font-size:13px; font-weight:700;
+    background:var(--warn-bg); border:1px solid rgba(245,158,11,0.3); color:#fcd34d; font-size:13px; font-weight:700;
     font-family:'Space Grotesk',sans-serif; cursor:pointer;
   }
   .hist-delete-btn{
-    flex-shrink:0; width:32px; height:32px; border-radius:8px; border:1.5px solid var(--line-strong);
-    background:#ffffff; color:var(--text-faint); font-size:13px; font-weight:700; cursor:pointer;
+    flex-shrink:0; width:32px; height:32px; border-radius:8px; border:1px solid var(--line-strong);
+    background:var(--bg-elev); color:var(--text-faint); font-size:13px; font-weight:700; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
   }
-  .hist-delete-btn:active{background:var(--danger-bg); color:var(--danger); border-color:#fca5a5;}
+  .hist-delete-btn:active{background:var(--danger-bg); color:var(--danger); border-color:rgba(239,68,68,0.4);}
   .hist-item{
-    background:var(--bg-card); border:2px solid var(--line); border-radius:var(--radius);
+    background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
     padding:16px 18px; margin-bottom:12px; box-shadow:var(--shadow);
   }
   .hist-item-top{display:flex; justify-content:space-between; align-items:center;}
@@ -396,13 +468,13 @@
   .hist-item-date{font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:var(--text-faint); margin-top:2px;}
   .hist-tonnage-tag{
     display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
-    color:var(--accent); background:var(--accent-deep); padding:2px 8px; border-radius:6px; margin-top:4px;
+    color:#93c5fd; background:var(--accent-deep); padding:2px 8px; border-radius:6px; margin-top:4px; border:1px solid rgba(37,99,235,0.3);
   }
 
-  .hist-detail{display:none; margin-top:14px; padding-top:14px; border-top:2px dashed var(--line-soft);}
+  .hist-detail{display:none; margin-top:14px; padding-top:14px; border-top:1px dashed var(--line);}
   .hist-detail.open{display:block;}
   .hist-ex-block{
-    background:var(--bg-elev); border:1.5px solid var(--line); border-radius:var(--radius-sm);
+    background:var(--bg-elev); border:1px solid var(--line-soft); border-radius:var(--radius-sm);
     padding:12px; margin-bottom:10px;
   }
   .hist-ex-block:last-child{margin-bottom:0;}
@@ -412,7 +484,7 @@
   }
   .hist-ex-count{
     font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
-    color:var(--text-dim); background:#ffffff; border:1px solid var(--line);
+    color:var(--text-dim); background:var(--bg-card); border:1px solid var(--line);
     padding:2px 7px; border-radius:6px;
   }
   .hist-set-row{
@@ -422,54 +494,71 @@
   .hist-set-row:first-of-type{border-top:none; padding-top:2px;}
   .hist-set-label{
     font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:700;
-    color:var(--text-dim); background:#ffffff; border:1.5px solid var(--line);
+    color:var(--text-dim); background:var(--bg-card); border:1px solid var(--line);
     padding:2px 8px; border-radius:6px;
   }
   .hist-set-val{font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700; color:var(--text);}
-  .hist-set-val b{color:var(--accent); font-weight:800;}
+  .hist-set-val b{color:#60a5fa; font-weight:800;}
 
-  /* Dolny pasek 4 zakładek: EDYTOR | PLAN (środek) | STATYSTYKI | HISTORIA */
   footer.tabbar{
     position:fixed; bottom:0; left:0; right:0; z-index:40;
-    background:rgba(255,255,255,0.97); backdrop-filter:blur(14px);
-    border-top:2px solid var(--line); display:flex; padding: 6px 12px calc(6px + env(safe-area-inset-bottom));
-    align-items:center; justify-content:space-around;
+    background:rgba(15, 23, 42, 0.92); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px);
+    border-top:1px solid rgba(59, 130, 246, 0.2);
+    display:flex; padding: 8px 14px calc(8px + env(safe-area-inset-bottom));
+    align-items:center; justify-content:space-between;
+    box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.5);
   }
   .tabbar-btn{
-    flex:1; background:none; border:none; color:var(--text-faint); font-size:10px; font-weight:700;
-    font-family:'Space Grotesk',sans-serif; padding:5px 2px; display:flex; flex-direction:column;
-    align-items:center; gap:3px; cursor:pointer; border-radius:10px; transition:all 0.15s;
+    flex:1; max-width:85px; background:none; border:none; color:#64748b; font-size:10px; font-weight:700;
+    font-family:'Space Grotesk',sans-serif; letter-spacing:0.04em; padding:6px 4px; display:flex; flex-direction:column;
+    align-items:center; gap:4px; cursor:pointer; border-radius:12px; transition:all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    position:relative;
   }
-  .tabbar-btn .ic{font-size:18px; line-height:1;}
-  .tabbar-btn.active{color:var(--accent);}
+  .tabbar-btn svg{width:22px; height:22px; stroke-width:2.2; transition: all 0.2s ease;}
+  .tabbar-btn:active{transform:scale(0.92);}
+  .tabbar-btn.active{color:#60a5fa;}
+  .tabbar-btn.active svg{stroke:#60a5fa; filter:drop-shadow(0 0 8px rgba(96, 165, 250, 0.5));}
 
-  .tabbar-btn.center-tab{color:var(--text-dim);}
-  .tabbar-btn.center-tab .ic{
-    background:var(--line-soft); width:34px; height:34px; display:flex; align-items:center; justify-content:center;
-    border-radius:11px; margin-bottom:1px; font-size:16px; transition:all 0.2s;
+  .tabbar-btn.center-tab{
+    transform:translateY(-8px);
+    color:#94a3b8;
   }
-  .tabbar-btn.center-tab.active{color:var(--accent);}
-  .tabbar-btn.center-tab.active .ic{
-    background:var(--accent); color:#ffffff; box-shadow:0 4px 12px rgba(29,78,216,0.35);
+  .tabbar-btn.center-tab .center-icon-wrap{
+    width:46px; height:46px; border-radius:14px;
+    background:linear-gradient(135deg, #1e293b, #0f172a);
+    border:1.5px solid var(--line-strong);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 6px 16px rgba(0, 0, 0, 0.4);
+    transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
+  .tabbar-btn.center-tab .center-icon-wrap svg{width:24px; height:24px; stroke:#94a3b8;}
+  .tabbar-btn.center-tab.active .center-icon-wrap{
+    background:linear-gradient(135deg, #2563eb, #1d4ed8);
+    border-color:#60a5fa;
+    box-shadow:0 8px 24px rgba(37, 99, 235, 0.5), 0 0 12px rgba(96, 165, 250, 0.4);
+    transform:scale(1.08);
+  }
+  .tabbar-btn.center-tab.active .center-icon-wrap svg{stroke:#ffffff; filter:none;}
+  .tabbar-btn.center-tab.active{color:#60a5fa; font-weight:800;}
 
   .toast{
     position:fixed; bottom:100px; left:50%; transform:translateX(-50%) translateY(20px);
-    background:var(--text); color:#ffffff; font-weight:600;
+    background:#0f172a; color:#ffffff; font-weight:600;
     padding:11px 20px; border-radius:12px; font-size:13px; opacity:0; transition:all 0.25s ease;
-    pointer-events:none; z-index:60; white-space:nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    pointer-events:none; z-index:60; white-space:nowrap; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    border:1px solid var(--line-strong);
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
 
   .confirm-overlay{
-    position:fixed; inset:0; background:rgba(9,13,22,0.65); z-index:100;
+    position:fixed; inset:0; background:rgba(4, 7, 13, 0.8); backdrop-filter:blur(6px); z-index:100;
     display:flex; align-items:center; justify-content:center; padding:24px;
     opacity:0; pointer-events:none; transition:opacity 0.2s ease;
   }
   .confirm-overlay.open{opacity:1; pointer-events:auto;}
   .confirm-modal{
-    background:var(--bg-card); border:2px solid var(--line); border-radius:var(--radius);
-    padding:22px; width:100%; max-width:320px; box-shadow:0 12px 32px rgba(0,0,0,0.25);
+    background:var(--bg-card); border:1px solid var(--line-strong); border-radius:var(--radius);
+    padding:22px; width:100%; max-width:320px; box-shadow:0 16px 40px rgba(0,0,0,0.6);
   }
   .confirm-text{font-size:14px; font-weight:600; color:var(--text); line-height:1.5; margin-bottom:18px;}
   .confirm-actions{display:flex; gap:10px;}
@@ -477,22 +566,21 @@
     flex:1; padding:12px; border-radius:10px; border:none; font-size:13px; font-weight:700;
     font-family:'Space Grotesk',sans-serif; cursor:pointer;
   }
-  .confirm-btn.cancel{background:var(--bg-elev); color:var(--text-dim); border:2px solid var(--line);}
+  .confirm-btn.cancel{background:var(--bg-elev); color:var(--text-dim); border:1px solid var(--line);}
   .confirm-btn.danger{background:var(--danger); color:#ffffff;}
 
-  /* Karta opcji w oknie powitalnym */
   .auth-choice-card{
-    background:var(--bg-elev); border:2px solid var(--line); border-radius:12px;
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:12px;
     padding:12px; text-align:left; cursor:pointer; transition:all 0.15s ease; width:100%;
   }
-  .auth-choice-card:active{transform:scale(0.98); border-color:var(--accent);}
-  .auth-choice-card.primary{background:#eff6ff; border-color:#93c5fd;}
+  .auth-choice-card:active{transform:scale(0.98); border-color:var(--accent-dim);}
+  .auth-choice-card.primary{background:rgba(37,99,235,0.15); border-color:rgba(96,165,250,0.4);}
   .auth-choice-btn{
     width:100%; padding:13px; border-radius:10px; border:none; font-weight:700; font-size:14px;
     font-family:'Space Grotesk',sans-serif; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px;
   }
-  .auth-choice-btn.google{background:var(--accent); color:#ffffff; box-shadow:0 4px 12px rgba(29,78,216,0.25);}
-  .auth-choice-btn.guest{background:#ffffff; color:var(--text); border:2px solid var(--line-strong);}
+  .auth-choice-btn.google{background:var(--accent); color:#ffffff; box-shadow:0 4px 14px rgba(37,99,235,0.4);}
+  .auth-choice-btn.guest{background:var(--bg-card); color:var(--text); border:1px solid var(--line-strong);}
   .auth-choice-desc{
     font-size:11.5px; color:var(--text-dim); font-weight:600; line-height:1.4; margin-top:8px; text-align:center;
   }
@@ -541,13 +629,34 @@
       <div class="analytics-card">
         <div class="analytics-title">Objętość tygodniowa (Serie robocze)</div>
         <div class="analytics-desc">Liczba wykonanych serii w obecnym tygodniu w podziale na partie:</div>
+        
+        <!-- Przedziały objętości (RP / Israetel) -->
+        <div class="volume-landmarks-grid">
+          <div class="landmark-pill mv">
+            <div class="landmark-tag" style="color:#94a3b8;"><span>MV</span> <span class="landmark-val">~6-8 s</span></div>
+            <div class="landmark-sub"><b>Konserwacja</b> (utrzymanie masy)</div>
+          </div>
+          <div class="landmark-pill mev">
+            <div class="landmark-tag" style="color:#38bdf8;"><span>MEV</span> <span class="landmark-val">~8-12 s</span></div>
+            <div class="landmark-sub"><b>Min. efektywna</b> (start cyklu)</div>
+          </div>
+          <div class="landmark-pill mav">
+            <div class="landmark-tag" style="color:#34d399;"><span>MAV ★</span> <span class="landmark-val">~12-20 s</span></div>
+            <div class="landmark-sub"><b>Optimum</b> (najszybszy wzrost)</div>
+          </div>
+          <div class="landmark-pill mrv">
+            <div class="landmark-tag" style="color:#f87171;"><span>MRV</span> <span class="landmark-val">~20-25+ s</span></div>
+            <div class="landmark-sub"><b>Limit</b> (maks. regeneracja)</div>
+          </div>
+        </div>
+
         <div id="volumeMuscleBars"></div>
       </div>
 
       <div class="analytics-card">
         <div class="analytics-title">Progresja siłowa (Szacowane 1RM)</div>
         <div class="analytics-desc">Wybierz ćwiczenie, aby sprawdzić tendencję siłową (formuła Epleya):</div>
-        <select id="chartExerciseSelect" onchange="renderProgressChart()" style="width:100%; padding:8px 10px; border-radius:8px; border:2px solid var(--line); font-size:16px; font-weight:700; margin-bottom:12px; background:var(--bg-elev);"></select>
+        <select id="chartExerciseSelect" onchange="renderProgressChart()" style="width:100%; padding:9px 10px; border-radius:8px; border:1.5px solid var(--line); font-size:16px; font-weight:700; margin-bottom:12px; background:var(--bg-elev); color:var(--text);"></select>
         <div class="chart-canvas-wrap">
           <canvas id="progressChart"></canvas>
         </div>
@@ -620,11 +729,20 @@
     </div>
 
     <div class="editor-section">
-      <div class="editor-section-title">Konfiguracja dni i ćwiczeń</div>
+      <div class="editor-section-title">Periodyzacja: RIR i odpoczynek w tygodniach</div>
       <div style="font-size:12px; font-weight:600; color:var(--text-faint); margin-bottom:14px;">
-        Zdefiniuj bazowe dni, przypisz partię mięśniową do ćwiczenia oraz zaplanuj serie i powtórzenia.
+        Dostosuj docelowy RIR oraz czas przerw dla każdego tygodnia cyklu:
+      </div>
+      <div id="editorWeeksMetaList" style="display:flex; flex-direction:column; gap:10px;"></div>
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-title">Konfiguracja treningów i ćwiczeń</div>
+      <div style="font-size:12px; font-weight:600; color:var(--text-faint); margin-bottom:14px;">
+        Zdefiniuj bazowe treningi, przypisz partię mięśniową do ćwiczenia oraz zaplanuj serie i powtórzenia.
       </div>
       <div id="editorDaysList"></div>
+      <button class="btn-add-day" onclick="addEditorDay()">+ Dodaj nowy trening</button>
     </div>
   </div>
 
@@ -648,16 +766,40 @@
 
 <footer class="tabbar">
   <button class="tabbar-btn" data-tab="editor" onclick="switchTab('editor')">
-    <span class="ic">⚙</span>EDYTOR
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+    </svg>
+    <span>EDYTOR</span>
   </button>
+
   <button class="tabbar-btn center-tab active" data-tab="home" onclick="switchTab('home')">
-    <span class="ic">◆</span>PLAN
+    <div class="center-icon-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <span>PLAN</span>
   </button>
+
   <button class="tabbar-btn" data-tab="stats" onclick="switchTab('stats')">
-    <span class="ic">▲</span>STATYSTYKI
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <line x1="18" y1="20" x2="18" y2="10"/>
+      <line x1="12" y1="20" x2="12" y2="4"/>
+      <line x1="6" y1="20" x2="6" y2="14"/>
+    </svg>
+    <span>STATYSTYKI</span>
   </button>
+
   <button class="tabbar-btn" data-tab="history" onclick="switchTab('history')">
-    <span class="ic">≡</span>HISTORIA
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </svg>
+    <span>HISTORIA</span>
   </button>
 </footer>
 
@@ -685,7 +827,7 @@
       <button class="start-btn secondary" id="btnShareNative" style="padding:12px; font-size:14px; display:none;" onclick="triggerNativeShare()">📲 Zapisz w Plikach / Udostępnij</button>
       <button class="start-btn secondary" style="padding:12px; font-size:14px;" onclick="copyJsonToClipboard()">📋 Kopiuj tekst do schowka</button>
     </div>
-    <textarea id="exportJsonTextarea" readonly style="width:100%; height:75px; font-family:'JetBrains Mono',monospace; font-size:11px; padding:8px; border:1.5px solid var(--line); border-radius:8px; background:var(--bg-elev); color:var(--text-dim); resize:none; margin-bottom:12px;"></textarea>
+    <textarea id="exportJsonTextarea" readonly style="width:100%; height:75px; font-family:'JetBrains Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--bg-elev); color:var(--text-dim); resize:none; margin-bottom:12px;"></textarea>
     <div class="confirm-actions">
       <button class="confirm-btn cancel" style="width:100%;" onclick="closeExportModal()">Zamknij</button>
     </div>
@@ -699,7 +841,7 @@
     <div style="font-size:12px; color:var(--text-faint); line-height:1.4; margin-bottom:12px;">
       Wklej poniżej wcześniej skopiowany tekst kopii zapasowej:
     </div>
-    <textarea id="importJsonTextarea" placeholder='{"totalWeeks": 6, ...}' style="width:100%; height:110px; font-family:'JetBrains Mono',monospace; font-size:12px; padding:8px; border:2px solid var(--line); border-radius:8px; background:#ffffff; color:var(--text); resize:none; margin-bottom:12px;"></textarea>
+    <textarea id="importJsonTextarea" placeholder='{"totalWeeks": 6, ...}' style="width:100%; height:110px; font-family:'JetBrains Mono',monospace; font-size:12px; padding:8px; border:1.5px solid var(--line); border-radius:8px; background:var(--bg-elev); color:var(--text); resize:none; margin-bottom:12px;"></textarea>
     <div class="confirm-actions">
       <button class="confirm-btn cancel" onclick="closeImportTextModal()">Anuluj</button>
       <button class="confirm-btn" style="background:var(--accent); color:#ffffff;" onclick="applyJsonFromText()">Przywróć</button>
@@ -707,7 +849,7 @@
   </div>
 </div>
 
-<!-- Modal synchronizacji w chmurze (Firebase Cloud Sync) -->
+<!-- Modal synchronizacji w chmurze -->
 <div class="confirm-overlay" id="cloudModalOverlay">
   <div class="confirm-modal" style="max-width:360px;">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
@@ -715,7 +857,7 @@
       <button onclick="closeCloudModal()" style="background:none; border:none; font-size:18px; color:var(--text-faint); cursor:pointer;">✕</button>
     </div>
     
-    <div id="cloudUserInfoBox" style="margin-bottom:14px; padding:10px 12px; border-radius:10px; background:var(--bg-elev); border:1.5px solid var(--line); font-size:12px;">
+    <div id="cloudUserInfoBox" style="margin-bottom:14px; padding:10px 12px; border-radius:10px; background:var(--bg-elev); border:1px solid var(--line); font-size:12px;">
       <div style="color:var(--text-faint); font-weight:600; margin-bottom:2px;">Status połączenia:</div>
       <div style="font-weight:700; color:var(--text);" id="cloudUserEmailDisplay">Brak aktywnej sesji</div>
       <div style="font-size:10px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; word-break:break-all; margin-top:4px;" id="cloudUserIdDisplay"></div>
@@ -733,19 +875,18 @@
       </button>
     </div>
 
-    <!-- Konfiguracja Firebase dla własnego hostingu (np. GitHub Pages) -->
     <details style="font-size:12px; color:var(--text-dim); margin-top:8px;">
-      <summary style="cursor:pointer; font-weight:700; color:var(--accent);">⚙ Konfiguracja Firebase</summary>
+      <summary style="cursor:pointer; font-weight:700; color:#60a5fa;">⚙ Konfiguracja Firebase</summary>
       <div style="margin-top:8px; line-height:1.4;">
         Aplikacja ma już wbudowaną Twoją konfigurację Firebase. W razie potrzeby możesz ją nadpisać poniżej:
       </div>
-      <textarea id="customFirebaseConfigInput" placeholder='{"apiKey":"...","authDomain":"...","projectId":"..."}' style="width:100%; height:75px; font-family:'JetBrains Mono',monospace; font-size:11px; padding:6px; border:1.5px solid var(--line); border-radius:8px; margin-top:6px; resize:none;"></textarea>
+      <textarea id="customFirebaseConfigInput" placeholder='{"apiKey":"...","authDomain":"...","projectId":"..."}' style="width:100%; height:75px; font-family:'JetBrains Mono',monospace; font-size:11px; padding:6px; border:1px solid var(--line); border-radius:8px; margin-top:6px; resize:none; background:var(--bg-elev); color:var(--text);"></textarea>
       <button class="body-save-btn" style="margin-top:6px; padding:8px;" onclick="saveCustomFirebaseConfig()">Zapisz konfigurację</button>
     </details>
   </div>
 </div>
 
-<!-- Modal powitalny (bramka startowa przy pierwszym wejściu) -->
+<!-- Modal powitalny -->
 <div class="confirm-overlay" id="welcomeModalOverlay">
   <div class="confirm-modal" style="max-width:340px; text-align:center;">
     <div style="font-size:28px; margin-bottom:6px;">🏋️‍♂️</div>
@@ -755,7 +896,6 @@
     </div>
 
     <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:10px;">
-      <!-- Opcja 1: Google Sign-In -->
       <div class="auth-choice-card primary" onclick="handleGoogleSignIn()">
         <button class="auth-choice-btn google">
           🔑 Zaloguj przez Google
@@ -765,7 +905,6 @@
         </div>
       </div>
 
-      <!-- Opcja 2: Sesja gościa / lokalna -->
       <div class="auth-choice-card" onclick="handleGuestChoice()">
         <button class="auth-choice-btn guest">
           👤 Kontynuuj jako gość
@@ -783,7 +922,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInAnonymously, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-// Wbudowana konfiguracja Firebase Twojego projektu
 const BUILTIN_FIREBASE_CONFIG = {
   apiKey: "AIzaSyChnyBst4ByA-K8UfasxArgAnyle1JPnog",
   authDomain: "forge-725df.firebaseapp.com",
@@ -793,7 +931,6 @@ const BUILTIN_FIREBASE_CONFIG = {
   appId: "1:926503747482:web:2f32634d883f229cfe8423"
 };
 
-// Globalne referencje Firebase
 let app = null;
 let auth = null;
 let db = null;
@@ -803,7 +940,6 @@ let isSyncingFromRemote = false;
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'forge-pro-app';
 
-// Pobranie konfiguracji Firebase z pamięci, środowiska lub wbudowanej
 function getFirebaseConfig(){
   if(typeof __firebase_config !== 'undefined'){
     try { return JSON.parse(__firebase_config); } catch(e){}
@@ -815,7 +951,6 @@ function getFirebaseConfig(){
   return BUILTIN_FIREBASE_CONFIG;
 }
 
-// Inicjalizacja połączenia Firebase
 async function initFirebase(){
   const cfg = getFirebaseConfig();
   if(!cfg){
@@ -828,17 +963,14 @@ async function initFirebase(){
     auth = getAuth(app);
     db = getFirestore(app);
 
-    // Reakcja na stan uwierzytelnienia
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
       if(user){
         updateCloudStatusUI(user, 'Zalogowany');
         subscribeToUserData(user.uid);
-        // Jeśli użytkownik jest zalogowany przez Google, ukrywamy modal powitalny
         if(!user.isAnonymous){
           window.closeWelcomeModal();
         } else {
-          // Sesja gościa - jeśli użytkownik już wcześniej wybrał gościa, ukrywamy modal
           if(localStorage.getItem('forge_auth_choice_made') === 'true'){
             window.closeWelcomeModal();
           } else {
@@ -851,7 +983,6 @@ async function initFirebase(){
           unsubscribeSnapshot();
           unsubscribeSnapshot = null;
         }
-        // Brak aktywnego użytkownika - sprawdzamy token środowiskowy lub wyświetlamy modal powitalny
         if(typeof __initial_auth_token !== 'undefined' && __initial_auth_token){
           await signInWithCustomToken(auth, __initial_auth_token);
         } else {
@@ -865,7 +996,6 @@ async function initFirebase(){
   }
 }
 
-// Obsługa wyboru kontynuacji jako gość
 window.handleGuestChoice = async function(){
   localStorage.setItem('forge_auth_choice_made', 'true');
   window.closeWelcomeModal();
@@ -889,12 +1019,10 @@ window.closeWelcomeModal = function(){
   if(modal) modal.classList.remove('open');
 };
 
-// Nasłuchiwanie zmian w czasie rzeczywistym z Firestore (RULE 1 & 2)
 function subscribeToUserData(userId){
   if(!db || !userId) return;
   if(unsubscribeSnapshot) unsubscribeSnapshot();
 
-  // Ścieżka użytkownika zgodna z RULE 1
   const userDocRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'workoutState');
 
   unsubscribeSnapshot = onSnapshot(userDocRef, (snap) => {
@@ -914,7 +1042,6 @@ function subscribeToUserData(userId){
         }
       }
     } else {
-      // Pierwsza inicjalizacja danych w chmurze
       syncStateToCloud();
     }
   }, (err) => {
@@ -923,7 +1050,6 @@ function subscribeToUserData(userId){
   });
 }
 
-// Zapis stanu aplikacji do Firestore
 export async function syncStateToCloud(){
   if(!db || !currentUser || isSyncingFromRemote) return;
   try {
@@ -941,7 +1067,6 @@ export async function syncStateToCloud(){
   }
 }
 
-// Logowanie przez Google Popup
 window.handleGoogleSignIn = async function(){
   if(!auth){
     window.showToast('Najpierw skonfiguruj Firebase');
@@ -960,7 +1085,6 @@ window.handleGoogleSignIn = async function(){
   }
 };
 
-// Logowanie anonimowe
 window.handleAnonymousSignIn = async function(){
   if(!auth) return;
   try {
@@ -974,7 +1098,6 @@ window.handleAnonymousSignIn = async function(){
   }
 };
 
-// Wylogowanie
 window.handleSignOut = async function(){
   if(!auth) return;
   try {
@@ -1045,22 +1168,19 @@ window.saveCustomFirebaseConfig = function(){
   try {
     JSON.parse(raw);
     localStorage.setItem('forge_custom_firebase_cfg', raw);
-    window.showToast('Zapisano! Przeładowywanie połączenia...');
+    window.showToast('Zapisano! Przeładowywanie...');
     setTimeout(() => { location.reload(); }, 600);
   } catch(e){
     window.showToast('Niepoprawny format JSON konfiguracji');
   }
 };
 
-// Eksport do obiektu window dla kodu aplikacji
 window.syncStateToCloud = syncStateToCloud;
-
-// Start Firebase po załadowaniu
 initFirebase();
 </script>
 
 <script>
-const MUSCLE_TARGETS = ['Klatka', 'Plecy', 'Czworogłowe', 'Dwugłowe', 'Barki', 'Biceps', 'Triceps', 'Brzuch'];
+const MUSCLE_TARGETS = ['Klatka', 'Plecy', 'Czworogłowe', 'Dwugłowe', 'Pośladki', 'Barki', 'Biceps', 'Triceps', 'Brzuch'];
 
 const DEFAULT_DAYS = [
   {
@@ -1100,13 +1220,14 @@ const DEFAULT_WEEK_META = {
   3: { rir: 1, rest: 150, restText: '2,5 min', label: 'Tydzień 3' },
   4: { rir: 1, rest: 150, restText: '2,5 min', label: 'Tydzień 4' },
   5: { rir: 0, rest: 180, restText: '3 min', label: 'Tydzień 5' },
-  6: { rir: 4, rest: 90, restText: '1,5 min', label: 'Tydzień 6 (deload)' },
+  6: { rir: 4, rest: 90, restText: '1,5 min', label: 'Tydzień 6' },
 };
 
 let state = {
   totalWeeks: 6,
   currentWeek: 1,
   customDays: JSON.parse(JSON.stringify(DEFAULT_DAYS)),
+  weekMeta: JSON.parse(JSON.stringify(DEFAULT_WEEK_META)),
   progress: {}, 
   history: [], 
   bodyLog: []
@@ -1116,7 +1237,6 @@ let activeSession = null;
 const STORAGE_KEY = 'forge_pro_state_v4';
 let saveTimer = null;
 
-// AudioContext do powiadomienia dźwiękowego stopera
 let audioCtx = null;
 function playTimerBeep(){
   try{
@@ -1144,23 +1264,22 @@ function loadState(){
     if(raw){
       const loaded = JSON.parse(raw);
       state = Object.assign(state, loaded);
-      // Ensure target labels exist and clear previous default preset notes
-      const oldDefaultNotes = [
-        'Ławka poz. płaska, chwyt na szerokość barków',
-        'Uchwyt neutralny V-bar',
-        'Pas zapięty od 3. serii',
-        'Kąt 30 st.',
-        'Bloczek na wysokości kolan',
-        'Płaskie buty, pauza 1s na dole',
-        'Paski na nadgarstki',
-        'Przytrzymanie w spięciu 1s',
-        'Biodra dociśnięte do ławki',
-        'Kąt 30 stopni',
-        'Z ciężarem przy pasie',
-        'Siedzisko poz. 3',
-        'Lekkie pochylenie tułowia',
-        'Kontrola fazy ekscentrycznej'
-      ];
+      if(!state.weekMeta){
+        state.weekMeta = JSON.parse(JSON.stringify(DEFAULT_WEEK_META));
+      }
+      for(let w=1; w<=state.totalWeeks; w++){
+        if(!state.weekMeta[w]){
+          state.weekMeta[w] = {
+            rir: Math.max(0, 4 - (w % 4)),
+            rest: 120,
+            restText: '2 min',
+            label: `Tydzień ${w}`
+          };
+        } else if(state.weekMeta[w].label && state.weekMeta[w].label.includes('(deload)')){
+          state.weekMeta[w].label = `Tydzień ${w}`;
+          delete state.weekMeta[w].tag;
+        }
+      }
       state.customDays.forEach(d => {
         d.exercises.forEach(ex => {
           if(!ex.target || ex.target === 'Nogi'){
@@ -1171,13 +1290,9 @@ function loadState(){
             ex.secondary = 'Dwugłowe';
           }
           if(!ex.secondary) ex.secondary = 'Brak';
-          if(ex.note === undefined || oldDefaultNotes.includes(ex.note)) ex.note = '';
+          if(ex.note === undefined) ex.note = '';
         });
       });
-      // Czyszczenie przykładowych/testowych pomiarów
-      if(state.bodyLog){
-        state.bodyLog = state.bodyLog.filter(item => item.weight !== 81.5 && item.weight !== 81.2);
-      }
     }
   }catch(e){
     console.log('Fresh start');
@@ -1209,8 +1324,37 @@ function doSave(){
 }
 
 function getWeekMeta(w){
+  if(state.weekMeta && state.weekMeta[w]){
+    return state.weekMeta[w];
+  }
   if(DEFAULT_WEEK_META[w]) return DEFAULT_WEEK_META[w];
   return { rir: Math.max(0, 4 - (w % 4)), rest: 120, restText: '2 min', label: `Tydzień ${w}` };
+}
+
+function formatRestSecondsToText(secs){
+  const m = secs / 60;
+  return Number.isInteger(m) ? `${m} min` : `${m.toFixed(1).replace('.', ',')} min`;
+}
+
+function updateWeekMeta(weekNum, field, value){
+  if(!state.weekMeta) state.weekMeta = {};
+  if(!state.weekMeta[weekNum]){
+    state.weekMeta[weekNum] = Object.assign({}, getWeekMeta(weekNum));
+  }
+  const meta = state.weekMeta[weekNum];
+
+  if(field === 'rir'){
+    meta.rir = parseInt(value, 10);
+  } else if(field === 'rest'){
+    meta.rest = parseInt(value, 10);
+    meta.restText = formatRestSecondsToText(meta.rest);
+  }
+  meta.label = `Tydzień ${weekNum}`;
+
+  saveState();
+  const currentMeta = getWeekMeta(state.currentWeek);
+  const headerLabel = document.getElementById('headerWeekLabel');
+  if(headerLabel) headerLabel.textContent = currentMeta.label;
 }
 
 function getPlanForWeek(w){
@@ -1303,7 +1447,6 @@ function calculateSessionTonnage(prog, dayPlan){
   return Math.round(tonnage);
 }
 
-// Estimate 1RM (Epley formula: W * (1 + R/30))
 function estimate1RM(weight, reps){
   const w = parseFloat(weight) || 0;
   const r = parseFloat(reps) || 0;
@@ -1323,7 +1466,7 @@ function renderHome(){
     weekSel.appendChild(pill);
     if(w === state.currentWeek){
       setTimeout(() => {
-        pill.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        weekSel.scrollTo({ left: pill.offsetLeft - (weekSel.clientWidth / 2) + (pill.clientWidth / 2), behavior: 'smooth' });
       }, 50);
     }
   }
@@ -1339,7 +1482,6 @@ function renderHome(){
     const dayPlan = weekPlan[day.id];
     const complete = isDayComplete(state.currentWeek, day.id);
     const doneSets = countCompletedSets(state.currentWeek, day.id);
-    const totalSets = totalSetsForDay(state.currentWeek, day.id);
 
     const card = document.createElement('div');
     card.className = 'day-card' + (complete ? ' complete' : '');
@@ -1420,7 +1562,6 @@ function checkCycleProgression(week){
   const isWeekComplete = (w) => state.customDays.every(d => isDayComplete(w, d.id));
   const allWeeksCompleted = Array.from({length: state.totalWeeks}, (_, i) => i + 1).every(w => isWeekComplete(w));
 
-  // Jeśli ukończono wszystkie treningi we wszystkich tygodniach -> reset cyklu do Tygodnia 1
   if(allWeeksCompleted){
     Object.keys(state.progress).forEach(k => {
       if(state.progress[k]){
@@ -1437,7 +1578,6 @@ function checkCycleProgression(week){
     return true;
   }
 
-  // Jeśli ukończono bieżący tydzień -> przejście do kolejnego tygodnia
   if(isWeekComplete(week)){
     if(week < state.totalWeeks){
       state.currentWeek = week + 1;
@@ -1483,9 +1623,15 @@ function scrollToDayCard(dayId){
   setTimeout(() => {
     const card = document.getElementById(`day-card-${dayId}`);
     if(card){
-      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const headerOffset = 75;
+      const elementPosition = card.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
-  }, 120);
+  }, 100);
 }
 
 function renderSession(){
@@ -1500,8 +1646,17 @@ function renderSession(){
   document.getElementById('progressFill').style.width = totalSets ? `${(doneSets/totalSets*100)}%` : '0%';
 
   const content = document.getElementById('sessionContent');
-  let html = `<h2 style="font-size:22px; font-weight:800; margin:0 0 4px; color:var(--text);">${dayPlan.name}</h2>
-    <div style="color:var(--text-faint); font-size:14px; font-weight:600; margin-bottom:18px;">${dayPlan.focus} · ${meta.label}</div>`;
+  let html = `
+    <div class="session-title-row">
+      <div>
+        <h2 style="font-size:22px; font-weight:800; margin:0 0 4px; color:var(--text);">${dayPlan.name}</h2>
+        <div style="color:var(--text-faint); font-size:14px; font-weight:600;">${meta.label}</div>
+      </div>
+      <button class="session-reset-btn" onclick="confirmResetCurrentSession()" title="Wyczyść wpisane serie i ciężary">
+        <span>🗑</span> Wyczyść trening
+      </button>
+    </div>
+  `;
 
   dayPlan.exercises.forEach((ex, exIdx) => {
     if(!prog.setsDone[ex.id]) prog.setsDone[ex.id] = new Array(ex.sets).fill(false);
@@ -1519,7 +1674,6 @@ function renderSession(){
     const lastPerf = findLastExercisePerformance(ex.name);
 
     const secBadge = (ex.secondary && ex.secondary !== 'Brak') ? `<span class="badge secondary-target">+ ${ex.secondary} (0.5)</span>` : '';
-
     const noteHtml = (ex.note && ex.note.trim() !== '') ? `<div class="ex-note-display" style="margin-top:6px; margin-bottom:4px;">📝 <span>${ex.note.trim()}</span></div>` : '';
 
     html += `<div class="exercise-card ${isCurrent ? 'current' : ''} ${allDone ? 'done' : ''}" id="ex-${ex.id}">
@@ -1542,7 +1696,6 @@ function renderSession(){
         </div>
       </div>`;
 
-    // Ghost data chip
     if(lastPerf){
       html += `<div class="ghost-box">
         <span class="ghost-label">Ostatnio (Tyg ${lastPerf.week}):</span>
@@ -1608,10 +1761,29 @@ function toggleSet(exId, setIdx, totalSets){
   saveState();
   updateSessionDOM();
 
-  // Jeśli seria została odhaczona jako ukończona -> włącz stoper przerw
   if(!wasDone){
     const meta = getWeekMeta(week);
     startRestTimer(meta.rest);
+
+    const dayPlan = getPlanForWeek(week)[day];
+    const exDone = prog.setsDone[exId].every(Boolean);
+    if(exDone){
+      const curExIdx = dayPlan.exercises.findIndex(e => e.id === exId);
+      const nextEx = dayPlan.exercises[curExIdx + 1];
+      setTimeout(() => {
+        if(nextEx){
+          const nextCard = document.getElementById(`ex-${nextEx.id}`);
+          if(nextCard){
+            nextCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        } else {
+          const nextBtn = document.getElementById('sessionNextBtn');
+          if(nextBtn){
+            nextBtn.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }
+      }, 250);
+    }
   }
 }
 
@@ -1649,7 +1821,6 @@ function updateSessionDOM(){
   }
 }
 
-// Logika stopera przerw
 let timerInterval = null;
 let timerSecondsLeft = 0;
 
@@ -1730,6 +1901,28 @@ function finishSession(){
   setTimeout(() => exitSession(nextDayId, advanced), 700);
 }
 
+function confirmResetCurrentSession(){
+  if(!activeSession) return;
+  showConfirmModal('Czy na pewno chcesz wyczyścić wszystkie wpisane serie i ciężary z tego treningu?', () => {
+    resetCurrentSessionData();
+  });
+}
+
+function resetCurrentSessionData(){
+  if(!activeSession) return;
+  const { week, day } = activeSession;
+  const prog = getDayProgress(week, day);
+  prog.setsDone = {};
+  prog.weights = {};
+  prog.reps = {};
+  prog.completed = false;
+  prog.date = null;
+  stopRestTimer();
+  saveState();
+  renderSession();
+  showToast('Wyczyszczono dane treningu');
+}
+
 function switchStatsSubtab(tab){
   document.getElementById('btnSubtabVolume').classList.toggle('active', tab === 'volume');
   document.getElementById('btnSubtabBody').classList.toggle('active', tab === 'body');
@@ -1740,7 +1933,6 @@ function switchStatsSubtab(tab){
 }
 
 function renderVolumeAndChart(){
-  // Objętość partii w obecnym tygodniu (model ułamkowy: główna 1.0 serii, pomocnicza 0.5 serii)
   const volumeMap = {};
   MUSCLE_TARGETS.forEach(m => volumeMap[m] = 0);
   volumeMap['Inne'] = 0;
@@ -1767,7 +1959,7 @@ function renderVolumeAndChart(){
   const maxSets = Math.max(1, ...Object.values(volumeMap));
   const container = document.getElementById('volumeMuscleBars');
   container.innerHTML = Object.entries(volumeMap).map(([m, sets]) => {
-    if(sets === 0 && (m === 'Inne' || m === 'Brzuch')) return '';
+    if(sets === 0 && (m === 'Inne' || m === 'Brzuch' || m === 'Pośladki')) return '';
     const pct = Math.round((sets / maxSets) * 100);
     const displaySets = Number.isInteger(sets) ? sets : sets.toFixed(1);
     return `
@@ -1779,7 +1971,6 @@ function renderVolumeAndChart(){
     `;
   }).join('');
 
-  // Dropdown wyboru ćwiczeń do wykresu
   const select = document.getElementById('chartExerciseSelect');
   const allExercises = [];
   state.customDays.forEach(d => d.exercises.forEach(e => {
@@ -1799,7 +1990,6 @@ function renderProgressChart(){
   const ctx = canvas.getContext('2d');
   const exName = document.getElementById('chartExerciseSelect').value;
 
-  // Pobierz dane historyczne dla tego ćwiczenia
   const points = [];
   const reversedHist = [...state.history].reverse();
   reversedHist.forEach(rec => {
@@ -1821,7 +2011,6 @@ function renderProgressChart(){
     }
   });
 
-  // Skalowanie pod Retina
   const rect = canvas.parentElement.getBoundingClientRect();
   canvas.width = rect.width * window.devicePixelRatio;
   canvas.height = rect.height * window.devicePixelRatio;
@@ -1840,15 +2029,14 @@ function renderProgressChart(){
     return;
   }
 
-  const padding = { top: 25, right: 25, bottom: 35, left: 40 };
+  const padding = { top: 25, right: 25, bottom: 35, left: 45 };
   const minVal = Math.min(...points.map(p => p.val)) * 0.9;
   const maxVal = Math.max(...points.map(p => p.val)) * 1.05;
 
   const getX = i => padding.left + (i / (points.length - 1)) * (W - padding.left - padding.right);
   const getY = v => H - padding.bottom - ((v - minVal) / (maxVal - minVal)) * (H - padding.top - padding.bottom);
 
-  // Linie siatki
-  ctx.strokeStyle = '#e2e8f0';
+  ctx.strokeStyle = '#22324d';
   ctx.lineWidth = 1;
   ctx.beginPath();
   for(let i=0; i<=3; i++){
@@ -1856,15 +2044,14 @@ function renderProgressChart(){
     const y = getY(yVal);
     ctx.moveTo(padding.left, y);
     ctx.lineTo(W - padding.right, y);
-    ctx.fillStyle = '#94a3b8';
+    ctx.fillStyle = '#64748b';
     ctx.font = '600 10px JetBrains Mono';
     ctx.textAlign = 'right';
     ctx.fillText(Math.round(yVal) + 'kg', padding.left - 6, y + 3);
   }
   ctx.stroke();
 
-  // Linia wykresu
-  ctx.strokeStyle = '#1d4ed8';
+  ctx.strokeStyle = '#3b82f6';
   ctx.lineWidth = 3;
   ctx.beginPath();
   points.forEach((p, i) => {
@@ -1875,35 +2062,33 @@ function renderProgressChart(){
   });
   ctx.stroke();
 
-  // Gradient wypełnienia
   const grad = ctx.createLinearGradient(0, padding.top, 0, H - padding.bottom);
-  grad.addColorStop(0, 'rgba(29, 78, 216, 0.25)');
-  grad.addColorStop(1, 'rgba(29, 78, 216, 0.0)');
+  grad.addColorStop(0, 'rgba(59, 130, 246, 0.35)');
+  grad.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
   ctx.fillStyle = grad;
   ctx.lineTo(getX(points.length - 1), H - padding.bottom);
   ctx.lineTo(getX(0), H - padding.bottom);
   ctx.closePath();
   ctx.fill();
 
-  // Punkty i etykiety
   points.forEach((p, i) => {
     const x = getX(i);
     const y = getY(p.val);
 
-    ctx.fillStyle = '#ffffff';
-    ctx.strokeStyle = '#1d4ed8';
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = '#60a5fa';
     ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(x, y, 4.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = '#090d16';
+    ctx.fillStyle = '#f1f5f9';
     ctx.font = '700 11px JetBrains Mono';
     ctx.textAlign = 'center';
     ctx.fillText(p.val + 'kg', x, y - 8);
 
-    ctx.fillStyle = '#64748b';
+    ctx.fillStyle = '#94a3b8';
     ctx.font = '600 10px Space Grotesk';
     ctx.fillText(p.label, x, H - padding.bottom + 16);
   });
@@ -1998,7 +2183,6 @@ function openExportModal(){
   const jsonStr = JSON.stringify(state, null, 2);
   document.getElementById('exportJsonTextarea').value = jsonStr;
   
-  // Sprawdzenie czy przeglądarka wspiera natywne udostępnianie plików (np. Safari na iPhone)
   const shareBtn = document.getElementById('btnShareNative');
   if(navigator.canShare && window.File){
     try {
@@ -2141,21 +2325,85 @@ function changeWeekCount(delta){
   const next = state.totalWeeks + delta;
   if(next < 1 || next > 16) return;
   state.totalWeeks = next;
+  if(!state.weekMeta) state.weekMeta = {};
+  for(let w=1; w<=state.totalWeeks; w++){
+    if(!state.weekMeta[w]){
+      state.weekMeta[w] = {
+        rir: Math.max(0, 4 - (w % 4)),
+        rest: 120,
+        restText: '2 min',
+        label: `Tydzień ${w}`
+      };
+    }
+  }
   if(state.currentWeek > state.totalWeeks) state.currentWeek = state.totalWeeks;
   document.getElementById('editorWeeksCount').textContent = state.totalWeeks;
   saveState();
+  renderEditor();
   renderHome();
   showToast(`Ustawiono ${state.totalWeeks} tyg. w planie`);
 }
 
+function renderWeeksMetaEditor(){
+  const container = document.getElementById('editorWeeksMetaList');
+  if(!container) return;
+  container.innerHTML = '';
+  
+  const restOptions = [
+    { s: 60, l: '1 min' },
+    { s: 90, l: '1,5 min' },
+    { s: 120, l: '2 min' },
+    { s: 150, l: '2,5 min' },
+    { s: 180, l: '3 min' },
+    { s: 210, l: '3,5 min' },
+    { s: 240, l: '4 min' },
+    { s: 300, l: '5 min' }
+  ];
+
+  for(let w = 1; w <= state.totalWeeks; w++){
+    const meta = getWeekMeta(w);
+    const card = document.createElement('div');
+    card.className = 'week-meta-card';
+    card.innerHTML = `
+      <div class="week-meta-top">
+        <span>Tydzień ${w}</span>
+        <span class="mono" style="font-size:12px; color:#60a5fa;">Tydzień ${w}</span>
+      </div>
+      <div class="week-meta-grid">
+        <div class="week-meta-field">
+          <label>RIR</label>
+          <select onchange="updateWeekMeta(${w}, 'rir', this.value)">
+            ${[0,1,2,3,4,5].map(r => `<option value="${r}" ${meta.rir === r ? 'selected' : ''}>RIR ${r}</option>`).join('')}
+          </select>
+        </div>
+        <div class="week-meta-field">
+          <label>Przerwa</label>
+          <select onchange="updateWeekMeta(${w}, 'rest', this.value)">
+            ${restOptions.map(opt => `<option value="${opt.s}" ${meta.rest === opt.s ? 'selected' : ''}>${opt.l}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    `;
+    container.appendChild(card);
+  }
+}
+
 function renderEditor(){
   document.getElementById('editorWeeksCount').textContent = state.totalWeeks;
+  renderWeeksMetaEditor();
   const container = document.getElementById('editorDaysList');
   container.innerHTML = '';
 
   state.customDays.forEach((d, dayIdx) => {
     const block = document.createElement('div');
     block.className = 'edit-day-block';
+
+    const canDelete = state.customDays.length > 1;
+    const deleteBtnHtml = canDelete ? `
+      <button class="btn-del-day" onclick="deleteEditorDay(${dayIdx})" title="Usuń trening">
+        🗑 Usuń trening
+      </button>
+    ` : '';
 
     let exercisesHtml = d.exercises.map((ex, exIdx) => `
       <div class="edit-ex-item">
@@ -2188,7 +2436,7 @@ function renderEditor(){
         </div>
         <div class="edit-ex-note-row">
           <label>Notatka techniczna / ustawienia (opcjonalnie)</label>
-          <input type="text" value="${ex.note || ''}" placeholder="np. Ławka kąt 30°, siedzisko poz. 2" onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)">
+          <input type="text" value="${ex.note || ''}" placeholder="" onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)">
         </div>
       </div>
     `).join('');
@@ -2196,15 +2444,12 @@ function renderEditor(){
     block.innerHTML = `
       <div class="edit-day-head">
         <div class="edit-input-group">
-          <label>Nazwa dnia</label>
+          <label>Nazwa treningu</label>
           <input type="text" value="${d.name}" onchange="updateEditorDay(${dayIdx}, 'name', this.value)">
         </div>
-        <div class="edit-input-group">
-          <label>Nacisk / Podział</label>
-          <input type="text" value="${d.focus}" onchange="updateEditorDay(${dayIdx}, 'focus', this.value)">
-        </div>
+        ${deleteBtnHtml}
       </div>
-      <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Ćwiczenia w tym dniu</div>
+      <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Ćwiczenia w tym treningu</div>
       <div>${exercisesHtml}</div>
       <button class="btn-add-ex" onclick="addEditorExercise(${dayIdx})">+ Dodaj ćwiczenie</button>
     `;
@@ -2216,6 +2461,46 @@ function updateEditorDay(dayIdx, field, val){
   state.customDays[dayIdx][field] = val;
   saveState();
   renderHome();
+}
+
+function addEditorDay(){
+  const nextNum = state.customDays.length + 1;
+  const newDay = {
+    id: Date.now(),
+    name: `Trening ${nextNum}`,
+    focus: '',
+    exercises: [
+      {
+        id: 'ex_' + Date.now() + '_1',
+        name: 'Nowe ćwiczenie',
+        target: 'Klatka',
+        secondary: 'Brak',
+        sets: 3,
+        reps: '8-12',
+        note: ''
+      }
+    ]
+  };
+  state.customDays.push(newDay);
+  saveState();
+  renderEditor();
+  renderHome();
+  showToast(`Dodano Trening ${nextNum}`);
+}
+
+function deleteEditorDay(dayIdx){
+  if(state.customDays.length <= 1){
+    showToast('Plan musi zawierać co najmniej jeden trening');
+    return;
+  }
+  const dayName = state.customDays[dayIdx].name;
+  showConfirmModal(`Czy na pewno chcesz usunąć "${dayName}" wraz z wszystkimi ćwiczeniami?`, () => {
+    state.customDays.splice(dayIdx, 1);
+    saveState();
+    renderEditor();
+    renderHome();
+    showToast(`Usunięto ${dayName}`);
+  });
 }
 
 function updateEditorExercise(dayIdx, exIdx, field, val){
@@ -2376,10 +2661,51 @@ function render(){
   renderHome();
 }
 
+/* Eksport wszystkich funkcji interaktywnych do zasięgu window */
+window.switchTab = switchTab;
+window.startSession = startSession;
+window.exitSession = exitSession;
+window.toggleDayComplete = toggleDayComplete;
+window.finishSession = finishSession;
+window.confirmResetCurrentSession = confirmResetCurrentSession;
+window.resetCurrentSessionData = resetCurrentSessionData;
+window.toggleSet = toggleSet;
+window.updateWeight = updateWeight;
+window.updateReps = updateReps;
+window.adjustRestTimer = adjustRestTimer;
+window.stopRestTimer = stopRestTimer;
+window.switchStatsSubtab = switchStatsSubtab;
+window.renderProgressChart = renderProgressChart;
+window.addBodyMeasurement = addBodyMeasurement;
+window.deleteBodyLogItem = deleteBodyLogItem;
+window.openExportModal = openExportModal;
+window.closeExportModal = closeExportModal;
+window.triggerFileDownload = triggerFileDownload;
+window.triggerNativeShare = triggerNativeShare;
+window.copyJsonToClipboard = copyJsonToClipboard;
+window.openImportTextModal = openImportTextModal;
+window.closeImportTextModal = closeImportTextModal;
+window.applyJsonFromText = applyJsonFromText;
+window.importDataJson = importDataJson;
+window.changeWeekCount = changeWeekCount;
+window.updateWeekMeta = updateWeekMeta;
+window.addEditorDay = addEditorDay;
+window.deleteEditorDay = deleteEditorDay;
+window.updateEditorDay = updateEditorDay;
+window.addEditorExercise = addEditorExercise;
+window.deleteEditorExercise = deleteEditorExercise;
+window.updateEditorExercise = updateEditorExercise;
+window.toggleHistDetail = toggleHistDetail;
+window.deleteHistoryItem = deleteHistoryItem;
+window.confirmClearHistory = confirmClearHistory;
+window.hideConfirmModal = hideConfirmModal;
+window.runConfirmedAction = runConfirmedAction;
+window.showToast = showToast;
+window.state = state;
+window.saveStateLocalOnly = saveStateLocalOnly;
+window.render = render;
+
 window.onload = function(){
-  window.state = state;
-  window.saveStateLocalOnly = saveStateLocalOnly;
-  window.render = render;
   loadState();
 };
 </script>

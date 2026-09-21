@@ -718,9 +718,9 @@
 
     <!-- Konfiguracja Firebase dla własnego hostingu (np. GitHub Pages) -->
     <details style="font-size:12px; color:var(--text-dim); margin-top:8px;">
-      <summary style="cursor:pointer; font-weight:700; color:var(--accent);">⚙ Konfiguracja Firebase dla GitHub Pages</summary>
+      <summary style="cursor:pointer; font-weight:700; color:var(--accent);">⚙ Konfiguracja Firebase</summary>
       <div style="margin-top:8px; line-height:1.4;">
-        Jeśli uruchamiasz stronę na własnej domenie lub GitHub Pages, wklej konfigurację JSON projektu z Firebase Console:
+        Aplikacja ma już wbudowaną Twoją konfigurację Firebase. W razie potrzeby możesz ją nadpisać poniżej:
       </div>
       <textarea id="customFirebaseConfigInput" placeholder='{"apiKey":"...","authDomain":"...","projectId":"..."}' style="width:100%; height:75px; font-family:'JetBrains Mono',monospace; font-size:11px; padding:6px; border:1.5px solid var(--line); border-radius:8px; margin-top:6px; resize:none;"></textarea>
       <button class="body-save-btn" style="margin-top:6px; padding:8px;" onclick="saveCustomFirebaseConfig()">Zapisz konfigurację</button>
@@ -733,6 +733,16 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebas
 import { getAuth, signInAnonymously, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+// Wbudowana konfiguracja Firebase Twojego projektu
+const BUILTIN_FIREBASE_CONFIG = {
+  apiKey: "AIzaSyChnyBst4ByA-K8UfasxArgAnyle1JPnog",
+  authDomain: "forge-725df.firebaseapp.com",
+  projectId: "forge-725df",
+  storageBucket: "forge-725df.firebasestorage.app",
+  messagingSenderId: "926503747482",
+  appId: "1:926503747482:web:2f32634d883f229cfe8423"
+};
+
 // Globalne referencje Firebase
 let app = null;
 let auth = null;
@@ -743,7 +753,7 @@ let isSyncingFromRemote = false;
 
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'forge-pro-app';
 
-// Pobranie konfiguracji Firebase z pamięci lub środowiska
+// Pobranie konfiguracji Firebase z pamięci, środowiska lub wbudowanej
 function getFirebaseConfig(){
   if(typeof __firebase_config !== 'undefined'){
     try { return JSON.parse(__firebase_config); } catch(e){}
@@ -752,7 +762,7 @@ function getFirebaseConfig(){
   if(saved){
     try { return JSON.parse(saved); } catch(e){}
   }
-  return null;
+  return BUILTIN_FIREBASE_CONFIG;
 }
 
 // Inicjalizacja połączenia Firebase
@@ -917,7 +927,7 @@ function updateCloudStatusUI(user, statusLabel){
 }
 
 window.openCloudModal = function(){
-  const cfg = localStorage.getItem('forge_custom_firebase_cfg') || '';
+  const cfg = localStorage.getItem('forge_custom_firebase_cfg') || JSON.stringify(BUILTIN_FIREBASE_CONFIG, null, 2);
   document.getElementById('customFirebaseConfigInput').value = cfg;
   document.getElementById('cloudModalOverlay').classList.add('open');
 };
@@ -930,7 +940,8 @@ window.saveCustomFirebaseConfig = function(){
   const raw = document.getElementById('customFirebaseConfigInput').value.trim();
   if(!raw){
     localStorage.removeItem('forge_custom_firebase_cfg');
-    window.showToast('Usunięto konfigurację chmury');
+    window.showToast('Przywrócono domyślną konfigurację');
+    setTimeout(() => { location.reload(); }, 600);
     return;
   }
   try {

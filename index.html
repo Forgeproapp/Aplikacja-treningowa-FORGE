@@ -363,9 +363,69 @@
   .week-meta-card.collapsed .week-meta-top{ margin:0; }
   .collapse-summary{ display:flex; align-items:center; gap:6px; }
 
+  /* Drag & Drop Styles */
+  .drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-faint);
+    font-size: 20px;
+    cursor: grab;
+    user-select: none;
+    touch-action: none;
+    padding: 6px 10px;
+    border-radius: 8px;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .drag-handle:active {
+    cursor: grabbing;
+    color: #60a5fa;
+    background: var(--accent-deep);
+  }
+
+  .edit-day-block.dragging,
+  .edit-ex-item.dragging {
+    opacity: 0.35 !important;
+    border-style: dashed !important;
+    border-color: #60a5fa !important;
+    transform: scale(0.99);
+  }
+
+  .edit-day-block.drag-over,
+  .edit-ex-item.drag-over {
+    border-color: #38bdf8 !important;
+    background: rgba(56, 189, 248, 0.12) !important;
+    box-shadow: inset 0 0 0 2px #38bdf8, 0 6px 20px rgba(56, 189, 248, 0.2);
+  }
+
+  /* Pływająca plakietka pod palcem przy przeciąganiu */
+  .touch-drag-badge {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    background: #0f172a;
+    border: 1.5px solid #38bdf8;
+    color: #f1f5f9;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 8px 14px;
+    border-radius: 12px;
+    box-shadow: 0 12px 32px rgba(0,0,0,0.8), 0 0 16px rgba(56,189,248,0.4);
+    transform: translate(-50%, -130%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+    animation: touchBadgePop 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes touchBadgePop {
+    from { transform: translate(-50%, -100%) scale(0.85); opacity:0; }
+    to { transform: translate(-50%, -130%) scale(1); opacity:1; }
+  }
+
   .edit-day-block{
     background:var(--bg-elev); border:1px solid var(--line); border-radius:var(--radius);
-    padding:14px; margin-bottom:16px;
+    padding:14px; margin-bottom:16px; transition: border-color 0.15s, background 0.15s, transform 0.15s;
   }
   .edit-day-block.collapsed{ padding:0; overflow:hidden; }
   .edit-day-block.collapsed .edit-day-collapsible-head{ padding:14px; }
@@ -404,7 +464,7 @@
   .edit-ex-item{
     background:var(--bg-card); border:1px solid var(--line); border-radius:12px;
     padding:12px; margin-bottom:12px; display:flex; flex-direction:column; gap:10px;
-    box-shadow:0 2px 8px rgba(0, 0, 0, 0.2);
+    box-shadow:0 2px 8px rgba(0, 0, 0, 0.2); transition: border-color 0.15s, background 0.15s, transform 0.15s;
   }
   .edit-ex-top-row{
     display:flex; gap:8px; align-items:center;
@@ -415,7 +475,10 @@
   }
   .edit-ex-name-input:focus{outline:none; border-color:var(--accent-dim); background:#1e293b;}
   .edit-ex-bottom-row{
-    display:grid; grid-template-columns: 1.1fr 1.1fr 0.7fr 0.9fr; gap:6px; align-items:center;
+    display:grid; grid-template-columns: 1fr 1fr; gap:6px; align-items:center;
+  }
+  .edit-ex-specs-row{
+    display:grid; grid-template-columns: 0.8fr 1fr 1fr; gap:6px; align-items:center;
   }
   .edit-subfield label{
     display:block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); margin-bottom:3px;
@@ -760,9 +823,17 @@
     </div>
 
     <div class="editor-section">
+      <div class="editor-section-title">Zaplanowana objętość tygodniowa</div>
+      <div style="font-size:12px; font-weight:600; color:var(--text-faint); margin-bottom:14px;">
+        Suma zaplanowanych serii roboczych w mikrocyklu (partia główna = 1.0, pomocnicza = 0.5):
+      </div>
+      <div id="editorVolumeBars"></div>
+    </div>
+
+    <div class="editor-section">
       <div class="editor-section-title">Konfiguracja treningów i ćwiczeń</div>
       <div style="font-size:12px; font-weight:600; color:var(--text-faint); margin-bottom:14px;">
-        Zdefiniuj bazowe treningi, przypisz partię mięśniową do ćwiczenia oraz zaplanuj serie i powtórzenia.
+        Zdefiniuj bazowe treningi, przypisz partię mięśniową do ćwiczenia oraz zaplanuj serie i powtórzenia. Użyj uchwytów <b>⠿</b>, aby zmieniać kolejność treningów i ćwiczeń. Możesz przewijać stronę drugim palcem podczas trzymania kafelka!
       </div>
       <div id="editorDaysList"></div>
       <button class="btn-add-day" onclick="addEditorDay()">+ Dodaj nowy trening</button>
@@ -955,6 +1026,13 @@ let isSyncingFromRemote = false;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'forge-pro-app';
 
 function getFirebaseConfig(){
+  if(typeof __firebase_config !== 'undefined' && __firebase_config){
+    try {
+      return typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
+    } catch(e){
+      console.warn('Nie udało się sparsować __firebase_config:', e);
+    }
+  }
   return BUILTIN_FIREBASE_CONFIG;
 }
 
@@ -991,9 +1069,26 @@ async function initFirebase(){
           unsubscribeSnapshot = null;
         }
         if(typeof __initial_auth_token !== 'undefined' && __initial_auth_token){
-          await signInWithCustomToken(auth, __initial_auth_token);
+          try {
+            await signInWithCustomToken(auth, __initial_auth_token);
+          } catch(tokenErr){
+            console.warn('Wystąpił błąd tokena autoryzacyjnego (mismatch), przejście do trybu lokalnego/gościa:', tokenErr);
+            if(localStorage.getItem('forge_auth_choice_made') === 'true'){
+              try {
+                await signInAnonymously(auth);
+              } catch(anonErr){}
+            } else {
+              window.openWelcomeModal();
+            }
+          }
         } else {
-          window.openWelcomeModal();
+          if(localStorage.getItem('forge_auth_choice_made') === 'true'){
+            try {
+              await signInAnonymously(auth);
+            } catch(anonErr){}
+          } else {
+            window.openWelcomeModal();
+          }
         }
       }
     });
@@ -1173,30 +1268,30 @@ const DEFAULT_DAYS = [
   {
     id: 1, name: 'Trening 1', focus: 'Plecy / Barki',
     exercises: [
-      { id: 'ex_1_0', name:'Płaska (wyciskanie)', target:'Klatka', secondary:'Triceps', sets:3, reps:'6-10', note:'' },
-      { id: 'ex_1_1', name:'Wiosło na wyciągu siedząc', target:'Plecy', secondary:'Biceps', sets:3, reps:'6-10', note:'' },
-      { id: 'ex_1_2', name:'OHP', target:'Barki', secondary:'Triceps', sets:4, reps:'6-10', note:'' },
-      { id: 'ex_1_3', name:'Chest supported row nachwyt', target:'Plecy', secondary:'Biceps', sets:2, reps:'6-10', note:'' },
-      { id: 'ex_1_4', name:'Wznosy bokiem (linki)', target:'Barki', secondary:'Brak', sets:4, reps:'10-20', note:'' },
+      { id: 'ex_1_0', name:'Płaska (wyciskanie)', target:'Klatka', secondary:'Triceps', sets:3, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_1_1', name:'Wiosło na wyciągu siedząc', target:'Plecy', secondary:'Biceps', sets:3, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_1_2', name:'OHP', target:'Barki', secondary:'Triceps', sets:4, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_1_3', name:'Chest supported row nachwyt', target:'Plecy', secondary:'Biceps', sets:2, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_1_4', name:'Wznosy bokiem (linki)', target:'Barki', secondary:'Brak', sets:4, weight:'', reps:'10-20', note:'' },
     ]
   },
   {
     id: 2, name: 'Trening 2', focus: 'Nogi',
     exercises: [
-      { id: 'ex_2_0', name:'Przysiady', target:'Czworogłowe', secondary:'Brak', sets:3, reps:'6-10', note:'' },
-      { id: 'ex_2_1', name:'RDL', target:'Dwugłowe', secondary:'Plecy', sets:3, reps:'6-10', note:'' },
-      { id: 'ex_2_2', name:'Wyprosty czwórgłowych', target:'Czworogłowe', secondary:'Brak', sets:3, reps:'10-20', note:'' },
-      { id: 'ex_2_3', name:'Uginanie nóg leżąc', target:'Dwugłowe', secondary:'Brak', sets:3, reps:'10-20', note:'' },
+      { id: 'ex_2_0', name:'Przysiady', target:'Czworogłowe', secondary:'Brak', sets:3, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_2_1', name:'RDL', target:'Dwugłowe', secondary:'Plecy', sets:3, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_2_2', name:'Wyprosty czwórgłowych', target:'Czworogłowe', secondary:'Brak', sets:3, weight:'', reps:'10-20', note:'' },
+      { id: 'ex_2_3', name:'Uginanie nóg leżąc', target:'Dwugłowe', secondary:'Brak', sets:3, weight:'', reps:'10-20', note:'' },
     ]
   },
   {
     id: 3, name: 'Trening 3', focus: 'Klatka / Plecy górne',
     exercises: [
-      { id: 'ex_3_0', name:'Skos dodatni (hantle)', target:'Klatka', secondary:'Triceps', sets:3, reps:'6-10', note:'' },
-      { id: 'ex_3_1', name:'Podciąganie podchwytem', target:'Plecy', secondary:'Biceps', sets:3, reps:'6-10', note:'' },
-      { id: 'ex_3_2', name:'Wyciskanie siedząc maszyna', target:'Klatka', secondary:'Triceps', sets:4, reps:'8-12', note:'' },
-      { id: 'ex_3_3', name:'Dipy', target:'Klatka', secondary:'Triceps', sets:2, reps:'6-10', note:'' },
-      { id: 'ex_3_4', name:'Wznosy bokiem hantle', target:'Barki', secondary:'Brak', sets:4, reps:'10-20', note:'' },
+      { id: 'ex_3_0', name:'Skos dodatni (hantle)', target:'Klatka', secondary:'Triceps', sets:3, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_3_1', name:'Podciąganie podchwytem', target:'Plecy', secondary:'Biceps', sets:3, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_3_2', name:'Wyciskanie siedząc maszyna', target:'Klatka', secondary:'Triceps', sets:4, weight:'', reps:'8-12', note:'' },
+      { id: 'ex_3_3', name:'Dipy', target:'Klatka', secondary:'Triceps', sets:2, weight:'', reps:'6-10', note:'' },
+      { id: 'ex_3_4', name:'Wznosy bokiem hantle', target:'Barki', secondary:'Brak', sets:4, weight:'', reps:'10-20', note:'' },
     ]
   }
 ];
@@ -1223,6 +1318,12 @@ let state = {
 let activeSession = null;
 const STORAGE_KEY = 'forge_pro_state_v4';
 let saveTimer = null;
+
+let draggedDayIndex = null;
+let draggedEx = null;
+
+/* Stan przeciągania na ekranie dotykowym */
+let touchDragState = null;
 
 let audioCtx = null;
 function playTimerBeep(){
@@ -1278,6 +1379,7 @@ function loadState(){
           }
           if(!ex.secondary) ex.secondary = 'Brak';
           if(ex.note === undefined) ex.note = '';
+          if(ex.weight === undefined) ex.weight = '';
         });
       });
     }
@@ -1357,6 +1459,7 @@ function getPlanForWeek(w){
         target: ex.target || 'Inne',
         secondary: ex.secondary || 'Brak',
         sets: Number(ex.sets) || 1,
+        weight: ex.weight !== undefined && ex.weight !== null ? ex.weight : '',
         reps: ex.reps || '8-12',
         note: ex.note || ''
       }))
@@ -1400,16 +1503,24 @@ function findLastExercisePerformance(exerciseName){
     const match = record.exercises.find(e => e.name.toLowerCase() === exerciseName.toLowerCase());
     if(match && match.weights && match.weights.length > 0){
       const validSets = [];
+      let firstWeight = null;
+      let firstReps = null;
       for(let i=0; i<match.weights.length; i++){
         if(match.weights[i] && match.reps[i]){
           validSets.push(`${match.weights[i]}kg×${match.reps[i]}`);
+          if(firstWeight === null){
+            firstWeight = match.weights[i];
+            firstReps = match.reps[i];
+          }
         }
       }
       if(validSets.length > 0){
         return {
           date: record.date,
           week: record.week,
-          summary: validSets.join(' | ')
+          summary: validSets.join(' | '),
+          firstWeight: firstWeight,
+          firstReps: firstReps
         };
       }
     }
@@ -1480,7 +1591,10 @@ function renderHome(){
       </div>
       <div class="ex-mini-list">
         ${dayPlan.exercises.map(ex => `
-          <div class="ex-mini"><span class="n">${ex.name}</span><span class="d mono">${ex.sets}×${ex.reps}</span></div>
+          <div class="ex-mini">
+            <span class="n">${ex.name}</span>
+            <span class="d mono">${ex.sets}×${ex.reps}${ex.weight ? ` · ${ex.weight}kg` : ''}</span>
+          </div>
         `).join('')}
       </div>
       <button class="start-btn ${complete ? 'secondary' : ''}" onclick="startSession(${state.currentWeek}, ${day.id})">
@@ -1494,7 +1608,6 @@ function renderHome(){
 function confirmToggleDayComplete(week, day){
   const prog = getDayProgress(week, day);
   if(prog.completed){
-    // odznaczanie nie wymaga potwierdzenia
     toggleDayComplete(week, day);
     return;
   }
@@ -1672,6 +1785,10 @@ function renderSession(){
     const isCurrent = !allDone && dayPlan.exercises.slice(0, exIdx).every(e => prog.setsDone[e.id]?.every(Boolean));
     const lastPerf = findLastExercisePerformance(ex.name);
 
+    const assignedWeight = (ex.weight !== undefined && ex.weight !== null && ex.weight !== '') ? ex.weight : null;
+    const displayWeight = assignedWeight ? `${assignedWeight} kg` : (lastPerf && lastPerf.firstWeight ? `${lastPerf.firstWeight} kg` : null);
+    const weightBadgeHtml = displayWeight ? `<span class="badge">${displayWeight}</span>` : '';
+
     const secBadge = (ex.secondary && ex.secondary !== 'Brak') ? `<span class="badge secondary-target">+ ${ex.secondary} (0.5)</span>` : '';
     const noteHtml = (ex.note && ex.note.trim() !== '') ? `<div class="ex-note-display" style="margin-top:6px; margin-bottom:4px;">📝 <span>${ex.note.trim()}</span></div>` : '';
 
@@ -1687,6 +1804,7 @@ function renderSession(){
             </div>
             <div class="badge-row">
               <span class="badge">${ex.sets} serie</span>
+              ${weightBadgeHtml}
               <span class="badge">${ex.reps} powt.</span>
               <span class="badge rir">RIR ${meta.rir}</span>
               <span class="badge rest">⏱ ${meta.restText}</span>
@@ -1709,13 +1827,19 @@ function renderSession(){
 
     for(let s=0; s<ex.sets; s++){
       const setDone = prog.setsDone[ex.id][s];
+      const isFirstSet = s === 0;
+      const weightPlaceholder = assignedWeight ? `${assignedWeight}` : ((isFirstSet && lastPerf && lastPerf.firstWeight) ? `${lastPerf.firstWeight}` : 'kg');
+      const repsPlaceholder = (isFirstSet && lastPerf && lastPerf.firstReps) ? `${lastPerf.firstReps}` : ex.reps.split('-')[0];
+
       html += `<div class="set-row">
         <div class="set-num mono">${s+1}</div>
-        <input class="set-input mono" type="number" inputmode="decimal" placeholder="kg"
+        <input class="set-input mono" data-ex="${ex.id}" data-set="${s}" data-type="weight" type="number" inputmode="decimal" placeholder="${weightPlaceholder}"
           value="${prog.weights[ex.id][s]}"
+          oninput="updateWeight('${ex.id}', ${s}, this.value)"
           onchange="updateWeight('${ex.id}', ${s}, this.value)">
-        <input class="set-input mono" type="number" inputmode="numeric" placeholder="${ex.reps.split('-')[0]}"
+        <input class="set-input mono" data-ex="${ex.id}" data-set="${s}" data-type="reps" type="number" inputmode="numeric" placeholder="${repsPlaceholder}"
           value="${prog.reps[ex.id][s]}"
+          oninput="updateReps('${ex.id}', ${s}, this.value)"
           onchange="updateReps('${ex.id}', ${s}, this.value)">
         <button class="set-check ${setDone ? 'done' : ''}" data-ex="${ex.id}" data-set="${s}" onclick="toggleSet('${ex.id}', ${s}, ${ex.sets})"></button>
       </div>`;
@@ -1741,15 +1865,65 @@ function resizeArray(arr, newLen, fill){
 function updateWeight(exId, setIdx, val){
   const { week, day } = activeSession;
   const prog = getDayProgress(week, day);
+  if(!prog.weights[exId]) prog.weights[exId] = [];
+  const oldVal = prog.weights[exId][setIdx] ?? '';
   prog.weights[exId][setIdx] = val;
+
+  const dayPlan = getPlanForWeek(week)[day];
+  const ex = dayPlan.exercises.find(e => e.id === exId);
+  const totalSets = ex ? ex.sets : (prog.weights[exId]?.length || 0);
+
+  // Autouzupełnianie kolejnych serii, jeśli były puste lub miały tę samą wartość
+  for(let i = setIdx + 1; i < totalSets; i++){
+    const curVal = prog.weights[exId][i];
+    if(curVal === undefined || curVal === '' || curVal === oldVal){
+      prog.weights[exId][i] = val;
+      const inputEl = document.querySelector(`input[data-ex="${exId}"][data-set="${i}"][data-type="weight"]`);
+      if(inputEl && inputEl !== document.activeElement){
+        inputEl.value = val;
+      }
+    }
+  }
   saveState();
 }
 
 function updateReps(exId, setIdx, val){
   const { week, day } = activeSession;
   const prog = getDayProgress(week, day);
+  if(!prog.reps[exId]) prog.reps[exId] = [];
+  const oldVal = prog.reps[exId][setIdx] ?? '';
   prog.reps[exId][setIdx] = val;
+
+  const dayPlan = getPlanForWeek(week)[day];
+  const ex = dayPlan.exercises.find(e => e.id === exId);
+  const totalSets = ex ? ex.sets : (prog.reps[exId]?.length || 0);
+
+  // Autouzupełnianie powtórzeń w kolejnych seriach
+  for(let i = setIdx + 1; i < totalSets; i++){
+    const curVal = prog.reps[exId][i];
+    if(curVal === undefined || curVal === '' || curVal === oldVal){
+      prog.reps[exId][i] = val;
+      const inputEl = document.querySelector(`input[data-ex="${exId}"][data-set="${i}"][data-type="reps"]`);
+      if(inputEl && inputEl !== document.activeElement){
+        inputEl.value = val;
+      }
+    }
+  }
   saveState();
+}
+
+function applyLastWeightToExercise(exId, weight, reps){
+  if(weight !== undefined && weight !== null && weight !== ''){
+    updateWeight(exId, 0, weight);
+    const wInput = document.querySelector(`input[data-ex="${exId}"][data-set="0"][data-type="weight"]`);
+    if(wInput) wInput.value = weight;
+  }
+  if(reps !== undefined && reps !== null && reps !== ''){
+    updateReps(exId, 0, reps);
+    const rInput = document.querySelector(`input[data-ex="${exId}"][data-set="0"][data-type="reps"]`);
+    if(rInput) rInput.value = reps;
+  }
+  showToast(`Zastosowano ciężar z poprzedniego treningu (${weight} kg) ✓`);
 }
 
 function toggleSet(exId, setIdx, totalSets){
@@ -2408,9 +2582,272 @@ function toggleEditorDay(dayId){
   renderEditor();
 }
 
+/* =========================================================================
+   ZAAWANSOWANY SYSTEM PRZECIĄGANIA (TOUCH & MULTI-TOUCH DLA TELEFONÓW + MYSZ)
+   ========================================================================= */
+
+function initTouchDrag(e, type, dayIdx, exIdx, element, label) {
+  if (touchDragState) return;
+  const touch = e.touches[0];
+  
+  if (navigator.vibrate) {
+    try { navigator.vibrate(35); } catch(err){}
+  }
+
+  const badge = document.createElement('div');
+  badge.className = 'touch-drag-badge';
+  badge.innerHTML = `<span style="color:#38bdf8;">⠿</span> <span>${label}</span>`;
+  document.body.appendChild(badge);
+  badge.style.left = touch.clientX + 'px';
+  badge.style.top = (touch.clientY - 25) + 'px';
+
+  element.classList.add('dragging');
+
+  touchDragState = {
+    type: type,
+    dayIdx: dayIdx,
+    exIdx: exIdx,
+    primaryId: touch.identifier,
+    secondaryId: null,
+    lastSecondaryY: null,
+    lastPrimX: touch.clientX,
+    lastPrimY: touch.clientY,
+    targetDayIdx: dayIdx,
+    targetExIdx: exIdx,
+    element: element,
+    badge: badge,
+    autoScrollTimer: null,
+    autoScrollSpeed: 0
+  };
+}
+
+function handlePrimaryTouchMove(clientX, clientY) {
+  if (!touchDragState) return;
+  touchDragState.lastPrimX = clientX;
+  touchDragState.lastPrimY = clientY;
+
+  if (touchDragState.badge) {
+    touchDragState.badge.style.left = clientX + 'px';
+    touchDragState.badge.style.top = (clientY - 25) + 'px';
+  }
+
+  // Automatyczne przewijanie przy zbliżeniu do górnej lub dolnej krawędzi
+  const edgeZone = 80;
+  const viewportH = window.innerHeight;
+  if (clientY < edgeZone) {
+    const intensity = (edgeZone - clientY) / edgeZone;
+    touchDragState.autoScrollSpeed = -Math.round(intensity * 14) - 3;
+    startAutoScroll();
+  } else if (clientY > viewportH - edgeZone) {
+    const intensity = (clientY - (viewportH - edgeZone)) / edgeZone;
+    touchDragState.autoScrollSpeed = Math.round(intensity * 14) + 3;
+    startAutoScroll();
+  } else {
+    stopAutoScroll();
+  }
+
+  updateDropTarget(clientX, clientY);
+}
+
+function updateDropTarget(clientX, clientY) {
+  if (!touchDragState) return;
+  
+  if (touchDragState.type === 'day') {
+    document.querySelectorAll('.edit-day-block').forEach(b => b.classList.remove('drag-over'));
+    const elem = document.elementFromPoint(clientX, clientY);
+    const targetBlock = elem ? elem.closest('.edit-day-block') : null;
+    if (targetBlock) {
+      targetBlock.classList.add('drag-over');
+      touchDragState.targetDayIdx = parseInt(targetBlock.dataset.dayIndex, 10);
+    }
+  } else if (touchDragState.type === 'ex') {
+    document.querySelectorAll('.edit-ex-item').forEach(i => i.classList.remove('drag-over'));
+    const elem = document.elementFromPoint(clientX, clientY);
+    const targetEx = elem ? elem.closest('.edit-ex-item') : null;
+    if (targetEx && targetEx.dataset.dayIndex == touchDragState.dayIdx) {
+      targetEx.classList.add('drag-over');
+      touchDragState.targetExIdx = parseInt(targetEx.dataset.exIndex, 10);
+    }
+  }
+}
+
+function startAutoScroll() {
+  if (!touchDragState || touchDragState.autoScrollTimer) return;
+  touchDragState.autoScrollTimer = setInterval(() => {
+    if (!touchDragState || !touchDragState.autoScrollSpeed) {
+      stopAutoScroll();
+      return;
+    }
+    window.scrollBy({ top: touchDragState.autoScrollSpeed, behavior: 'instant' });
+    if (touchDragState.lastPrimX !== undefined && touchDragState.lastPrimY !== undefined) {
+      updateDropTarget(touchDragState.lastPrimX, touchDragState.lastPrimY);
+    }
+  }, 22);
+}
+
+function stopAutoScroll() {
+  if (touchDragState && touchDragState.autoScrollTimer) {
+    clearInterval(touchDragState.autoScrollTimer);
+    touchDragState.autoScrollTimer = null;
+  }
+}
+
+function finishTouchDrag() {
+  if (!touchDragState) return;
+  stopAutoScroll();
+
+  if (touchDragState.badge && touchDragState.badge.parentNode) {
+    touchDragState.badge.parentNode.removeChild(touchDragState.badge);
+  }
+  if (touchDragState.element) {
+    touchDragState.element.classList.remove('dragging');
+  }
+
+  document.querySelectorAll('.edit-day-block').forEach(b => b.classList.remove('drag-over'));
+  document.querySelectorAll('.edit-ex-item').forEach(i => i.classList.remove('drag-over'));
+
+  const { type, dayIdx, exIdx, targetDayIdx, targetExIdx } = touchDragState;
+  touchDragState = null;
+
+  if (type === 'day' && targetDayIdx !== null && targetDayIdx !== undefined && targetDayIdx !== dayIdx) {
+    const [movedDay] = state.customDays.splice(dayIdx, 1);
+    state.customDays.splice(targetDayIdx, 0, movedDay);
+    saveState();
+    renderEditor();
+    renderHome();
+    showToast('Zmieniono kolejność treningów ✓');
+  } else if (type === 'ex' && targetExIdx !== null && targetExIdx !== undefined && targetExIdx !== exIdx) {
+    const list = state.customDays[dayIdx].exercises;
+    const [movedEx] = list.splice(exIdx, 1);
+    list.splice(targetExIdx, 0, movedEx);
+    saveState();
+    renderEditor();
+    renderHome();
+    showToast('Zmieniono kolejność ćwiczeń ✓');
+  }
+}
+
+function renderEditorPlannedVolume(){
+  const container = document.getElementById('editorVolumeBars');
+  if(!container) return;
+
+  const volumeMap = {};
+  MUSCLE_TARGETS.forEach(m => volumeMap[m] = 0);
+  volumeMap['Inne'] = 0;
+
+  state.customDays.forEach(d => {
+    (d.exercises || []).forEach(ex => {
+      const sets = parseInt(ex.sets, 10) || 0;
+      const target = ex.target || 'Inne';
+      if(volumeMap[target] !== undefined){
+        volumeMap[target] += (sets * 1.0);
+      } else {
+        volumeMap['Inne'] = (volumeMap['Inne'] || 0) + (sets * 1.0);
+      }
+
+      const secondary = ex.secondary || 'Brak';
+      if(secondary && secondary !== 'Brak' && volumeMap[secondary] !== undefined){
+        volumeMap[secondary] += (sets * 0.5);
+      }
+    });
+  });
+
+  const maxSets = Math.max(1, ...Object.values(volumeMap));
+
+  const getLandmarkBadge = (s) => {
+    if(s === 0) return '';
+    if(s < 8) return `<span class="badge" style="font-size:10px; padding:2px 6px; color:#94a3b8; border-color:#334155;">MV</span>`;
+    if(s < 12) return `<span class="badge" style="font-size:10px; padding:2px 6px; color:#38bdf8; border-color:#0284c7; background:rgba(56,189,248,0.1);">MEV</span>`;
+    if(s <= 20) return `<span class="badge" style="font-size:10px; padding:2px 6px; color:#34d399; border-color:#059669; background:rgba(16,185,129,0.12);">MAV ★</span>`;
+    return `<span class="badge" style="font-size:10px; padding:2px 6px; color:#f87171; border-color:#dc2626; background:rgba(239,68,68,0.12);">MRV ⚠</span>`;
+  };
+
+  container.innerHTML = Object.entries(volumeMap).map(([m, sets]) => {
+    if(sets === 0 && (m === 'Inne' || m === 'Brzuch' || m === 'Pośladki')) return '';
+    const pct = Math.round((sets / maxSets) * 100);
+    const displaySets = Number.isInteger(sets) ? sets : sets.toFixed(1);
+    const landmarkBadge = getLandmarkBadge(sets);
+    return `
+      <div class="vol-row" style="margin-bottom:8px;">
+        <div class="vol-name" title="${m}">${m}</div>
+        <div class="vol-bar-bg" style="height:14px;"><div class="vol-bar-fill" style="width:${pct}%"></div></div>
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px; min-width:92px;">
+          ${landmarkBadge}
+          <div class="vol-count mono" style="width:auto;">${displaySets} s</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Globalne nasłuchiwacze dla obsługi drugiego palca (multitouch scrolling)
+window.addEventListener('touchstart', (e) => {
+  if (!touchDragState) return;
+  // Rejestracja drugiego palca
+  for (let i = 0; i < e.touches.length; i++) {
+    const t = e.touches[i];
+    if (t.identifier !== touchDragState.primaryId && touchDragState.secondaryId === null) {
+      touchDragState.secondaryId = t.identifier;
+      touchDragState.lastSecondaryY = t.clientY;
+      break;
+    }
+  }
+}, { passive: false });
+
+window.addEventListener('touchmove', (e) => {
+  if (!touchDragState) return;
+
+  // 1. Płynne przewijanie strony drugim palcem (w czasie trzymania kafelka)
+  if (touchDragState.secondaryId !== null) {
+    const secTouch = Array.from(e.touches).find(t => t.identifier === touchDragState.secondaryId);
+    if (secTouch) {
+      const deltaY = touchDragState.lastSecondaryY - secTouch.clientY;
+      if (Math.abs(deltaY) > 0.5) {
+        window.scrollBy({ top: deltaY, behavior: 'instant' });
+        touchDragState.lastSecondaryY = secTouch.clientY;
+        if (touchDragState.lastPrimX !== undefined && touchDragState.lastPrimY !== undefined) {
+          updateDropTarget(touchDragState.lastPrimX, touchDragState.lastPrimY);
+        }
+      }
+    }
+  }
+
+  // 2. Ruch palca głównego (przeciągającego)
+  const primTouch = Array.from(e.touches).find(t => t.identifier === touchDragState.primaryId);
+  if (primTouch) {
+    e.preventDefault();
+    handlePrimaryTouchMove(primTouch.clientX, primTouch.clientY);
+  }
+}, { passive: false });
+
+window.addEventListener('touchend', (e) => {
+  if (!touchDragState) return;
+  const activeIds = Array.from(e.touches).map(t => t.identifier);
+  if (touchDragState.secondaryId !== null && !activeIds.includes(touchDragState.secondaryId)) {
+    touchDragState.secondaryId = null;
+    touchDragState.lastSecondaryY = null;
+  }
+  if (!activeIds.includes(touchDragState.primaryId)) {
+    finishTouchDrag();
+  }
+}, { passive: false });
+
+window.addEventListener('touchcancel', (e) => {
+  if (!touchDragState) return;
+  const activeIds = Array.from(e.touches).map(t => t.identifier);
+  if (touchDragState.secondaryId !== null && !activeIds.includes(touchDragState.secondaryId)) {
+    touchDragState.secondaryId = null;
+    touchDragState.lastSecondaryY = null;
+  }
+  if (!activeIds.includes(touchDragState.primaryId)) {
+    finishTouchDrag();
+  }
+}, { passive: false });
+
 function renderEditor(){
   document.getElementById('editorWeeksCount').textContent = state.totalWeeks;
   renderWeeksMetaEditor();
+  renderEditorPlannedVolume();
   const container = document.getElementById('editorDaysList');
   container.innerHTML = '';
 
@@ -2418,6 +2855,36 @@ function renderEditor(){
     const block = document.createElement('div');
     const isOpen = expandedEditorDays.has(d.id);
     block.className = 'edit-day-block' + (isOpen ? '' : ' collapsed');
+    block.dataset.dayIndex = dayIdx;
+
+    /* Obsługa HTML5 Drag dla myszy komputerowej */
+    block.addEventListener('dragover', (e) => {
+      if (draggedDayIndex === null) return;
+      e.preventDefault();
+      e.stopPropagation();
+      block.classList.add('drag-over');
+    });
+
+    block.addEventListener('dragleave', (e) => {
+      block.classList.remove('drag-over');
+    });
+
+    block.addEventListener('drop', (e) => {
+      if (draggedDayIndex === null) return;
+      e.preventDefault();
+      e.stopPropagation();
+      block.classList.remove('drag-over');
+      const targetDayIndex = dayIdx;
+      if (draggedDayIndex !== targetDayIndex) {
+        const [movedDay] = state.customDays.splice(draggedDayIndex, 1);
+        state.customDays.splice(targetDayIndex, 0, movedDay);
+        saveState();
+        renderEditor();
+        renderHome();
+        showToast('Zmieniono kolejność treningów ✓');
+      }
+      draggedDayIndex = null;
+    });
 
     const canDelete = state.customDays.length > 1;
     const deleteBtnHtml = canDelete ? `
@@ -2427,8 +2894,9 @@ function renderEditor(){
     ` : '';
 
     let exercisesHtml = d.exercises.map((ex, exIdx) => `
-      <div class="edit-ex-item">
+      <div class="edit-ex-item" data-day-index="${dayIdx}" data-ex-index="${exIdx}">
         <div class="edit-ex-top-row">
+          <div class="drag-handle ex-drag-handle" title="Przeciągnij, aby zmienić kolejność ćwiczenia">⠿</div>
           <input class="edit-ex-name-input" type="text" value="${ex.name}" placeholder="Wpisz nazwę ćwiczenia..." onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'name', this.value)">
           <button class="btn-del-ex" onclick="deleteEditorExercise(${dayIdx}, ${exIdx})" title="Usuń ćwiczenie">✕</button>
         </div>
@@ -2446,9 +2914,15 @@ function renderEditor(){
               ${MUSCLE_TARGETS.map(m => `<option value="${m}" ${ex.secondary === m ? 'selected' : ''}>${m}</option>`).join('')}
             </select>
           </div>
+        </div>
+        <div class="edit-ex-specs-row">
           <div class="edit-subfield">
             <label>Serie</label>
             <input class="mono" type="number" min="1" max="10" value="${ex.sets}" placeholder="Serie" onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'sets', this.value)">
+          </div>
+          <div class="edit-subfield">
+            <label>Ciężar (kg)</label>
+            <input class="mono" type="number" step="0.5" inputmode="decimal" value="${ex.weight !== undefined && ex.weight !== null ? ex.weight : ''}" placeholder="" onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this.value)">
           </div>
           <div class="edit-subfield">
             <label>Powtórzenia</label>
@@ -2465,6 +2939,7 @@ function renderEditor(){
     block.innerHTML = `
       <div class="edit-day-collapsible-head collapsible-head" onclick="toggleEditorDay(${d.id})">
         <div class="edit-day-collapse-title">
+          <div class="drag-handle day-drag-handle" onclick="event.stopPropagation();" title="Przeciągnij, aby zmienić kolejność treningu">⠿</div>
           <span class="chevron">${isOpen ? '▾' : '▸'}</span>
           <span class="edit-day-collapse-name">${d.name || 'Trening'}</span>
         </div>
@@ -2479,10 +2954,100 @@ function renderEditor(){
           ${deleteBtnHtml}
         </div>
         <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Ćwiczenia w tym treningu</div>
-        <div>${exercisesHtml}</div>
+        <div class="edit-ex-list-wrap">${exercisesHtml}</div>
         <button class="btn-add-ex" onclick="addEditorExercise(${dayIdx})">+ Dodaj ćwiczenie</button>
       </div>
     `;
+
+    // Podpięcie uchwytu treningu (mysz + dotyk)
+    const dayHandle = block.querySelector('.day-drag-handle');
+    if (dayHandle) {
+      dayHandle.addEventListener('mousedown', () => { block.setAttribute('draggable', 'true'); });
+      dayHandle.addEventListener('touchstart', (e) => {
+        e.stopPropagation();
+        if (e.touches.length === 1) {
+          initTouchDrag(e, 'day', dayIdx, null, block, d.name || `Trening ${dayIdx + 1}`);
+        }
+      }, { passive: false });
+    }
+
+    block.addEventListener('dragstart', (e) => {
+      draggedDayIndex = dayIdx;
+      block.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', String(dayIdx));
+    });
+
+    block.addEventListener('dragend', () => {
+      block.removeAttribute('draggable');
+      block.classList.remove('dragging');
+      document.querySelectorAll('.edit-day-block').forEach(b => b.classList.remove('drag-over'));
+      draggedDayIndex = null;
+    });
+
+    // Podpięcie uchwytów ćwiczeń (mysz + dotyk)
+    const exItems = block.querySelectorAll('.edit-ex-item');
+    exItems.forEach((exItem, exIdx) => {
+      const exHandle = exItem.querySelector('.ex-drag-handle');
+      if (exHandle) {
+        exHandle.addEventListener('mousedown', () => { exItem.setAttribute('draggable', 'true'); });
+        exHandle.addEventListener('touchstart', (e) => {
+          e.stopPropagation();
+          if (e.touches.length === 1) {
+            const exName = d.exercises[exIdx]?.name || 'Ćwiczenie';
+            initTouchDrag(e, 'ex', dayIdx, exIdx, exItem, exName);
+          }
+        }, { passive: false });
+      }
+
+      exItem.addEventListener('dragstart', (e) => {
+        e.stopPropagation();
+        draggedEx = { dayIdx, exIdx };
+        exItem.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', `${dayIdx}:${exIdx}`);
+      });
+
+      exItem.addEventListener('dragend', (e) => {
+        e.stopPropagation();
+        exItem.removeAttribute('draggable');
+        exItem.classList.remove('dragging');
+        document.querySelectorAll('.edit-ex-item').forEach(el => el.classList.remove('drag-over'));
+        draggedEx = null;
+      });
+
+      exItem.addEventListener('dragover', (e) => {
+        if (!draggedEx || draggedEx.dayIdx !== dayIdx) return;
+        e.preventDefault();
+        e.stopPropagation();
+        exItem.classList.add('drag-over');
+      });
+
+      exItem.addEventListener('dragleave', (e) => {
+        e.stopPropagation();
+        exItem.classList.remove('drag-over');
+      });
+
+      exItem.addEventListener('drop', (e) => {
+        if (!draggedEx || draggedEx.dayIdx !== dayIdx) return;
+        e.preventDefault();
+        e.stopPropagation();
+        exItem.classList.remove('drag-over');
+
+        const targetExIdx = exIdx;
+        if (draggedEx.exIdx !== targetExIdx) {
+          const list = state.customDays[dayIdx].exercises;
+          const [movedEx] = list.splice(draggedEx.exIdx, 1);
+          list.splice(targetExIdx, 0, movedEx);
+          saveState();
+          renderEditor();
+          renderHome();
+          showToast('Zmieniono kolejność ćwiczeń ✓');
+        }
+        draggedEx = null;
+      });
+    });
+
     container.appendChild(block);
   });
 }
@@ -2506,6 +3071,7 @@ function addEditorDay(){
         target: 'Klatka',
         secondary: 'Brak',
         sets: 3,
+        weight: '',
         reps: '8-12',
         note: ''
       }
@@ -2538,6 +3104,7 @@ function updateEditorExercise(dayIdx, exIdx, field, val){
   state.customDays[dayIdx].exercises[exIdx][field] = val;
   saveState();
   renderHome();
+  renderEditorPlannedVolume();
 }
 
 function addEditorExercise(dayIdx){
@@ -2548,6 +3115,7 @@ function addEditorExercise(dayIdx){
     target: 'Klatka',
     secondary: 'Brak',
     sets: 3,
+    weight: '',
     reps: '8-12',
     note: ''
   });
@@ -2714,6 +3282,7 @@ window.switchStatsSubtab = switchStatsSubtab;
 window.renderProgressChart = renderProgressChart;
 window.addBodyMeasurement = addBodyMeasurement;
 window.deleteBodyLogItem = deleteBodyLogItem;
+window.applyLastWeightToExercise = applyLastWeightToExercise;
 window.openExportModal = openExportModal;
 window.closeExportModal = closeExportModal;
 window.triggerFileDownload = triggerFileDownload;
@@ -2730,6 +3299,7 @@ window.deleteEditorDay = deleteEditorDay;
 window.toggleEditorDay = toggleEditorDay;
 window.toggleWeekMetaCard = toggleWeekMetaCard;
 window.updateEditorDay = updateEditorDay;
+window.renderEditorPlannedVolume = renderEditorPlannedVolume;
 window.addEditorExercise = addEditorExercise;
 window.deleteEditorExercise = deleteEditorExercise;
 window.updateEditorExercise = updateEditorExercise;

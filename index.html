@@ -2745,7 +2745,8 @@ function changeWeekCount(delta){
     }
   }
   if(state.currentWeek > state.totalWeeks) state.currentWeek = state.totalWeeks;
-  document.getElementById('editorWeeksCount').textContent = state.totalWeeks;
+  const countEl = document.getElementById('editorWeeksCount');
+  if(countEl) countEl.textContent = state.totalWeeks;
   saveState();
   renderEditor();
   renderHome();
@@ -3066,7 +3067,8 @@ window.addEventListener('touchcancel', (e) => {
 }, { passive: false });
 
 function renderEditor(){
-  document.getElementById('editorWeeksCount').textContent = state.totalWeeks;
+  const countEl = document.getElementById('editorWeeksCount');
+  if(countEl) countEl.textContent = state.totalWeeks;
   renderWeeksMetaEditor();
   renderEditorPlannedVolume();
   const container = document.getElementById('editorDaysList');

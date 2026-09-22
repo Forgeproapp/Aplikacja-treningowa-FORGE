@@ -997,23 +997,15 @@
     </div>
     
     <div id="cloudUserInfoBox" style="margin-bottom:14px; padding:12px; border-radius:10px; background:var(--bg-elev); border:1px solid var(--line); font-size:12px;">
-      <div style="color:var(--text-faint); font-weight:600; margin-bottom:2px;">Aktywny profil synchronizacji:</div>
-      <div style="font-weight:800; color:#38bdf8; font-family:'JetBrains Mono',monospace; font-size:14px; word-break:break-all;" id="cloudActiveSyncKeyDisplay">Łączenie...</div>
+      <div style="color:var(--text-faint); font-weight:600; margin-bottom:2px;">Konto w chmurze:</div>
+      <div style="font-weight:800; color:#38bdf8; font-family:'JetBrains Mono',monospace; font-size:13px; word-break:break-all;" id="cloudActiveSyncKeyDisplay">Łączenie...</div>
       <div style="font-size:11px; color:var(--text-dim); margin-top:4px;" id="cloudUserEmailDisplay">Inicjalizacja...</div>
     </div>
 
-    <!-- Parowanie urządzeń wspólnym kodem (niezawodne dla telefonu i komputera) -->
-    <div style="background:var(--bg-elev); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:14px;">
-      <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-faint); margin-bottom:6px;">
-        🔗 Połącz telefon z komputerem
-      </div>
-      <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4;">
-        Wpisz poniżej <b>ten sam kod / nick</b> na telefonie i komputerze, aby natychmiast zsynchronizować oba ekrany:
-      </div>
-      <div style="display:flex; gap:6px;">
-        <input type="text" id="inputSyncRoomKey" placeholder="np. moj-trening" style="flex:1; padding:9px 10px; border-radius:8px; border:1.5px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; background:var(--bg-card); color:var(--text);">
-        <button onclick="applyManualSyncKey()" class="start-btn" style="width:auto; padding:9px 14px; font-size:13px;">Połącz</button>
-      </div>
+    <!-- Pasek diagnostyczny w razie błędu z Firebase -->
+    <div id="cloudErrorBox" style="display:none; margin-bottom:14px; padding:10px 12px; border-radius:10px; background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#fca5a5; font-size:11.5px; line-height:1.4;">
+      <div style="font-weight:800; color:#f87171; margin-bottom:2px;">⚠ Problem z połączeniem Firebase:</div>
+      <div id="cloudErrorText"></div>
     </div>
 
     <div id="cloudAuthButtons" style="display:flex; flex-direction:column; gap:8px;">
@@ -1122,6 +1114,20 @@ const deviceLabel = isMobileDevice ? 'telefonu' : 'komputera';
 const myClientId = 'cid_' + (isMobileDevice ? 'mob_' : 'pc_') + Math.random().toString(36).substring(2, 9);
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'forge-pro-app';
 
+function setCloudError(msg){
+  const errBox = document.getElementById('cloudErrorBox');
+  const errTxt = document.getElementById('cloudErrorText');
+  if(errBox && errTxt){
+    if(msg){
+      errBox.style.display = 'block';
+      errTxt.textContent = msg;
+    } else {
+      errBox.style.display = 'none';
+      errTxt.textContent = '';
+    }
+  }
+}
+
 window.openWelcomeModal = function(){
   const modal = document.getElementById('welcomeModalOverlay');
   if(modal) modal.classList.add('open');
@@ -1138,14 +1144,28 @@ window.handleGuestChoice = async function(){
   if(auth && !auth.currentUser){
     try {
       await signInAnonymously(auth);
+      setCloudError(null);
     } catch(e){
       console.warn('Tryb gościa:', e);
+      handleFirebaseError(e);
     }
   }
-  if(typeof window.showToast === 'function'){
-    window.showToast('Rozpoczęto synchronizację lokalną Forge Pro ✓');
-  }
 };
+
+function handleFirebaseError(err){
+  console.error('Firebase error:', err);
+  let userMsg = err.message || String(err);
+  if(err.code === 'auth/unauthorized-domain'){
+    userMsg = 'Domena Twojego GitHuba nie jest dodana w Firebase Console -> Authentication -> Settings -> Authorized domains.';
+  } else if(err.code === 'permission-denied'){
+    userMsg = 'Reguły Firestore blokują zapis (permission-denied). Sprawdź Firestore -> Rules w Firebase Console.';
+  } else if(err.code === 'auth/operation-not-allowed'){
+    userMsg = 'Metoda logowania nie jest włączona w Firebase Console -> Authentication -> Sign-in method.';
+  } else if(err.code === 'auth/popup-blocked'){
+    userMsg = 'Przeglądarka zablokowała wyskakujące okienko logowania Google. Zezwól na pop-up.';
+  }
+  setCloudError(userMsg);
+}
 
 function getFirebaseConfig(){
   if(typeof __firebase_config !== 'undefined' && __firebase_config){
@@ -1176,24 +1196,19 @@ async function initFirebase(){
       currentUser = user;
       updateCloudUI();
       if(user){
+        setCloudError(null);
         subscribeToSyncRoom();
         window.closeWelcomeModal();
       } else {
-        if(typeof __initial_auth_token !== 'undefined' && __initial_auth_token){
-          try {
-            await signInWithCustomToken(auth, __initial_auth_token);
-          } catch(e){
-            await signInAnonymously(auth);
-          }
-        } else {
-          try {
-            await signInAnonymously(auth);
-          } catch(e){}
+        try {
+          await signInAnonymously(auth);
+        } catch(e){
+          handleFirebaseError(e);
         }
       }
     });
   } catch(err){
-    console.error('Błąd inicjalizacji Firebase:', err);
+    handleFirebaseError(err);
   }
 }
 
@@ -1204,23 +1219,17 @@ function subscribeToSyncRoom(){
     unsubscribeSnapshot = null;
   }
 
-  // Zgodnie z regułami bezpieczeństwa Firestore dostęp mamy do:
-  // /artifacts/{appId}/users/{userId}/data/workoutState
-  // Gdy użytkownik zaloguje się tym samym kontem Google na PC i telefonie,
-  // auth.currentUser.uid jest identyczny i posiada pełne uprawnienia odczytu i zapisu.
   const syncDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'data', 'workoutState');
 
   unsubscribeSnapshot = onSnapshot(syncDocRef, (snap) => {
     if(snap.exists()){
       const remoteData = snap.data();
       if(remoteData && remoteData.stateJson){
-        // Ignoruj zmiany wysłane z tego samego urządzenia
         if(remoteData.senderId === myClientId){
           updateCloudUI('W chmurze ✓');
           return;
         }
 
-        // Zmiana nadeszła z drugiego urządzenia
         try {
           const parsed = JSON.parse(remoteData.stateJson);
           isSyncingFromRemote = true;
@@ -1240,15 +1249,14 @@ function subscribeToSyncRoom(){
         }
       }
     } else {
-      // Dokument jeszcze nie istnieje w chmurze – wyślij aktualny stan
       syncStateToCloud();
     }
   }, (err) => {
-    console.error('Błąd nasłuchiwania Firestore:', err);
+    handleFirebaseError(err);
     if(err.code === 'permission-denied') {
       updateCloudUI('Brak uprawnień');
     } else {
-      updateCloudUI('Błąd sieci');
+      updateCloudUI('Błąd chmury');
     }
   });
 }
@@ -1258,16 +1266,16 @@ window.handleGoogleSignIn = async function(){
   try {
     const provider = new GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    const cred = await signInWithPopup(auth, provider);
+    await signInWithPopup(auth, provider);
     localStorage.setItem('forge_auth_choice_made', 'true');
+    setCloudError(null);
     window.showToast('Zalogowano pomyślnie przez Google! ✓');
     window.closeWelcomeModal();
     window.closeCloudModal();
     subscribeToSyncRoom();
     syncStateToCloud();
   } catch(err){
-    console.error('Błąd logowania Google:', err);
-    window.showToast('Błąd logowania Google: ' + (err.message || 'sprawdź ustawienia'));
+    handleFirebaseError(err);
   }
 };
 
@@ -1280,13 +1288,13 @@ window.handleSignOut = async function(){
     window.closeCloudModal();
     updateCloudUI('Wylogowano');
   } catch(err){
-    window.showToast('Błąd wylogowania');
+    handleFirebaseError(err);
   }
 };
 
 async function syncStateToCloud(){
   if(!db || !auth?.currentUser || isSyncingFromRemote) return;
-  if(!window.state) return; // Zabezpieczenie przed niezainicjalizowanym stanem
+  if(!window.state) return;
   try {
     updateCloudUI('Wysyłanie...');
     const syncDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'data', 'workoutState');
@@ -1302,14 +1310,12 @@ async function syncStateToCloud(){
     };
 
     await setDoc(syncDocRef, statePayload, { merge: true });
+    setCloudError(null);
     updateCloudUI('W chmurze ✓');
   } catch(err){
-    console.error('Błąd zapisu do Firestore:', err);
+    handleFirebaseError(err);
     if(err.code === 'permission-denied') {
       updateCloudUI('Brak uprawnień');
-      if(typeof window.showToast === 'function'){
-        window.showToast('⚠ Zaloguj się przez Google, aby włączyć synchronizację');
-      }
     } else {
       updateCloudUI('Błąd zapisu');
     }
@@ -1333,13 +1339,13 @@ function updateCloudUI(statusLabel){
   }
 
   if(currentUser && !currentUser.isAnonymous){
-    if(activeKeyDisp) activeKeyDisp.textContent = currentUser.uid.substring(0, 14) + '...';
+    if(activeKeyDisp) activeKeyDisp.textContent = `UID: ${currentUser.uid.substring(0, 12)}...`;
     if(emailDisp) emailDisp.textContent = `Zalogowano jako: ${currentUser.email}`;
     if(btnLogout) btnLogout.style.display = 'block';
     if(btnGoogle) btnGoogle.style.display = 'none';
   } else if(currentUser && currentUser.isAnonymous){
-    if(activeKeyDisp) activeKeyDisp.textContent = 'Tryb gościa (lokalny)';
-    if(emailDisp) emailDisp.textContent = 'Zaloguj się kontem Google, by połączyć urządzenia';
+    if(activeKeyDisp) activeKeyDisp.textContent = `Tryb gościa (UID: ${currentUser.uid.substring(0, 8)}...)`;
+    if(emailDisp) emailDisp.textContent = 'Zaloguj się przez Google na obu urządzeniach!';
     if(btnLogout) btnLogout.style.display = 'none';
     if(btnGoogle) btnGoogle.style.display = 'block';
   } else {

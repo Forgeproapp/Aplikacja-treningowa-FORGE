@@ -13,9 +13,12 @@
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
 
-<!-- Ikona wektorowa (SVG) dla aplikacji i ekranu głównego -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%230b111e'/%3E%3Cpath d='M136 180h40v152h-40zm200 0h40v152h-40zM88 210h32v92H88zm304 0h32v92h-32zM176 236h160v40H176z' fill='%2338bdf8'/%3E%3Ccircle cx='256' cy='256' r='24' fill='%2360a5fa'/%3E%3C/svg%3E">
-<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%230b111e'/%3E%3Cpath d='M136 180h40v152h-40zm200 0h40v152h-40zM88 210h32v92H88zm304 0h32v92h-32zM176 236h160v40H176z' fill='%2338bdf8'/%3E%3Ccircle cx='256' cy='256' r='24' fill='%2360a5fa'/%3E%3C/svg%3E">
+<!-- Ikona wektorowa (SVG) oraz ikony dla ekranu głównego iOS & Android -->
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230b111e'/%3E%3Cstop offset='100%25' stop-color='%23172640'/%3E%3C/linearGradient%3E%3ClinearGradient id='bar' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%232563eb'/%3E%3C/linearGradient%3E%3ClinearGradient id='plate' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%231d4ed8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='512' height='512' rx='128' fill='url(%23bg)'/%3E%3Crect x='12' y='12' width='488' height='488' rx='116' fill='none' stroke='%2322324d' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='140' fill='%232563eb' opacity='0.16'/%3E%3Crect x='70' y='242' width='372' height='28' rx='14' fill='url(%23bar)'/%3E%3Crect x='78' y='222' width='20' height='68' rx='6' fill='%2364748b'/%3E%3Crect x='414' y='222' width='20' height='68' rx='6' fill='%2364748b'/%3E%3Crect x='108' y='196' width='30' height='120' rx='10' fill='url(%23plate)'/%3E%3Crect x='374' y='196' width='30' height='120' rx='10' fill='url(%23plate)'/%3E%3Crect x='146' y='160' width='40' height='192' rx='14' fill='url(%23plate)'/%3E%3Crect x='326' y='160' width='40' height='192' rx='14' fill='url(%23plate)'/%3E%3Ccircle cx='256' cy='256' r='30' fill='%230f172a' stroke='%2338bdf8' stroke-width='6'/%3E%3Cpolygon points='256,240 268,264 244,264' fill='%2338bdf8'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
@@ -1006,32 +1009,33 @@
 <!-- Modal instalacji aplikacji PWA -->
 <div class="confirm-overlay" id="pwaModalOverlay">
   <div class="confirm-modal" style="max-width:340px; text-align:center;">
-    <div style="font-size:32px; margin-bottom:6px;">📲</div>
-    <div style="font-size:17px; font-weight:800; color:var(--text); margin-bottom:6px;">Zainstaluj Forge Pro</div>
-    <div style="font-size:12px; color:var(--text-faint); margin-bottom:14px; line-height:1.4;">
-      Uruchamiaj aplikację bez ramek przeglądarki, prosto z pulpitu lub ekranu głównego:
+    <div style="display:flex; justify-content:center; margin-bottom:12px;">
+      <div style="width:72px; height:72px; border-radius:20px; background:linear-gradient(135deg, #0b111e, #172640); border:2px solid #38bdf8; display:flex; align-items:center; justify-content:center; box-shadow:0 8px 24px rgba(37,99,235,0.4);">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width:54px; height:54px;">
+          <defs>
+            <linearGradient id="mBar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+            <linearGradient id="mPlate" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient>
+          </defs>
+          <rect x="70" y="242" width="372" height="28" rx="14" fill="url(#mBar)"/>
+          <rect x="78" y="222" width="20" height="68" rx="6" fill="#64748b"/>
+          <rect x="414" y="222" width="20" height="68" rx="6" fill="#64748b"/>
+          <rect x="108" y="196" width="30" height="120" rx="10" fill="url(#mPlate)"/>
+          <rect x="374" y="196" width="30" height="120" rx="10" fill="url(#mPlate)"/>
+          <rect x="146" y="160" width="40" height="192" rx="14" fill="url(#mPlate)"/>
+          <rect x="326" y="160" width="40" height="192" rx="14" fill="url(#mPlate)"/>
+          <circle cx="256" cy="256" r="30" fill="#0f172a" stroke="#38bdf8" stroke-width="6"/>
+          <polygon points="256,240 268,264 244,264" fill="#38bdf8"/>
+        </svg>
+      </div>
+    </div>
+    <div style="font-size:18px; font-weight:800; color:var(--text); margin-bottom:6px;">Zainstaluj Forge Pro</div>
+    <div style="font-size:12px; color:var(--text-faint); margin-bottom:18px; line-height:1.4;">
+      Uruchamiaj aplikację bez ramek przeglądarki, prosto z pulpitu lub ekranu głównego.
     </div>
 
-    <div id="pwaDirectInstallBox" style="display:none; margin-bottom:12px;">
-      <button class="start-btn" style="padding:12px; font-size:14px;" onclick="triggerDirectPwaInstall()">
-        ✨ Zainstaluj jednym kliknięciem
-      </button>
-    </div>
-
-    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
-      <div class="pwa-step-card">
-        <b>🍏 iPhone / iPad (Safari):</b><br>
-        Kliknij przycisk <b>Udostępnij</b> (kwadrat ze strzałką w górę na dole ekranu), a następnie wybierz <b>„Do ekranu początkowego”</b> (+).
-      </div>
-      <div class="pwa-step-card">
-        <b>🤖 Android (Chrome):</b><br>
-        Kliknij trzy kropki (⋮) w prawym górnym rogu przeglądarki i wybierz <b>„Zainstaluj aplikację”</b> lub <b>„Dodaj do ekranu głównego”</b>.
-      </div>
-      <div class="pwa-step-card">
-        <b>💻 Komputer (Chrome / Edge):</b><br>
-        Kliknij ikonę komputera z plusikiem po prawej stronie paska adresu URL i wybierz <b>„Zainstaluj”</b>.
-      </div>
-    </div>
+    <button class="start-btn" style="padding:13px; font-size:14px; margin-bottom:10px; width:100%;" onclick="triggerDirectPwaInstall()">
+      📲 Zainstaluj aplikację
+    </button>
 
     <div class="confirm-actions">
       <button class="confirm-btn cancel" style="width:100%;" onclick="closePwaModal()">Zamknij</button>
@@ -1450,8 +1454,6 @@ function isAppStandalone(){
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   deferredPwaPrompt = e;
-  const directBox = document.getElementById('pwaDirectInstallBox');
-  if(directBox) directBox.style.display = 'block';
   const btn = document.getElementById('pwaInstallBtn');
   if(btn && !isAppStandalone()){
     btn.style.display = 'inline-flex';
@@ -1476,7 +1478,11 @@ function handlePwaInstallClick(){
 
 async function triggerDirectPwaInstall(){
   if(!deferredPwaPrompt){
-    openPwaModal();
+    if(/iPhone|iPad|iPod/.test(navigator.userAgent)){
+      showToast('Na iOS: kliknij Udostępnij (↑) → Do ekranu początkowego');
+    } else {
+      showToast('Wybierz "Zainstaluj aplikację" w menu przeglądarki (⋮)');
+    }
     return;
   }
   try {
@@ -1488,15 +1494,11 @@ async function triggerDirectPwaInstall(){
     }
     deferredPwaPrompt = null;
   } catch(err){
-    openPwaModal();
+    showToast('Instalacja niedostępna w tej przeglądarce');
   }
 }
 
 function openPwaModal(){
-  const directBox = document.getElementById('pwaDirectInstallBox');
-  if(directBox){
-    directBox.style.display = deferredPwaPrompt ? 'block' : 'none';
-  }
   document.getElementById('pwaModalOverlay').classList.add('open');
 }
 
@@ -2291,6 +2293,47 @@ function switchStatsSubtab(tab){
   if(tab === 'body') renderBodyLog();
 }
 
+function getLandmarkInfo(sets){
+  if(sets <= 0){
+    return {
+      type: 'none',
+      badge: '',
+      color: '#64748b',
+      barGradient: 'linear-gradient(90deg, #334155, #475569)'
+    };
+  }
+  if(sets < 8){
+    return {
+      type: 'mv',
+      badge: `<span class="badge" style="font-size:10px; padding:2px 6px; color:#94a3b8; border-color:#334155; background:rgba(100,116,139,0.14);">MV</span>`,
+      color: '#94a3b8',
+      barGradient: 'linear-gradient(90deg, #475569, #94a3b8)'
+    };
+  }
+  if(sets < 12){
+    return {
+      type: 'mev',
+      badge: `<span class="badge" style="font-size:10px; padding:2px 6px; color:#38bdf8; border-color:#0284c7; background:rgba(56,189,248,0.14);">MEV</span>`,
+      color: '#38bdf8',
+      barGradient: 'linear-gradient(90deg, #0284c7, #38bdf8)'
+    };
+  }
+  if(sets <= 20){
+    return {
+      type: 'mav',
+      badge: `<span class="badge" style="font-size:10px; padding:2px 6px; color:#34d399; border-color:#059669; background:rgba(16,185,129,0.16);">MAV ★</span>`,
+      color: '#34d399',
+      barGradient: 'linear-gradient(90deg, #059669, #10b981)'
+    };
+  }
+  return {
+    type: 'mrv',
+    badge: `<span class="badge" style="font-size:10px; padding:2px 6px; color:#f87171; border-color:#dc2626; background:rgba(239,68,68,0.16);">MRV ⚠</span>`,
+    color: '#f87171',
+    barGradient: 'linear-gradient(90deg, #dc2626, #ef4444)'
+  };
+}
+
 function renderVolumeAndChart(){
   const volumeMap = {};
   MUSCLE_TARGETS.forEach(m => volumeMap[m] = 0);
@@ -2321,11 +2364,15 @@ function renderVolumeAndChart(){
     if(sets === 0 && (m === 'Inne' || m === 'Brzuch' || m === 'Pośladki')) return '';
     const pct = Math.round((sets / maxSets) * 100);
     const displaySets = Number.isInteger(sets) ? sets : sets.toFixed(1);
+    const info = getLandmarkInfo(sets);
     return `
-      <div class="vol-row">
-        <div class="vol-name">${m}</div>
-        <div class="vol-bar-bg"><div class="vol-bar-fill" style="width:${pct}%"></div></div>
-        <div class="vol-count">${displaySets} s</div>
+      <div class="vol-row" style="margin-bottom:8px;">
+        <div class="vol-name" title="${m}">${m}</div>
+        <div class="vol-bar-bg" style="height:14px;"><div class="vol-bar-fill" style="width:${pct}%; background:${info.barGradient};"></div></div>
+        <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px; min-width:92px;">
+          ${info.badge}
+          <div class="vol-count mono" style="width:auto; color:${info.color};">${displaySets} s</div>
+        </div>
       </div>
     `;
   }).join('');
@@ -2934,26 +2981,18 @@ function renderEditorPlannedVolume(){
 
   const maxSets = Math.max(1, ...Object.values(volumeMap));
 
-  const getLandmarkBadge = (s) => {
-    if(s === 0) return '';
-    if(s < 8) return `<span class="badge" style="font-size:10px; padding:2px 6px; color:#94a3b8; border-color:#334155;">MV</span>`;
-    if(s < 12) return `<span class="badge" style="font-size:10px; padding:2px 6px; color:#38bdf8; border-color:#0284c7; background:rgba(56,189,248,0.1);">MEV</span>`;
-    if(s <= 20) return `<span class="badge" style="font-size:10px; padding:2px 6px; color:#34d399; border-color:#059669; background:rgba(16,185,129,0.12);">MAV ★</span>`;
-    return `<span class="badge" style="font-size:10px; padding:2px 6px; color:#f87171; border-color:#dc2626; background:rgba(239,68,68,0.12);">MRV ⚠</span>`;
-  };
-
   container.innerHTML = Object.entries(volumeMap).map(([m, sets]) => {
     if(sets === 0 && (m === 'Inne' || m === 'Brzuch' || m === 'Pośladki')) return '';
     const pct = Math.round((sets / maxSets) * 100);
     const displaySets = Number.isInteger(sets) ? sets : sets.toFixed(1);
-    const landmarkBadge = getLandmarkBadge(sets);
+    const info = getLandmarkInfo(sets);
     return `
       <div class="vol-row" style="margin-bottom:8px;">
         <div class="vol-name" title="${m}">${m}</div>
-        <div class="vol-bar-bg" style="height:14px;"><div class="vol-bar-fill" style="width:${pct}%"></div></div>
+        <div class="vol-bar-bg" style="height:14px;"><div class="vol-bar-fill" style="width:${pct}%; background:${info.barGradient};"></div></div>
         <div style="display:flex; align-items:center; justify-content:flex-end; gap:6px; min-width:92px;">
-          ${landmarkBadge}
-          <div class="vol-count mono" style="width:auto;">${displaySets} s</div>
+          ${info.badge}
+          <div class="vol-count mono" style="width:auto; color:${info.color};">${displaySets} s</div>
         </div>
       </div>
     `;
@@ -3496,6 +3535,51 @@ window.handlePwaInstallClick = handlePwaInstallClick;
 window.triggerDirectPwaInstall = triggerDirectPwaInstall;
 window.openPwaModal = openPwaModal;
 window.closePwaModal = closePwaModal;
+
+// Generator plików PNG bezpośrednio z wektora SVG za pomocą Canvas
+window.downloadPwaIconPng = function(size){
+  const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="${size}" height="${size}">
+    <defs>
+      <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0b111e"/><stop offset="100%" stop-color="#172640"/></linearGradient>
+      <linearGradient id="bar" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#2563eb"/></linearGradient>
+      <linearGradient id="plate" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#38bdf8"/><stop offset="100%" stop-color="#1d4ed8"/></linearGradient>
+    </defs>
+    <rect width="512" height="512" rx="128" fill="url(#bg)"/>
+    <rect x="12" y="12" width="488" height="488" rx="116" fill="none" stroke="#22324d" stroke-width="6"/>
+    <circle cx="256" cy="256" r="140" fill="#2563eb" opacity="0.16"/>
+    <rect x="70" y="242" width="372" height="28" rx="14" fill="url(#bar)"/>
+    <rect x="78" y="222" width="20" height="68" rx="6" fill="#64748b"/>
+    <rect x="414" y="222" width="20" height="68" rx="6" fill="#64748b"/>
+    <rect x="108" y="196" width="30" height="120" rx="10" fill="url(#plate)"/>
+    <rect x="374" y="196" width="30" height="120" rx="10" fill="url(#plate)"/>
+    <rect x="146" y="160" width="40" height="192" rx="14" fill="url(#plate)"/>
+    <rect x="326" y="160" width="40" height="192" rx="14" fill="url(#plate)"/>
+    <circle cx="256" cy="256" r="30" fill="#0f172a" stroke="#38bdf8" stroke-width="6"/>
+    <polygon points="256,240 268,264 244,264" fill="#38bdf8"/>
+  </svg>`;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(svgBlob);
+
+  img.onload = function(){
+    ctx.drawImage(img, 0, 0, size, size);
+    URL.revokeObjectURL(url);
+    const pngUrl = canvas.toDataURL('image/png');
+    const a = document.createElement('a');
+    a.href = pngUrl;
+    a.download = `icon-${size}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.showToast(`Pobrano icon-${size}.png ✓`);
+  };
+  img.src = url;
+};
 
 window.onload = function(){
   loadState();

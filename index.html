@@ -2701,10 +2701,15 @@ function applyJsonFromText(){
     const imported = JSON.parse(raw);
     if(imported.customDays && imported.history){
       state = Object.assign(state, imported);
-      saveState();
+      // Wymuszenie nowego znacznika czasu, aby inne urządzenia (np. telefon) natychmiast przyjęły import
+      state.lastUpdatedAt = new Date().toISOString();
+      saveStateLocalOnly();
+      if(typeof window.syncStateToCloud === 'function'){
+        window.syncStateToCloud();
+      }
       render();
       closeImportTextModal();
-      showToast('Kopia przywrócona pomyślnie! ✓');
+      showToast('Kopia przywrócona i wysłana do chmury! ✓');
     } else {
       showToast('Nieprawidłowy format danych JSON');
     }
@@ -2723,9 +2728,14 @@ function importDataJson(e){
       const imported = JSON.parse(event.target.result);
       if(imported.customDays && imported.history){
         state = Object.assign(state, imported);
-        saveState();
+        // Wymuszenie nowego znacznika czasu, aby inne urządzenia natychmiast przyjęły plik
+        state.lastUpdatedAt = new Date().toISOString();
+        saveStateLocalOnly();
+        if(typeof window.syncStateToCloud === 'function'){
+          window.syncStateToCloud();
+        }
         render();
-        showToast('Kopia zapasowa przywrócona pomyślnie!');
+        showToast('Kopia z pliku przywrócona i wysłana do chmury! ✓');
       } else {
         showToast('Nieprawidłowy format pliku JSON');
       }

@@ -2,8 +2,21 @@
 <html lang="pl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Plan Treningowy - Forge Pro</title>
+
+<!-- Konfiguracja PWA dla iOS & Android -->
+<meta name="theme-color" content="#0b111e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Forge Pro">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.json">
+
+<!-- Ikona wektorowa (SVG) dla aplikacji i ekranu głównego -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%230b111e'/%3E%3Cpath d='M136 180h40v152h-40zm200 0h40v152h-40zM88 210h32v92H88zm304 0h32v92h-32zM176 236h160v40H176z' fill='%2338bdf8'/%3E%3Ccircle cx='256' cy='256' r='24' fill='%2360a5fa'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%230b111e'/%3E%3Cpath d='M136 180h40v152h-40zm200 0h40v152h-40zM88 210h32v92H88zm304 0h32v92h-32zM176 236h160v40H176z' fill='%2338bdf8'/%3E%3Ccircle cx='256' cy='256' r='24' fill='%2360a5fa'/%3E%3C/svg%3E">
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
 
@@ -1005,7 +1018,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const BUILTIN_FIREBASE_CONFIG = {
   apiKey: "AIzaSyChnyBst4ByA-K8UfasxArgAnyle1JPnog",
@@ -1046,7 +1059,16 @@ async function initFirebase(){
   try {
     app = initializeApp(cfg);
     auth = getAuth(app);
-    db = getFirestore(app);
+    
+    // Włączenie trwałej pamięci podręcznej Firestore (IndexedDB) dla bezproblemowego działania offline
+    try {
+      db = initializeFirestore(app, {
+        localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+      });
+    } catch(cacheErr) {
+      console.warn('Wykryto ograniczenie IndexedDB, fallback do standardowego Firestore:', cacheErr);
+      db = getFirestore(app);
+    }
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
@@ -1133,12 +1155,24 @@ function subscribeToUserData(userId){
       if(remoteData && remoteData.stateJson){
         try {
           const parsed = JSON.parse(remoteData.stateJson);
-          isSyncingFromRemote = true;
-          window.state = Object.assign(window.state, parsed);
-          window.saveStateLocalOnly();
-          window.render();
-          isSyncingFromRemote = false;
-          updateCloudStatusUI(currentUser, 'Zsynchronizowano');
+          
+          // Zabezpieczenie przed nadpisaniem świeższego treningu zrobionego offline
+          const remoteTime = remoteData.updatedAt ? new Date(remoteData.updatedAt).getTime() : 0;
+          const localTime = (window.state && window.state.lastUpdatedAt) ? new Date(window.state.lastUpdatedAt).getTime() : 0;
+
+          if(localTime > remoteTime + 1500) {
+            // Dane na telefonie są nowsze (np. ukończono trening bez internetu) - wyślij je do chmury!
+            console.log('Lokalny stan jest nowszy niż w chmurze. Aktualizuję chmurę...');
+            syncStateToCloud();
+          } else {
+            // Chmura ma aktualniejszy stan (np. edycja na innym urządzeniu) - wczytaj do telefonu
+            isSyncingFromRemote = true;
+            window.state = Object.assign(window.state, parsed);
+            window.saveStateLocalOnly();
+            window.render();
+            isSyncingFromRemote = false;
+            updateCloudStatusUI(currentUser, 'Zsynchronizowano');
+          }
         } catch(e){
           console.error('Błąd parsowania danych z chmury:', e);
         }
@@ -1148,26 +1182,50 @@ function subscribeToUserData(userId){
     }
   }, (err) => {
     console.error('Błąd nasłuchiwania Firestore:', err);
-    updateCloudStatusUI(currentUser, 'Błąd synchronizacji');
+    if(!navigator.onLine){
+      updateCloudStatusUI(currentUser, 'Offline (lokalnie)');
+    } else {
+      updateCloudStatusUI(currentUser, 'Błąd synchronizacji');
+    }
   });
 }
 
 export async function syncStateToCloud(){
   if(!db || !currentUser || isSyncingFromRemote) return;
+  if(!navigator.onLine){
+    updateCloudStatusUI(currentUser, 'Offline (zapisany)');
+    return;
+  }
   try {
     updateCloudStatusUI(currentUser, 'Wysyłanie...');
     const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
+    const updateTime = window.state.lastUpdatedAt || new Date().toISOString();
     const statePayload = {
       stateJson: JSON.stringify(window.state),
-      updatedAt: new Date().toISOString()
+      updatedAt: updateTime
     };
     await setDoc(userDocRef, statePayload, { merge: true });
     updateCloudStatusUI(currentUser, 'W chmurze');
   } catch(err){
     console.error('Błąd zapisu do Firestore:', err);
-    updateCloudStatusUI(currentUser, 'Błąd zapisu');
+    updateCloudStatusUI(currentUser, navigator.onLine ? 'Błąd zapisu' : 'Offline (zapisany)');
   }
 }
+
+// Automatyczna synchronizacja w momencie odzyskania internetu po wyjściu z siłowni
+window.addEventListener('online', () => {
+  window.showToast('📶 Przywrócono połączenie. Synchronizacja z chmurą...');
+  if(currentUser){
+    syncStateToCloud();
+  }
+});
+
+window.addEventListener('offline', () => {
+  if(currentUser){
+    updateCloudStatusUI(currentUser, 'Offline (lokalnie)');
+  }
+  window.showToast('Tryb offline – dane zapisują się w pamięci telefonu ✓');
+});
 
 window.handleGoogleSignIn = async function(){
   if(!auth){
@@ -1223,8 +1281,9 @@ function updateCloudStatusUI(user, statusLabel){
   const btnLogout = document.getElementById('btnLogout');
 
   if(user && !user.isAnonymous){
-    btn.className = 'cloud-badge-btn online';
-    txt.textContent = 'Chmura ✓';
+    const isOnline = navigator.onLine;
+    btn.className = isOnline ? 'cloud-badge-btn online' : 'cloud-badge-btn';
+    txt.textContent = isOnline ? (statusLabel || 'Chmura ✓') : 'Offline (lokalnie)';
     emailDisp.textContent = user.email ? `Zalogowany: ${user.email}` : 'Zalogowany';
     idDisp.textContent = `ID: ${user.uid}`;
     btnGoogle.style.display = 'none';
@@ -1312,7 +1371,8 @@ let state = {
   weekMeta: JSON.parse(JSON.stringify(DEFAULT_WEEK_META)),
   progress: {}, 
   history: [], 
-  bodyLog: []
+  bodyLog: [],
+  lastUpdatedAt: null
 };
 
 let activeSession = null;
@@ -1402,6 +1462,7 @@ function saveStateLocalOnly(){
 
 function doSave(){
   try{
+    state.lastUpdatedAt = new Date().toISOString();
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     if(typeof window.syncStateToCloud === 'function'){
       window.syncStateToCloud();
@@ -3316,6 +3377,15 @@ window.render = render;
 window.onload = function(){
   loadState();
 };
+
+/* Rejestracja Service Workera dla działania Offline i PWA */
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('Service Worker PWA aktywny:', reg.scope))
+      .catch(err => console.log('Brak sw.js w repozytorium lub tryb lokalny:', err));
+  });
+}
 </script>
 </body>
 </html>

@@ -996,10 +996,32 @@
       <button onclick="closeCloudModal()" style="background:none; border:none; font-size:18px; color:var(--text-faint); cursor:pointer;">✕</button>
     </div>
     
-    <div id="cloudUserInfoBox" style="margin-bottom:14px; padding:10px 12px; border-radius:10px; background:var(--bg-elev); border:1px solid var(--line); font-size:12px;">
+    <div id="cloudUserInfoBox" style="margin-bottom:12px; padding:10px 12px; border-radius:10px; background:var(--bg-elev); border:1px solid var(--line); font-size:12px;">
       <div style="color:var(--text-faint); font-weight:600; margin-bottom:2px;">Status połączenia:</div>
       <div style="font-weight:700; color:var(--text);" id="cloudUserEmailDisplay">Brak aktywnej sesji</div>
       <div style="font-size:10px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; word-break:break-all; margin-top:4px;" id="cloudUserIdDisplay"></div>
+    </div>
+
+    <!-- Informacja o timestampach i diagnostyka -->
+    <div id="cloudSyncDiagBox" style="margin-bottom:14px; padding:8px 12px; border-radius:10px; background:var(--bg-card); border:1px dashed var(--line-strong); font-size:11px; display:flex; flex-direction:column; gap:4px;">
+      <div style="display:flex; justify-content:space-between;">
+        <span style="color:var(--text-faint);">To urządzenie:</span>
+        <span id="diagLocalTime" class="mono" style="color:#60a5fa; font-weight:700;">–</span>
+      </div>
+      <div style="display:flex; justify-content:space-between;">
+        <span style="color:var(--text-faint);">Ostatnio w chmurze:</span>
+        <span id="diagRemoteTime" class="mono" style="color:#34d399; font-weight:700;">–</span>
+      </div>
+    </div>
+
+    <!-- Ręczne przyciski wymuszenia synchronizacji -->
+    <div style="display:flex; gap:8px; margin-bottom:14px;">
+      <button class="start-btn" style="padding:10px; font-size:12px; flex:1;" onclick="forcePullFromCloud()">
+        📥 Pobierz z chmury
+      </button>
+      <button class="start-btn secondary" style="padding:10px; font-size:12px; flex:1;" onclick="forcePushToCloud()">
+        📤 Wyślij do chmury
+      </button>
     </div>
 
     <div id="cloudAuthButtons" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
@@ -1087,7 +1109,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const BUILTIN_FIREBASE_CONFIG = {
   apiKey: "AIzaSyChnyBst4ByA-K8UfasxArgAnyle1JPnog",
@@ -1105,15 +1127,14 @@ let unsubscribeSnapshot = null;
 let currentUser = null;
 let isSyncingFromRemote = false;
 
-const appId = typeof __app_id !== 'undefined' ? __app_id : 'forge-pro-app';
+// Stały identyfikator aplikacji gwarantujący spójność między urządzeniami
+const appId = 'forge-pro-app';
 
 function getFirebaseConfig(){
   if(typeof __firebase_config !== 'undefined' && __firebase_config){
     try {
       return typeof __firebase_config === 'string' ? JSON.parse(__firebase_config) : __firebase_config;
-    } catch(e){
-      console.warn('Nie udało się sparsować __firebase_config:', e);
-    }
+    } catch(e){}
   }
   return BUILTIN_FIREBASE_CONFIG;
 }
@@ -1129,13 +1150,11 @@ async function initFirebase(){
     app = initializeApp(cfg);
     auth = getAuth(app);
     
-    // Włączenie trwałej pamięci podręcznej Firestore (IndexedDB) dla bezproblemowego działania offline
     try {
       db = initializeFirestore(app, {
         localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
       });
     } catch(cacheErr) {
-      console.warn('Wykryto ograniczenie IndexedDB, fallback do standardowego Firestore:', cacheErr);
       db = getFirestore(app);
     }
 
@@ -1163,20 +1182,15 @@ async function initFirebase(){
           try {
             await signInWithCustomToken(auth, __initial_auth_token);
           } catch(tokenErr){
-            console.warn('Wystąpił błąd tokena autoryzacyjnego (mismatch), przejście do trybu lokalnego/gościa:', tokenErr);
             if(localStorage.getItem('forge_auth_choice_made') === 'true'){
-              try {
-                await signInAnonymously(auth);
-              } catch(anonErr){}
+              try { await signInAnonymously(auth); } catch(anonErr){}
             } else {
               window.openWelcomeModal();
             }
           }
         } else {
           if(localStorage.getItem('forge_auth_choice_made') === 'true'){
-            try {
-              await signInAnonymously(auth);
-            } catch(anonErr){}
+            try { await signInAnonymously(auth); } catch(anonErr){}
           } else {
             window.openWelcomeModal();
           }
@@ -1224,29 +1238,29 @@ function subscribeToUserData(userId){
       if(remoteData && remoteData.stateJson){
         try {
           const parsed = JSON.parse(remoteData.stateJson);
-          
-          // Zabezpieczenie przed nadpisaniem świeższego treningu zrobionego offline
           const remoteTime = remoteData.updatedAt ? new Date(remoteData.updatedAt).getTime() : 0;
           const localTime = (window.state && window.state.lastUpdatedAt) ? new Date(window.state.lastUpdatedAt).getTime() : 0;
 
-          if(localTime > remoteTime + 1500) {
-            // Dane na telefonie są nowsze (np. ukończono trening bez internetu) - wyślij je do chmury!
-            console.log('Lokalny stan jest nowszy niż w chmurze. Aktualizuję chmurę...');
-            syncStateToCloud();
-          } else {
-            // Chmura ma aktualniejszy stan (np. edycja na innym urządzeniu) - wczytaj do telefonu
+          updateSyncDiagTimes(window.state.lastUpdatedAt, remoteData.updatedAt);
+
+          // Jeśli chmura ma nowsze dane lub równe – wczytaj je
+          if(remoteTime >= localTime){
             isSyncingFromRemote = true;
             window.state = Object.assign(window.state, parsed);
             window.saveStateLocalOnly();
             window.render();
             isSyncingFromRemote = false;
             updateCloudStatusUI(currentUser, 'Zsynchronizowano');
+          } else {
+            // Lokalny stan telefonu jest nowszy, ale NIE nadpisujemy chmury po cichu automatycznie
+            updateCloudStatusUI(currentUser, 'Chmura ✓');
           }
         } catch(e){
           console.error('Błąd parsowania danych z chmury:', e);
         }
       }
     } else {
+      // Dokument w chmurze jeszcze nie istnieje – wyślij stan początkowy
       syncStateToCloud();
     }
   }, (err) => {
@@ -1259,58 +1273,68 @@ function subscribeToUserData(userId){
   });
 }
 
-export async function syncStateToCloud(){
-  if(!db || !currentUser || isSyncingFromRemote) return;
-  if(!navigator.onLine){
-    updateCloudStatusUI(currentUser, 'Offline (zapisany)');
-    return;
-  }
-  try {
-    updateCloudStatusUI(currentUser, 'Wysyłanie...');
-    const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
-    const updateTime = window.state.lastUpdatedAt || new Date().toISOString();
-    const statePayload = {
-      stateJson: JSON.stringify(window.state),
-      updatedAt: updateTime
-    };
-    await setDoc(userDocRef, statePayload, { merge: true });
-    updateCloudStatusUI(currentUser, 'W chmurze');
-  } catch(err){
-    console.error('Błąd zapisu do Firestore:', err);
-    updateCloudStatusUI(currentUser, navigator.onLine ? 'Błąd zapisu' : 'Offline (zapisany)');
-  }
+function updateSyncDiagTimes(localIso, remoteIso){
+  const locEl = document.getElementById('diagLocalTime');
+  const remEl = document.getElementById('diagRemoteTime');
+  if(locEl) locEl.textContent = localIso ? new Date(localIso).toLocaleTimeString('pl-PL') : 'Brak';
+  if(remEl) remEl.textContent = remoteIso ? new Date(remoteIso).toLocaleTimeString('pl-PL') : 'Brak';
 }
 
-// Automatyczna synchronizacja w momencie odzyskania internetu po wyjściu z siłowni
-window.addEventListener('online', () => {
-  window.showToast('📶 Przywrócono połączenie. Synchronizacja z chmurą...');
-  if(currentUser){
-    syncStateToCloud();
-  }
-});
-
-window.addEventListener('offline', () => {
-  if(currentUser){
-    updateCloudStatusUI(currentUser, 'Offline (lokalnie)');
-  }
-  window.showToast('Tryb offline – dane zapisują się w pamięci telefonu ✓');
-});
-
-window.handleGoogleSignIn = async function(){
-  if(!auth){
-    window.showToast('Najpierw skonfiguruj Firebase');
+// Ręczne wymuszenie pobrania stanu z chmury (nadpisuje telefon)
+window.forcePullFromCloud = async function(){
+  if(!db || !currentUser){
+    window.showToast('Najpierw zaloguj się');
     return;
   }
   try {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    localStorage.setItem('forge_auth_choice_made', 'true');
-    window.showToast('Zalogowano pomyślnie przez Google! ✓');
-    window.closeWelcomeModal();
+    window.showToast('Pobieranie z chmury...');
+    const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
+    const snap = await getDoc(userDocRef);
+    if(snap.exists()){
+      const remoteData = snap.data();
+      if(remoteData && remoteData.stateJson){
+        isSyncingFromRemote = true;
+        const parsed = JSON.parse(remoteData.stateJson);
+        window.state = Object.assign(window.state, parsed);
+        window.saveStateLocalOnly();
+        window.render();
+        isSyncingFromRemote = false;
+        updateSyncDiagTimes(window.state.lastUpdatedAt, remoteData.updatedAt);
+        updateCloudStatusUI(currentUser, 'Pobrano ✓');
+        window.showToast('Pobrano aktualne dane z chmury! ✓');
+        window.closeCloudModal();
+      }
+    } else {
+      window.showToast('Brak zapisanego planu w chmurze');
+    }
+  } catch(e){
+    console.error('Błąd pobierania:', e);
+    window.showToast('Błąd pobierania: ' + (e.message || 'Spróbuj ponownie'));
+  }
+};
+
+// Ręczne wymuszenie wysłania obecnego stanu do chmury (nadpisuje chmurę)
+window.forcePushToCloud = async function(){
+  if(!db || !currentUser){
+    window.showToast('Najpierw zaloguj się');
+    return;
+  }
+  try {
+    window.showToast('Wysyłanie do chmury...');
+    window.state.lastUpdatedAt = new Date().toISOString();
+    window.saveStateLocalOnly();
+    const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
+    await setDoc(userDocRef, {
+      stateJson: JSON.stringify(window.state),
+      updatedAt: window.state.lastUpdatedAt
+    });
+    updateSyncDiagTimes(window.state.lastUpdatedAt, window.state.lastUpdatedAt);
+    updateCloudStatusUI(currentUser, 'W chmurze ✓');
+    window.showToast('Wysłano dane do chmury! ✓');
     window.closeCloudModal();
-  } catch(err){
-    console.error('Błąd logowania Google:', err);
-    window.showToast('Błąd logowania: ' + (err.message || 'Spróbuj ponownie'));
+  } catch(e){
+    console.error('Błąd wysyłania:', e);
+    window.showToast('Błąd wysyłania: ' + (e.message || 'Spróbuj ponownie'));
   }
 };
 
@@ -1339,6 +1363,24 @@ window.handleSignOut = async function(){
     window.showToast('Błąd wylogowania');
   }
 };
+
+async function syncStateToCloud(){
+  if(!db || !currentUser || isSyncingFromRemote) return;
+  try {
+    const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
+    const updatedAt = window.state?.lastUpdatedAt || new Date().toISOString();
+    const statePayload = {
+      stateJson: JSON.stringify(window.state),
+      updatedAt: updatedAt
+    };
+    await setDoc(userDocRef, statePayload, { merge: true });
+    updateCloudStatusUI(currentUser, 'W chmurze ✓');
+    updateSyncDiagTimes(window.state?.lastUpdatedAt, updatedAt);
+  } catch(err){
+    console.error('Błąd zapisu do Firestore:', err);
+    updateCloudStatusUI(currentUser, 'Błąd zapisu');
+  }
+}
 
 function updateCloudStatusUI(user, statusLabel){
   const btn = document.getElementById('cloudStatusBtn');
@@ -3502,7 +3544,12 @@ function showToast(msg){
 }
 
 function render(){
-  renderHome();
+  const activeTabBtn = document.querySelector('.tabbar-btn.active');
+  const activeTab = activeTabBtn ? activeTabBtn.dataset.tab : 'home';
+  if(activeTab === 'editor') renderEditor();
+  else if(activeTab === 'stats') renderVolumeAndChart();
+  else if(activeTab === 'history') renderHistory();
+  else renderHome();
 }
 
 /* Eksport wszystkich funkcji interaktywnych do zasięgu window */

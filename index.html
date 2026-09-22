@@ -82,6 +82,21 @@
   .cloud-badge-btn.online{border-color:var(--done); color:#34d399; background:var(--done-bg);}
   .cloud-badge-btn.syncing{border-color:var(--accent-dim); color:#60a5fa; background:var(--accent-deep);}
   .cloud-dot{width:7px; height:7px; border-radius:50%; background:currentColor;}
+  .pwa-badge-btn{
+    font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:700;
+    background:rgba(56, 189, 248, 0.12); border:1px solid rgba(56, 189, 248, 0.4); padding:5px 11px; border-radius:20px;
+    color:#38bdf8; display:inline-flex; align-items:center; gap:6px; cursor:pointer;
+    transition: all 0.2s ease;
+  }
+  .pwa-badge-btn:active{transform:scale(0.96); background:rgba(56, 189, 248, 0.22);}
+  @media(max-width: 400px){
+    .pwa-btn-label{display:none;}
+  }
+  .pwa-step-card{
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:10px;
+    padding:10px 12px; margin-bottom:8px; text-align:left; font-size:12px; line-height:1.45;
+  }
+  .pwa-step-card b{color:#60a5fa;}
   .week-badge{
     font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:700;
     background:var(--bg-elev); border:1px solid var(--line-strong); padding:5px 12px; border-radius:20px; color:var(--text-dim);
@@ -691,6 +706,10 @@
   <div class="top-row">
     <div class="brand">FORGE<b>/PRO</b></div>
     <div class="top-actions">
+      <button class="pwa-badge-btn" id="pwaInstallBtn" onclick="handlePwaInstallClick()" title="Zainstaluj Forge Pro na urządzeniu">
+        <span>📲</span>
+        <span class="pwa-btn-label">Zainstaluj</span>
+      </button>
       <button class="cloud-badge-btn" id="cloudStatusBtn" onclick="openCloudModal()">
         <span class="cloud-dot"></span>
         <span id="cloudStatusText">Chmura</span>
@@ -980,6 +999,42 @@
       <button class="confirm-btn danger" style="padding:10px; font-size:13px; display:none;" id="btnLogout" onclick="handleSignOut()">
         Wyloguj się
       </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal instalacji aplikacji PWA -->
+<div class="confirm-overlay" id="pwaModalOverlay">
+  <div class="confirm-modal" style="max-width:340px; text-align:center;">
+    <div style="font-size:32px; margin-bottom:6px;">📲</div>
+    <div style="font-size:17px; font-weight:800; color:var(--text); margin-bottom:6px;">Zainstaluj Forge Pro</div>
+    <div style="font-size:12px; color:var(--text-faint); margin-bottom:14px; line-height:1.4;">
+      Uruchamiaj aplikację bez ramek przeglądarki, prosto z pulpitu lub ekranu głównego:
+    </div>
+
+    <div id="pwaDirectInstallBox" style="display:none; margin-bottom:12px;">
+      <button class="start-btn" style="padding:12px; font-size:14px;" onclick="triggerDirectPwaInstall()">
+        ✨ Zainstaluj jednym kliknięciem
+      </button>
+    </div>
+
+    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:14px;">
+      <div class="pwa-step-card">
+        <b>🍏 iPhone / iPad (Safari):</b><br>
+        Kliknij przycisk <b>Udostępnij</b> (kwadrat ze strzałką w górę na dole ekranu), a następnie wybierz <b>„Do ekranu początkowego”</b> (+).
+      </div>
+      <div class="pwa-step-card">
+        <b>🤖 Android (Chrome):</b><br>
+        Kliknij trzy kropki (⋮) w prawym górnym rogu przeglądarki i wybierz <b>„Zainstaluj aplikację”</b> lub <b>„Dodaj do ekranu głównego”</b>.
+      </div>
+      <div class="pwa-step-card">
+        <b>💻 Komputer (Chrome / Edge):</b><br>
+        Kliknij ikonę komputera z plusikiem po prawej stronie paska adresu URL i wybierz <b>„Zainstaluj”</b>.
+      </div>
+    </div>
+
+    <div class="confirm-actions">
+      <button class="confirm-btn cancel" style="width:100%;" onclick="closePwaModal()">Zamknij</button>
     </div>
   </div>
 </div>
@@ -1384,6 +1439,70 @@ let draggedEx = null;
 
 /* Stan przeciągania na ekranie dotykowym */
 let touchDragState = null;
+
+/* PWA instalacja - obsługa monitu przeglądarki */
+let deferredPwaPrompt = null;
+
+function isAppStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPwaPrompt = e;
+  const directBox = document.getElementById('pwaDirectInstallBox');
+  if(directBox) directBox.style.display = 'block';
+  const btn = document.getElementById('pwaInstallBtn');
+  if(btn && !isAppStandalone()){
+    btn.style.display = 'inline-flex';
+  }
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPwaPrompt = null;
+  const btn = document.getElementById('pwaInstallBtn');
+  if(btn) btn.style.display = 'none';
+  closePwaModal();
+  showToast('Forge Pro zainstalowane pomyślnie! 🎉');
+});
+
+function handlePwaInstallClick(){
+  if(deferredPwaPrompt){
+    triggerDirectPwaInstall();
+  } else {
+    openPwaModal();
+  }
+}
+
+async function triggerDirectPwaInstall(){
+  if(!deferredPwaPrompt){
+    openPwaModal();
+    return;
+  }
+  try {
+    deferredPwaPrompt.prompt();
+    const { outcome } = await deferredPwaPrompt.userChoice;
+    if(outcome === 'accepted'){
+      showToast('Rozpoczęto instalację Forge Pro ✓');
+      closePwaModal();
+    }
+    deferredPwaPrompt = null;
+  } catch(err){
+    openPwaModal();
+  }
+}
+
+function openPwaModal(){
+  const directBox = document.getElementById('pwaDirectInstallBox');
+  if(directBox){
+    directBox.style.display = deferredPwaPrompt ? 'block' : 'none';
+  }
+  document.getElementById('pwaModalOverlay').classList.add('open');
+}
+
+function closePwaModal(){
+  document.getElementById('pwaModalOverlay').classList.remove('open');
+}
 
 let audioCtx = null;
 function playTimerBeep(){
@@ -3373,9 +3492,17 @@ window.showToast = showToast;
 window.state = state;
 window.saveStateLocalOnly = saveStateLocalOnly;
 window.render = render;
+window.handlePwaInstallClick = handlePwaInstallClick;
+window.triggerDirectPwaInstall = triggerDirectPwaInstall;
+window.openPwaModal = openPwaModal;
+window.closePwaModal = closePwaModal;
 
 window.onload = function(){
   loadState();
+  if(isAppStandalone()){
+    const btn = document.getElementById('pwaInstallBtn');
+    if(btn) btn.style.display = 'none';
+  }
 };
 
 /* Rejestracja Service Workera dla działania Offline i PWA */

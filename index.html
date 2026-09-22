@@ -991,40 +991,18 @@
 <!-- Modal synchronizacji w chmurze -->
 <div class="confirm-overlay" id="cloudModalOverlay">
   <div class="confirm-modal" style="max-width:360px;">
-    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
       <div style="font-size:16px; font-weight:800; color:var(--text);">Synchronizacja w Chmurze</div>
       <button onclick="closeCloudModal()" style="background:none; border:none; font-size:18px; color:var(--text-faint); cursor:pointer;">✕</button>
     </div>
     
-    <div id="cloudUserInfoBox" style="margin-bottom:12px; padding:10px 12px; border-radius:10px; background:var(--bg-elev); border:1px solid var(--line); font-size:12px;">
+    <div id="cloudUserInfoBox" style="margin-bottom:16px; padding:12px; border-radius:10px; background:var(--bg-elev); border:1px solid var(--line); font-size:12px;">
       <div style="color:var(--text-faint); font-weight:600; margin-bottom:2px;">Status połączenia:</div>
       <div style="font-weight:700; color:var(--text);" id="cloudUserEmailDisplay">Brak aktywnej sesji</div>
       <div style="font-size:10px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; word-break:break-all; margin-top:4px;" id="cloudUserIdDisplay"></div>
     </div>
 
-    <!-- Informacja o timestampach i diagnostyka -->
-    <div id="cloudSyncDiagBox" style="margin-bottom:14px; padding:8px 12px; border-radius:10px; background:var(--bg-card); border:1px dashed var(--line-strong); font-size:11px; display:flex; flex-direction:column; gap:4px;">
-      <div style="display:flex; justify-content:space-between;">
-        <span style="color:var(--text-faint);">To urządzenie:</span>
-        <span id="diagLocalTime" class="mono" style="color:#60a5fa; font-weight:700;">–</span>
-      </div>
-      <div style="display:flex; justify-content:space-between;">
-        <span style="color:var(--text-faint);">Ostatnio w chmurze:</span>
-        <span id="diagRemoteTime" class="mono" style="color:#34d399; font-weight:700;">–</span>
-      </div>
-    </div>
-
-    <!-- Ręczne przyciski wymuszenia synchronizacji -->
-    <div style="display:flex; gap:8px; margin-bottom:14px;">
-      <button class="start-btn" style="padding:10px; font-size:12px; flex:1;" onclick="forcePullFromCloud()">
-        📥 Pobierz z chmury
-      </button>
-      <button class="start-btn secondary" style="padding:10px; font-size:12px; flex:1;" onclick="forcePushToCloud()">
-        📤 Wyślij do chmury
-      </button>
-    </div>
-
-    <div id="cloudAuthButtons" style="display:flex; flex-direction:column; gap:8px; margin-bottom:14px;">
+    <div id="cloudAuthButtons" style="display:flex; flex-direction:column; gap:8px;">
       <button class="start-btn" style="padding:12px; font-size:14px;" id="btnGoogleLogin" onclick="handleGoogleSignIn()">
         🔑 Zaloguj przez Google
       </button>
@@ -1109,7 +1087,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, getDoc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const BUILTIN_FIREBASE_CONFIG = {
   apiKey: "AIzaSyChnyBst4ByA-K8UfasxArgAnyle1JPnog",
@@ -1127,8 +1105,34 @@ let unsubscribeSnapshot = null;
 let currentUser = null;
 let isSyncingFromRemote = false;
 
-// Stały identyfikator aplikacji gwarantujący spójność między urządzeniami
+// Unikalny identyfikator urządzenia/karty zapobiegający pętlom i konfliktom zegarów
+const myClientId = 'cid_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
 const appId = 'forge-pro-app';
+
+window.openWelcomeModal = function(){
+  const modal = document.getElementById('welcomeModalOverlay');
+  if(modal) modal.classList.add('open');
+};
+
+window.closeWelcomeModal = function(){
+  const modal = document.getElementById('welcomeModalOverlay');
+  if(modal) modal.classList.remove('open');
+};
+
+window.handleGuestChoice = async function(){
+  localStorage.setItem('forge_auth_choice_made', 'true');
+  window.closeWelcomeModal();
+  if(auth && !auth.currentUser){
+    try {
+      await signInAnonymously(auth);
+    } catch(e){
+      console.warn('Tryb gościa lokalny:', e);
+    }
+  }
+  if(typeof window.showToast === 'function'){
+    window.showToast('Rozpoczęto w trybie gościa (zapis lokalny) ✓');
+  }
+};
 
 function getFirebaseConfig(){
   if(typeof __firebase_config !== 'undefined' && __firebase_config){
@@ -1203,29 +1207,6 @@ async function initFirebase(){
   }
 }
 
-window.handleGuestChoice = async function(){
-  localStorage.setItem('forge_auth_choice_made', 'true');
-  window.closeWelcomeModal();
-  if(auth && !auth.currentUser){
-    try {
-      await signInAnonymously(auth);
-    } catch(e){
-      console.warn('Tryb gościa lokalny:', e);
-    }
-  }
-  window.showToast('Rozpoczęto w trybie gościa (zapis lokalny) ✓');
-};
-
-window.openWelcomeModal = function(){
-  const modal = document.getElementById('welcomeModalOverlay');
-  if(modal) modal.classList.add('open');
-};
-
-window.closeWelcomeModal = function(){
-  const modal = document.getElementById('welcomeModalOverlay');
-  if(modal) modal.classList.remove('open');
-};
-
 function subscribeToUserData(userId){
   if(!db || !userId) return;
   if(unsubscribeSnapshot) unsubscribeSnapshot();
@@ -1236,31 +1217,32 @@ function subscribeToUserData(userId){
     if(snap.exists()){
       const remoteData = snap.data();
       if(remoteData && remoteData.stateJson){
+        // Jeśli zmiana pochodzi z tego samego urządzenia, potwierdź zapis w UI
+        if(remoteData.senderId === myClientId){
+          if(!snap.metadata.hasPendingWrites){
+            updateCloudStatusUI(currentUser, 'W chmurze ✓');
+          }
+          return;
+        }
+
+        // Zmiana nadeszła z drugiego urządzenia (np. z telefonu na komputer lub odwrotnie)
         try {
           const parsed = JSON.parse(remoteData.stateJson);
-          const remoteTime = remoteData.updatedAt ? new Date(remoteData.updatedAt).getTime() : 0;
-          const localTime = (window.state && window.state.lastUpdatedAt) ? new Date(window.state.lastUpdatedAt).getTime() : 0;
-
-          updateSyncDiagTimes(window.state.lastUpdatedAt, remoteData.updatedAt);
-
-          // Jeśli chmura ma nowsze dane lub równe – wczytaj je
-          if(remoteTime >= localTime){
-            isSyncingFromRemote = true;
-            window.state = Object.assign(window.state, parsed);
-            window.saveStateLocalOnly();
-            window.render();
-            isSyncingFromRemote = false;
-            updateCloudStatusUI(currentUser, 'Zsynchronizowano');
-          } else {
-            // Lokalny stan telefonu jest nowszy, ale NIE nadpisujemy chmury po cichu automatycznie
-            updateCloudStatusUI(currentUser, 'Chmura ✓');
+          isSyncingFromRemote = true;
+          if(typeof window.applyNewState === 'function'){
+            window.applyNewState(parsed);
+          }
+          isSyncingFromRemote = false;
+          updateCloudStatusUI(currentUser, 'W chmurze ✓');
+          if(typeof window.showToast === 'function'){
+            window.showToast('⚡ Zaktualizowano dane w czasie rzeczywistym!');
           }
         } catch(e){
           console.error('Błąd parsowania danych z chmury:', e);
         }
       }
     } else {
-      // Dokument w chmurze jeszcze nie istnieje – wyślij stan początkowy
+      // Dokument w chmurze jeszcze nie istnieje – wyślij aktualny stan
       syncStateToCloud();
     }
   }, (err) => {
@@ -1273,68 +1255,21 @@ function subscribeToUserData(userId){
   });
 }
 
-function updateSyncDiagTimes(localIso, remoteIso){
-  const locEl = document.getElementById('diagLocalTime');
-  const remEl = document.getElementById('diagRemoteTime');
-  if(locEl) locEl.textContent = localIso ? new Date(localIso).toLocaleTimeString('pl-PL') : 'Brak';
-  if(remEl) remEl.textContent = remoteIso ? new Date(remoteIso).toLocaleTimeString('pl-PL') : 'Brak';
-}
-
-// Ręczne wymuszenie pobrania stanu z chmury (nadpisuje telefon)
-window.forcePullFromCloud = async function(){
-  if(!db || !currentUser){
-    window.showToast('Najpierw zaloguj się');
+window.handleGoogleSignIn = async function(){
+  if(!auth){
+    window.showToast('Najpierw skonfiguruj Firebase');
     return;
   }
   try {
-    window.showToast('Pobieranie z chmury...');
-    const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
-    const snap = await getDoc(userDocRef);
-    if(snap.exists()){
-      const remoteData = snap.data();
-      if(remoteData && remoteData.stateJson){
-        isSyncingFromRemote = true;
-        const parsed = JSON.parse(remoteData.stateJson);
-        window.state = Object.assign(window.state, parsed);
-        window.saveStateLocalOnly();
-        window.render();
-        isSyncingFromRemote = false;
-        updateSyncDiagTimes(window.state.lastUpdatedAt, remoteData.updatedAt);
-        updateCloudStatusUI(currentUser, 'Pobrano ✓');
-        window.showToast('Pobrano aktualne dane z chmury! ✓');
-        window.closeCloudModal();
-      }
-    } else {
-      window.showToast('Brak zapisanego planu w chmurze');
-    }
-  } catch(e){
-    console.error('Błąd pobierania:', e);
-    window.showToast('Błąd pobierania: ' + (e.message || 'Spróbuj ponownie'));
-  }
-};
-
-// Ręczne wymuszenie wysłania obecnego stanu do chmury (nadpisuje chmurę)
-window.forcePushToCloud = async function(){
-  if(!db || !currentUser){
-    window.showToast('Najpierw zaloguj się');
-    return;
-  }
-  try {
-    window.showToast('Wysyłanie do chmury...');
-    window.state.lastUpdatedAt = new Date().toISOString();
-    window.saveStateLocalOnly();
-    const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
-    await setDoc(userDocRef, {
-      stateJson: JSON.stringify(window.state),
-      updatedAt: window.state.lastUpdatedAt
-    });
-    updateSyncDiagTimes(window.state.lastUpdatedAt, window.state.lastUpdatedAt);
-    updateCloudStatusUI(currentUser, 'W chmurze ✓');
-    window.showToast('Wysłano dane do chmury! ✓');
+    const provider = new GoogleAuthProvider();
+    await signInWithPopup(auth, provider);
+    localStorage.setItem('forge_auth_choice_made', 'true');
+    window.showToast('Zalogowano pomyślnie przez Google! ✓');
+    window.closeWelcomeModal();
     window.closeCloudModal();
-  } catch(e){
-    console.error('Błąd wysyłania:', e);
-    window.showToast('Błąd wysyłania: ' + (e.message || 'Spróbuj ponownie'));
+  } catch(err){
+    console.error('Błąd logowania Google:', err);
+    window.showToast('Błąd logowania: ' + (err.message || 'Spróbuj ponownie'));
   }
 };
 
@@ -1367,15 +1302,17 @@ window.handleSignOut = async function(){
 async function syncStateToCloud(){
   if(!db || !currentUser || isSyncingFromRemote) return;
   try {
+    updateCloudStatusUI(currentUser, 'Wysyłanie...');
     const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
     const updatedAt = window.state?.lastUpdatedAt || new Date().toISOString();
     const statePayload = {
       stateJson: JSON.stringify(window.state),
-      updatedAt: updatedAt
+      updatedAt: updatedAt,
+      senderId: myClientId
     };
     await setDoc(userDocRef, statePayload, { merge: true });
     updateCloudStatusUI(currentUser, 'W chmurze ✓');
-    updateSyncDiagTimes(window.state?.lastUpdatedAt, updatedAt);
+    if(typeof window.updatePlanSummaryUI === 'function') window.updatePlanSummaryUI();
   } catch(err){
     console.error('Błąd zapisu do Firestore:', err);
     updateCloudStatusUI(currentUser, 'Błąd zapisu');
@@ -1417,9 +1354,12 @@ function updateCloudStatusUI(user, statusLabel){
     btnAnon.style.display = 'block';
     btnLogout.style.display = 'none';
   }
+
+  if(typeof window.updatePlanSummaryUI === 'function') window.updatePlanSummaryUI();
 }
 
 window.openCloudModal = function(){
+  if(typeof window.updatePlanSummaryUI === 'function') window.updatePlanSummaryUI();
   document.getElementById('cloudModalOverlay').classList.add('open');
 };
 
@@ -1428,6 +1368,13 @@ window.closeCloudModal = function(){
 };
 
 window.syncStateToCloud = syncStateToCloud;
+
+// Automatyczne wznowienie synchronizacji po odzyskaniu łączności
+window.addEventListener('online', () => {
+  if(typeof updateCloudStatusUI === 'function') updateCloudStatusUI(currentUser, 'Wysyłanie...');
+  syncStateToCloud();
+});
+
 initFirebase();
 </script>
 
@@ -1475,7 +1422,8 @@ const DEFAULT_WEEK_META = {
   6: { rir: 4, rest: 90, restText: '1,5 min', label: 'Tydzień 6' },
 };
 
-let state = {
+// Wspólny globalny stan aplikacji
+window.state = {
   totalWeeks: 6,
   currentWeek: 1,
   customDays: JSON.parse(JSON.stringify(DEFAULT_DAYS)),
@@ -1486,77 +1434,15 @@ let state = {
   lastUpdatedAt: null
 };
 
+let state = window.state;
 let activeSession = null;
 const STORAGE_KEY = 'forge_pro_state_v4';
 let saveTimer = null;
 
 let draggedDayIndex = null;
 let draggedEx = null;
-
-/* Stan przeciągania na ekranie dotykowym */
 let touchDragState = null;
-
-/* PWA instalacja - obsługa monitu przeglądarki */
 let deferredPwaPrompt = null;
-
-function isAppStandalone(){
-  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
-}
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPwaPrompt = e;
-  const btn = document.getElementById('pwaInstallBtn');
-  if(btn && !isAppStandalone()){
-    btn.style.display = 'inline-flex';
-  }
-});
-
-window.addEventListener('appinstalled', () => {
-  deferredPwaPrompt = null;
-  const btn = document.getElementById('pwaInstallBtn');
-  if(btn) btn.style.display = 'none';
-  closePwaModal();
-  showToast('Forge Pro zainstalowane pomyślnie! 🎉');
-});
-
-function handlePwaInstallClick(){
-  if(deferredPwaPrompt){
-    triggerDirectPwaInstall();
-  } else {
-    openPwaModal();
-  }
-}
-
-async function triggerDirectPwaInstall(){
-  if(!deferredPwaPrompt){
-    if(/iPhone|iPad|iPod/.test(navigator.userAgent)){
-      showToast('Na iOS: kliknij Udostępnij (↑) → Do ekranu początkowego');
-    } else {
-      showToast('Wybierz "Zainstaluj aplikację" w menu przeglądarki (⋮)');
-    }
-    return;
-  }
-  try {
-    deferredPwaPrompt.prompt();
-    const { outcome } = await deferredPwaPrompt.userChoice;
-    if(outcome === 'accepted'){
-      showToast('Rozpoczęto instalację Forge Pro ✓');
-      closePwaModal();
-    }
-    deferredPwaPrompt = null;
-  } catch(err){
-    showToast('Instalacja niedostępna w tej przeglądarce');
-  }
-}
-
-function openPwaModal(){
-  document.getElementById('pwaModalOverlay').classList.add('open');
-}
-
-function closePwaModal(){
-  document.getElementById('pwaModalOverlay').classList.remove('open');
-}
 
 let audioCtx = null;
 function playTimerBeep(){
@@ -1579,42 +1465,94 @@ function playTimerBeep(){
   if(navigator.vibrate) navigator.vibrate([200, 100, 200]);
 }
 
+function isAppStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+}
+
+function handlePwaInstallClick(){
+  if(deferredPwaPrompt){
+    triggerDirectPwaInstall();
+  } else {
+    openPwaModal();
+  }
+}
+
+function triggerDirectPwaInstall(){
+  if(deferredPwaPrompt){
+    deferredPwaPrompt.prompt();
+    deferredPwaPrompt.userChoice.then(() => {
+      deferredPwaPrompt = null;
+      closePwaModal();
+    });
+  } else {
+    if(typeof showToast === 'function') showToast('Wybierz "Dodaj do ekranu głównego" w menu przeglądarki');
+  }
+}
+
+function openPwaModal(){
+  const modal = document.getElementById('pwaModalOverlay');
+  if(modal) modal.classList.add('open');
+}
+
+function closePwaModal(){
+  const modal = document.getElementById('pwaModalOverlay');
+  if(modal) modal.classList.remove('open');
+}
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPwaPrompt = e;
+});
+
+window.addEventListener('appinstalled', () => {
+  deferredPwaPrompt = null;
+  const btn = document.getElementById('pwaInstallBtn');
+  if(btn) btn.style.display = 'none';
+  if(typeof showToast === 'function') showToast('Forge Pro zainstalowane pomyślnie! 🎉');
+});
+
+function updatePlanSummaryUI(){
+  const summaryText = document.getElementById('cloudPlanSummaryText');
+  const detailsText = document.getElementById('cloudPlanDetailsText');
+  const daysBadge = document.getElementById('cloudPlanDaysBadge');
+  if(!summaryText || !window.state) return;
+
+  const days = window.state.customDays || [];
+  let totalEx = 0;
+  const dayNames = days.map(d => {
+    totalEx += (d.exercises ? d.exercises.length : 0);
+    return d.name || 'Trening';
+  });
+
+  if(daysBadge) daysBadge.textContent = `${days.length} ${days.length === 1 ? 'trening' : (days.length < 5 ? 'treningi' : 'treningów')}`;
+  summaryText.textContent = dayNames.length > 0 ? dayNames.join(' • ') : 'Brak zdefiniowanych treningów';
+  if(detailsText){
+    const historyCount = window.state.history ? window.state.history.length : 0;
+    detailsText.textContent = `Łącznie ćwiczeń: ${totalEx} | Cykl: ${window.state.totalWeeks || 6} tyg. | Ukończonych: ${historyCount}`;
+  }
+}
+window.updatePlanSummaryUI = updatePlanSummaryUI;
+
+function applyNewState(newState){
+  if(!newState) return;
+  // Bezpośrednia aktualizacja właściwości obiektu window.state
+  Object.keys(newState).forEach(key => {
+    window.state[key] = newState[key];
+  });
+
+  state = window.state;
+  saveStateLocalOnly();
+  render();
+  updatePlanSummaryUI();
+}
+window.applyNewState = applyNewState;
+
 function loadState(){
   try{
     const raw = localStorage.getItem(STORAGE_KEY);
     if(raw){
       const loaded = JSON.parse(raw);
-      state = Object.assign(state, loaded);
-      if(!state.weekMeta){
-        state.weekMeta = JSON.parse(JSON.stringify(DEFAULT_WEEK_META));
-      }
-      for(let w=1; w<=state.totalWeeks; w++){
-        if(!state.weekMeta[w]){
-          state.weekMeta[w] = {
-            rir: Math.max(0, 4 - (w % 4)),
-            rest: 120,
-            restText: '2 min',
-            label: `Tydzień ${w}`
-          };
-        } else if(state.weekMeta[w].label && state.weekMeta[w].label.includes('(deload)')){
-          state.weekMeta[w].label = `Tydzień ${w}`;
-          delete state.weekMeta[w].tag;
-        }
-      }
-      state.customDays.forEach(d => {
-        d.exercises.forEach(ex => {
-          if(!ex.target || ex.target === 'Nogi'){
-            const n = (ex.name || '').toLowerCase();
-            ex.target = (n.includes('rdl') || n.includes('uginan') || n.includes('dwugł')) ? 'Dwugłowe' : 'Czworogłowe';
-          }
-          if(ex.secondary === 'Nogi'){
-            ex.secondary = 'Dwugłowe';
-          }
-          if(!ex.secondary) ex.secondary = 'Brak';
-          if(ex.note === undefined) ex.note = '';
-          if(ex.weight === undefined) ex.weight = '';
-        });
-      });
+      applyNewState(loaded);
     }
   }catch(e){
     console.log('Fresh start');
@@ -1622,21 +1560,27 @@ function loadState(){
   render();
 }
 
-function saveState(){
+function saveState(markUpdated = true, immediate = false){
+  if(markUpdated){
+    window.state.lastUpdatedAt = new Date().toISOString();
+  }
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => doSave(), 300);
+  if(immediate){
+    doSave();
+  } else {
+    saveTimer = setTimeout(() => doSave(), 300);
+  }
 }
 
 function saveStateLocalOnly(){
   try{
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(window.state));
   }catch(e){}
 }
 
 function doSave(){
   try{
-    state.lastUpdatedAt = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    saveStateLocalOnly();
     if(typeof window.syncStateToCloud === 'function'){
       window.syncStateToCloud();
     }
@@ -1794,7 +1738,11 @@ function renderHome(){
     const pill = document.createElement('button');
     pill.className = 'week-pill' + (w === state.currentWeek ? ' active' : '');
     pill.textContent = 'TYG ' + w;
-    pill.onclick = () => { state.currentWeek = w; saveState(); renderHome(); };
+    pill.onclick = () => { 
+      state.currentWeek = w; 
+      saveStateLocalOnly(); // Przełączenie tygodnia nie modyfikuje timestampu planu
+      renderHome(); 
+    };
     weekSel.appendChild(pill);
     if(w === state.currentWeek){
       setTimeout(() => {
@@ -1886,7 +1834,7 @@ function toggleDayComplete(week, day){
     showToast('Odznaczono trening');
   }
 
-  saveState();
+  saveState(true, true);
   renderHome();
 
   if(!wasComplete){
@@ -2165,7 +2113,7 @@ function toggleSet(exId, setIdx, totalSets){
   const prog = getDayProgress(week, day);
   const wasDone = prog.setsDone[exId][setIdx];
   prog.setsDone[exId][setIdx] = !wasDone;
-  saveState();
+  saveState(true, true);
   updateSessionDOM();
 
   if(!wasDone){
@@ -2300,7 +2248,7 @@ function finishSession(){
     }))
   };
   state.history.unshift(record);
-  saveState();
+  saveState(true, true);
 
   const advanced = checkCycleProgression(week);
   if(!advanced){
@@ -3180,7 +3128,9 @@ function renderEditor(){
       <div class="edit-ex-item" data-day-index="${dayIdx}" data-ex-index="${exIdx}">
         <div class="edit-ex-top-row">
           <div class="drag-handle ex-drag-handle" title="Przeciągnij, aby zmienić kolejność ćwiczenia">⠿</div>
-          <input class="edit-ex-name-input" type="text" value="${ex.name}" placeholder="Wpisz nazwę ćwiczenia..." onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'name', this.value)">
+          <input class="edit-ex-name-input" type="text" value="${ex.name}" placeholder="Wpisz nazwę ćwiczenia..." 
+            oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'name', this.value)"
+            onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'name', this.value)">
           <button class="btn-del-ex" onclick="deleteEditorExercise(${dayIdx}, ${exIdx})" title="Usuń ćwiczenie">✕</button>
         </div>
         <div class="edit-ex-bottom-row">
@@ -3201,20 +3151,28 @@ function renderEditor(){
         <div class="edit-ex-specs-row">
           <div class="edit-subfield">
             <label>Serie</label>
-            <input class="mono" type="number" min="1" max="10" value="${ex.sets}" placeholder="Serie" onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'sets', this.value)">
+            <input class="mono" type="number" min="1" max="10" value="${ex.sets}" placeholder="Serie" 
+              oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'sets', this.value)"
+              onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'sets', this.value)">
           </div>
           <div class="edit-subfield">
             <label>Ciężar (kg)</label>
-            <input class="mono" type="number" step="0.5" inputmode="decimal" value="${ex.weight !== undefined && ex.weight !== null ? ex.weight : ''}" placeholder="" onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this.value)">
+            <input class="mono" type="number" step="0.5" inputmode="decimal" value="${ex.weight !== undefined && ex.weight !== null ? ex.weight : ''}" placeholder="" 
+              oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this.value)"
+              onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this.value)">
           </div>
           <div class="edit-subfield">
             <label>Powtórzenia</label>
-            <input class="mono" type="text" value="${ex.reps}" placeholder="np. 6-10" onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'reps', this.value)">
+            <input class="mono" type="text" value="${ex.reps}" placeholder="np. 6-10" 
+              oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'reps', this.value)"
+              onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'reps', this.value)">
           </div>
         </div>
         <div class="edit-ex-note-row">
           <label>Notatka techniczna / ustawienia (opcjonalnie)</label>
-          <input type="text" value="${ex.note || ''}" placeholder="" onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)">
+          <input type="text" value="${ex.note || ''}" placeholder="" 
+            oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)"
+            onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)">
         </div>
       </div>
     `).join('');
@@ -3232,7 +3190,9 @@ function renderEditor(){
         <div class="edit-day-head">
           <div class="edit-input-group">
             <label>Nazwa treningu</label>
-            <input type="text" value="${d.name}" onchange="updateEditorDay(${dayIdx}, 'name', this.value)">
+            <input type="text" value="${d.name}" 
+              oninput="updateEditorDay(${dayIdx}, 'name', this.value)"
+              onchange="updateEditorDay(${dayIdx}, 'name', this.value)">
           </div>
           ${deleteBtnHtml}
         </div>
@@ -3338,8 +3298,18 @@ function renderEditor(){
 
 function updateEditorDay(dayIdx, field, val){
   state.customDays[dayIdx][field] = val;
-  saveState();
+  saveState(true);
   renderHome();
+  updatePlanSummaryUI();
+}
+
+function updateEditorExercise(dayIdx, exIdx, field, val){
+  if(field === 'sets') val = parseInt(val) || 1;
+  state.customDays[dayIdx].exercises[exIdx][field] = val;
+  saveState(true);
+  renderHome();
+  renderEditorPlannedVolume();
+  updatePlanSummaryUI();
 }
 
 function addEditorDay(){
@@ -3544,6 +3514,9 @@ function showToast(msg){
 }
 
 function render(){
+  if(activeSession){
+    renderSession();
+  }
   const activeTabBtn = document.querySelector('.tabbar-btn.active');
   const activeTab = activeTabBtn ? activeTabBtn.dataset.tab : 'home';
   if(activeTab === 'editor') renderEditor();

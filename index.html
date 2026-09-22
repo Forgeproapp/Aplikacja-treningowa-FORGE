@@ -546,6 +546,14 @@
   }
   .btn-add-ex:active{background:rgba(37,99,235,0.35);}
 
+  .btn-collapse-day{
+    width:100%; padding:10px; border-radius:10px; border:1px solid var(--line);
+    background:var(--bg-card); color:var(--text-faint); font-weight:700; font-size:12px; cursor:pointer;
+    font-family:'Space Grotesk',sans-serif; margin-top:8px; display:flex; align-items:center; justify-content:center; gap:6px;
+    transition: all 0.15s ease;
+  }
+  .btn-collapse-day:active{background:var(--line-soft); color:var(--text); transform:scale(0.99);}
+
   .btn-add-day{
     width:100%; padding:14px; border-radius:12px; border:1px dashed var(--accent-dim);
     background:var(--accent-deep); color:#60a5fa; font-weight:800; font-size:14px;
@@ -3179,6 +3187,7 @@ function renderEditor(){
         <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Ćwiczenia w tym treningu</div>
         <div class="edit-ex-list-wrap">${exercisesHtml}</div>
         <button class="btn-add-ex" onclick="addEditorExercise(${dayIdx})">+ Dodaj ćwiczenie</button>
+        <button class="btn-collapse-day" onclick="toggleEditorDay(${d.id})">▲ Zwiń trening</button>
       </div>
     `;
 

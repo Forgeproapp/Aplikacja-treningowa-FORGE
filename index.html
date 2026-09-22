@@ -996,18 +996,29 @@
       <button onclick="closeCloudModal()" style="background:none; border:none; font-size:18px; color:var(--text-faint); cursor:pointer;">✕</button>
     </div>
     
-    <div id="cloudUserInfoBox" style="margin-bottom:16px; padding:12px; border-radius:10px; background:var(--bg-elev); border:1px solid var(--line); font-size:12px;">
-      <div style="color:var(--text-faint); font-weight:600; margin-bottom:2px;">Status połączenia:</div>
-      <div style="font-weight:700; color:var(--text);" id="cloudUserEmailDisplay">Brak aktywnej sesji</div>
-      <div style="font-size:10px; color:var(--text-faint); font-family:'JetBrains Mono',monospace; word-break:break-all; margin-top:4px;" id="cloudUserIdDisplay"></div>
+    <div id="cloudUserInfoBox" style="margin-bottom:14px; padding:12px; border-radius:10px; background:var(--bg-elev); border:1px solid var(--line); font-size:12px;">
+      <div style="color:var(--text-faint); font-weight:600; margin-bottom:2px;">Aktywny profil synchronizacji:</div>
+      <div style="font-weight:800; color:#38bdf8; font-family:'JetBrains Mono',monospace; font-size:14px; word-break:break-all;" id="cloudActiveSyncKeyDisplay">Łączenie...</div>
+      <div style="font-size:11px; color:var(--text-dim); margin-top:4px;" id="cloudUserEmailDisplay">Inicjalizacja...</div>
+    </div>
+
+    <!-- Parowanie urządzeń wspólnym kodem (niezawodne dla telefonu i komputera) -->
+    <div style="background:var(--bg-elev); border:1px solid var(--line); border-radius:10px; padding:12px; margin-bottom:14px;">
+      <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--text-faint); margin-bottom:6px;">
+        🔗 Połącz telefon z komputerem
+      </div>
+      <div style="font-size:11.5px; color:var(--text-dim); margin-bottom:8px; line-height:1.4;">
+        Wpisz poniżej <b>ten sam kod / nick</b> na telefonie i komputerze, aby natychmiast zsynchronizować oba ekrany:
+      </div>
+      <div style="display:flex; gap:6px;">
+        <input type="text" id="inputSyncRoomKey" placeholder="np. moj-trening" style="flex:1; padding:9px 10px; border-radius:8px; border:1.5px solid var(--line); font-family:'JetBrains Mono',monospace; font-size:14px; font-weight:700; background:var(--bg-card); color:var(--text);">
+        <button onclick="applyManualSyncKey()" class="start-btn" style="width:auto; padding:9px 14px; font-size:13px;">Połącz</button>
+      </div>
     </div>
 
     <div id="cloudAuthButtons" style="display:flex; flex-direction:column; gap:8px;">
-      <button class="start-btn" style="padding:12px; font-size:14px;" id="btnGoogleLogin" onclick="handleGoogleSignIn()">
+      <button class="start-btn secondary" style="padding:10px; font-size:13px;" id="btnGoogleLogin" onclick="handleGoogleSignIn()">
         🔑 Zaloguj przez Google
-      </button>
-      <button class="start-btn secondary" style="padding:10px; font-size:13px;" id="btnAnonLogin" onclick="handleAnonymousSignIn()">
-        ⚡ Połącz jako sesja anonimowa
       </button>
       <button class="confirm-btn danger" style="padding:10px; font-size:13px; display:none;" id="btnLogout" onclick="handleSignOut()">
         Wyloguj się
@@ -1086,7 +1097,7 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-import { getAuth, signInAnonymously, signInWithCustomToken, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+import { getAuth, signInAnonymously, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const BUILTIN_FIREBASE_CONFIG = {
@@ -1105,9 +1116,11 @@ let unsubscribeSnapshot = null;
 let currentUser = null;
 let isSyncingFromRemote = false;
 
-// Unikalny identyfikator urządzenia/karty zapobiegający pętlom i konfliktom zegarów
-const myClientId = 'cid_' + Date.now() + '_' + Math.random().toString(36).substring(2, 9);
-const appId = 'forge-pro-app';
+// Identyfikacja urządzenia (Telefon vs Komputer)
+const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+const deviceLabel = isMobileDevice ? 'telefonu' : 'komputera';
+const myClientId = 'cid_' + (isMobileDevice ? 'mob_' : 'pc_') + Math.random().toString(36).substring(2, 9);
+const appId = typeof __app_id !== 'undefined' ? __app_id : 'forge-pro-app';
 
 window.openWelcomeModal = function(){
   const modal = document.getElementById('welcomeModalOverlay');
@@ -1126,11 +1139,11 @@ window.handleGuestChoice = async function(){
     try {
       await signInAnonymously(auth);
     } catch(e){
-      console.warn('Tryb gościa lokalny:', e);
+      console.warn('Tryb gościa:', e);
     }
   }
   if(typeof window.showToast === 'function'){
-    window.showToast('Rozpoczęto w trybie gościa (zapis lokalny) ✓');
+    window.showToast('Rozpoczęto synchronizację lokalną Forge Pro ✓');
   }
 };
 
@@ -1145,10 +1158,7 @@ function getFirebaseConfig(){
 
 async function initFirebase(){
   const cfg = getFirebaseConfig();
-  if(!cfg){
-    updateCloudStatusUI(null, 'Konfiguracja');
-    return;
-  }
+  if(!cfg) return;
 
   try {
     app = initializeApp(cfg);
@@ -1164,68 +1174,53 @@ async function initFirebase(){
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
+      updateCloudUI();
       if(user){
-        updateCloudStatusUI(user, 'Zalogowany');
-        subscribeToUserData(user.uid);
-        if(!user.isAnonymous){
-          window.closeWelcomeModal();
-        } else {
-          if(localStorage.getItem('forge_auth_choice_made') === 'true'){
-            window.closeWelcomeModal();
-          } else {
-            window.openWelcomeModal();
-          }
-        }
+        subscribeToSyncRoom();
+        window.closeWelcomeModal();
       } else {
-        updateCloudStatusUI(null, 'Rozłączono');
-        if(unsubscribeSnapshot){
-          unsubscribeSnapshot();
-          unsubscribeSnapshot = null;
-        }
         if(typeof __initial_auth_token !== 'undefined' && __initial_auth_token){
           try {
             await signInWithCustomToken(auth, __initial_auth_token);
-          } catch(tokenErr){
-            if(localStorage.getItem('forge_auth_choice_made') === 'true'){
-              try { await signInAnonymously(auth); } catch(anonErr){}
-            } else {
-              window.openWelcomeModal();
-            }
+          } catch(e){
+            await signInAnonymously(auth);
           }
         } else {
-          if(localStorage.getItem('forge_auth_choice_made') === 'true'){
-            try { await signInAnonymously(auth); } catch(anonErr){}
-          } else {
-            window.openWelcomeModal();
-          }
+          try {
+            await signInAnonymously(auth);
+          } catch(e){}
         }
       }
     });
   } catch(err){
-    console.error('Firebase init error:', err);
-    updateCloudStatusUI(null, 'Błąd chmury');
+    console.error('Błąd inicjalizacji Firebase:', err);
   }
 }
 
-function subscribeToUserData(userId){
-  if(!db || !userId) return;
-  if(unsubscribeSnapshot) unsubscribeSnapshot();
+function subscribeToSyncRoom(){
+  if(!db || !auth || !auth.currentUser) return;
+  if(unsubscribeSnapshot) {
+    unsubscribeSnapshot();
+    unsubscribeSnapshot = null;
+  }
 
-  const userDocRef = doc(db, 'artifacts', appId, 'users', userId, 'data', 'workoutState');
+  // Zgodnie z regułami bezpieczeństwa Firestore dostęp mamy do:
+  // /artifacts/{appId}/users/{userId}/data/workoutState
+  // Gdy użytkownik zaloguje się tym samym kontem Google na PC i telefonie,
+  // auth.currentUser.uid jest identyczny i posiada pełne uprawnienia odczytu i zapisu.
+  const syncDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'data', 'workoutState');
 
-  unsubscribeSnapshot = onSnapshot(userDocRef, (snap) => {
+  unsubscribeSnapshot = onSnapshot(syncDocRef, (snap) => {
     if(snap.exists()){
       const remoteData = snap.data();
       if(remoteData && remoteData.stateJson){
-        // Jeśli zmiana pochodzi z tego samego urządzenia, potwierdź zapis w UI
+        // Ignoruj zmiany wysłane z tego samego urządzenia
         if(remoteData.senderId === myClientId){
-          if(!snap.metadata.hasPendingWrites){
-            updateCloudStatusUI(currentUser, 'W chmurze ✓');
-          }
+          updateCloudUI('W chmurze ✓');
           return;
         }
 
-        // Zmiana nadeszła z drugiego urządzenia (np. z telefonu na komputer lub odwrotnie)
+        // Zmiana nadeszła z drugiego urządzenia
         try {
           const parsed = JSON.parse(remoteData.stateJson);
           isSyncingFromRemote = true;
@@ -1233,56 +1228,46 @@ function subscribeToUserData(userId){
             window.applyNewState(parsed);
           }
           isSyncingFromRemote = false;
-          updateCloudStatusUI(currentUser, 'W chmurze ✓');
+          
+          const senderDevice = remoteData.senderDevice || 'drugiego urządzenia';
+          const nowStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           if(typeof window.showToast === 'function'){
-            window.showToast('⚡ Zaktualizowano dane w czasie rzeczywistym!');
+            window.showToast(`⚡ Pobrano dane z ${senderDevice}! (${nowStr})`);
           }
+          updateCloudUI('W chmurze ✓');
         } catch(e){
-          console.error('Błąd parsowania danych z chmury:', e);
+          console.error('Błąd parsowania stanu z chmury:', e);
         }
       }
     } else {
-      // Dokument w chmurze jeszcze nie istnieje – wyślij aktualny stan
+      // Dokument jeszcze nie istnieje w chmurze – wyślij aktualny stan
       syncStateToCloud();
     }
   }, (err) => {
     console.error('Błąd nasłuchiwania Firestore:', err);
-    if(!navigator.onLine){
-      updateCloudStatusUI(currentUser, 'Offline (lokalnie)');
+    if(err.code === 'permission-denied') {
+      updateCloudUI('Brak uprawnień');
     } else {
-      updateCloudStatusUI(currentUser, 'Błąd synchronizacji');
+      updateCloudUI('Błąd sieci');
     }
   });
 }
 
 window.handleGoogleSignIn = async function(){
-  if(!auth){
-    window.showToast('Najpierw skonfiguruj Firebase');
-    return;
-  }
+  if(!auth) return;
   try {
     const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
+    provider.setCustomParameters({ prompt: 'select_account' });
+    const cred = await signInWithPopup(auth, provider);
     localStorage.setItem('forge_auth_choice_made', 'true');
     window.showToast('Zalogowano pomyślnie przez Google! ✓');
     window.closeWelcomeModal();
     window.closeCloudModal();
+    subscribeToSyncRoom();
+    syncStateToCloud();
   } catch(err){
     console.error('Błąd logowania Google:', err);
-    window.showToast('Błąd logowania: ' + (err.message || 'Spróbuj ponownie'));
-  }
-};
-
-window.handleAnonymousSignIn = async function(){
-  if(!auth) return;
-  try {
-    await signInAnonymously(auth);
-    localStorage.setItem('forge_auth_choice_made', 'true');
-    window.showToast('Połączono z chmurą jako gość ✓');
-    window.closeWelcomeModal();
-    window.closeCloudModal();
-  } catch(err){
-    window.showToast('Błąd logowania anonimowego');
+    window.showToast('Błąd logowania Google: ' + (err.message || 'sprawdź ustawienia'));
   }
 };
 
@@ -1293,73 +1278,80 @@ window.handleSignOut = async function(){
     localStorage.removeItem('forge_auth_choice_made');
     window.showToast('Wylogowano z chmury');
     window.closeCloudModal();
-    window.openWelcomeModal();
+    updateCloudUI('Wylogowano');
   } catch(err){
     window.showToast('Błąd wylogowania');
   }
 };
 
 async function syncStateToCloud(){
-  if(!db || !currentUser || isSyncingFromRemote) return;
+  if(!db || !auth?.currentUser || isSyncingFromRemote) return;
+  if(!window.state) return; // Zabezpieczenie przed niezainicjalizowanym stanem
   try {
-    updateCloudStatusUI(currentUser, 'Wysyłanie...');
-    const userDocRef = doc(db, 'artifacts', appId, 'users', currentUser.uid, 'data', 'workoutState');
-    const updatedAt = window.state?.lastUpdatedAt || new Date().toISOString();
+    updateCloudUI('Wysyłanie...');
+    const syncDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'data', 'workoutState');
+    const updatedAt = window.state.lastUpdatedAt || new Date().toISOString();
+    const serializedState = JSON.stringify(window.state);
+    if(typeof serializedState !== 'string') return;
+    
     const statePayload = {
-      stateJson: JSON.stringify(window.state),
+      stateJson: serializedState,
       updatedAt: updatedAt,
-      senderId: myClientId
+      senderId: myClientId,
+      senderDevice: deviceLabel
     };
-    await setDoc(userDocRef, statePayload, { merge: true });
-    updateCloudStatusUI(currentUser, 'W chmurze ✓');
-    if(typeof window.updatePlanSummaryUI === 'function') window.updatePlanSummaryUI();
+
+    await setDoc(syncDocRef, statePayload, { merge: true });
+    updateCloudUI('W chmurze ✓');
   } catch(err){
     console.error('Błąd zapisu do Firestore:', err);
-    updateCloudStatusUI(currentUser, 'Błąd zapisu');
+    if(err.code === 'permission-denied') {
+      updateCloudUI('Brak uprawnień');
+      if(typeof window.showToast === 'function'){
+        window.showToast('⚠ Zaloguj się przez Google, aby włączyć synchronizację');
+      }
+    } else {
+      updateCloudUI('Błąd zapisu');
+    }
   }
 }
 
-function updateCloudStatusUI(user, statusLabel){
+function updateCloudUI(statusLabel){
   const btn = document.getElementById('cloudStatusBtn');
   const txt = document.getElementById('cloudStatusText');
+  const activeKeyDisp = document.getElementById('cloudActiveSyncKeyDisplay');
   const emailDisp = document.getElementById('cloudUserEmailDisplay');
-  const idDisp = document.getElementById('cloudUserIdDisplay');
-  const btnGoogle = document.getElementById('btnGoogleLogin');
-  const btnAnon = document.getElementById('btnAnonLogin');
   const btnLogout = document.getElementById('btnLogout');
+  const btnGoogle = document.getElementById('btnGoogleLogin');
 
-  if(user && !user.isAnonymous){
-    const isOnline = navigator.onLine;
+  const isOnline = navigator.onLine;
+  if(btn){
     btn.className = isOnline ? 'cloud-badge-btn online' : 'cloud-badge-btn';
+  }
+  if(txt){
     txt.textContent = isOnline ? (statusLabel || 'Chmura ✓') : 'Offline (lokalnie)';
-    emailDisp.textContent = user.email ? `Zalogowany: ${user.email}` : 'Zalogowany';
-    idDisp.textContent = `ID: ${user.uid}`;
-    btnGoogle.style.display = 'none';
-    btnAnon.style.display = 'none';
-    btnLogout.style.display = 'block';
-  } else if(user && user.isAnonymous){
-    btn.className = 'cloud-badge-btn';
-    txt.textContent = 'Gość';
-    emailDisp.textContent = 'Sesja gościa (zapis lokalny)';
-    idDisp.textContent = `ID: ${user.uid}`;
-    btnGoogle.style.display = 'block';
-    btnAnon.style.display = 'none';
-    btnLogout.style.display = 'block';
-  } else {
-    btn.className = 'cloud-badge-btn';
-    txt.textContent = statusLabel || 'Lokalnie';
-    emailDisp.textContent = 'Brak aktywnego połączenia';
-    idDisp.textContent = '';
-    btnGoogle.style.display = 'block';
-    btnAnon.style.display = 'block';
-    btnLogout.style.display = 'none';
   }
 
-  if(typeof window.updatePlanSummaryUI === 'function') window.updatePlanSummaryUI();
+  if(currentUser && !currentUser.isAnonymous){
+    if(activeKeyDisp) activeKeyDisp.textContent = currentUser.uid.substring(0, 14) + '...';
+    if(emailDisp) emailDisp.textContent = `Zalogowano jako: ${currentUser.email}`;
+    if(btnLogout) btnLogout.style.display = 'block';
+    if(btnGoogle) btnGoogle.style.display = 'none';
+  } else if(currentUser && currentUser.isAnonymous){
+    if(activeKeyDisp) activeKeyDisp.textContent = 'Tryb gościa (lokalny)';
+    if(emailDisp) emailDisp.textContent = 'Zaloguj się kontem Google, by połączyć urządzenia';
+    if(btnLogout) btnLogout.style.display = 'none';
+    if(btnGoogle) btnGoogle.style.display = 'block';
+  } else {
+    if(activeKeyDisp) activeKeyDisp.textContent = 'Niepołączony';
+    if(emailDisp) emailDisp.textContent = 'Zaloguj się przez Google';
+    if(btnLogout) btnLogout.style.display = 'none';
+    if(btnGoogle) btnGoogle.style.display = 'block';
+  }
 }
 
 window.openCloudModal = function(){
-  if(typeof window.updatePlanSummaryUI === 'function') window.updatePlanSummaryUI();
+  updateCloudUI();
   document.getElementById('cloudModalOverlay').classList.add('open');
 };
 
@@ -1369,9 +1361,8 @@ window.closeCloudModal = function(){
 
 window.syncStateToCloud = syncStateToCloud;
 
-// Automatyczne wznowienie synchronizacji po odzyskaniu łączności
 window.addEventListener('online', () => {
-  if(typeof updateCloudStatusUI === 'function') updateCloudStatusUI(currentUser, 'Wysyłanie...');
+  updateCloudUI('Wysyłanie...');
   syncStateToCloud();
 });
 
@@ -1741,34 +1732,36 @@ function renderHome(){
     pill.onclick = () => { 
       state.currentWeek = w; 
       saveStateLocalOnly(); // Przełączenie tygodnia nie modyfikuje timestampu planu
-      renderHome(); 
+      renderHome();
     };
     weekSel.appendChild(pill);
-    if(w === state.currentWeek){
-      setTimeout(() => {
-        weekSel.scrollTo({ left: pill.offsetLeft - (weekSel.clientWidth / 2) + (pill.clientWidth / 2), behavior: 'smooth' });
-      }, 50);
-    }
   }
 
   const meta = getWeekMeta(state.currentWeek);
-  document.getElementById('headerWeekLabel').textContent = meta.label;
+  const headerLabel = document.getElementById('headerWeekLabel');
+  if(headerLabel) headerLabel.textContent = meta.label;
 
+  const plan = getPlanForWeek(state.currentWeek);
   const dayList = document.getElementById('dayList');
   dayList.innerHTML = '';
-  const weekPlan = getPlanForWeek(state.currentWeek);
 
   state.customDays.forEach(day => {
-    const dayPlan = weekPlan[day.id];
-    const complete = isDayComplete(state.currentWeek, day.id);
+    const dayPlan = plan[day.id];
+    if(!dayPlan) return;
+    const prog = getDayProgress(state.currentWeek, day.id);
+    const complete = prog.completed;
     const doneSets = countCompletedSets(state.currentWeek, day.id);
+    const totalSets = totalSetsForDay(state.currentWeek, day.id);
 
     const card = document.createElement('div');
     card.className = 'day-card' + (complete ? ' complete' : '');
     card.id = `day-card-${day.id}`;
     card.innerHTML = `
       <div class="day-head">
-        <div class="day-title">${dayPlan.name}</div>
+        <div>
+          <div class="day-title">${dayPlan.name}</div>
+          <div class="day-sub">${dayPlan.focus || ''}</div>
+        </div>
         <button class="day-check ${complete ? 'done' : ''}" onclick="event.stopPropagation(); confirmToggleDayComplete(${state.currentWeek}, ${day.id})" aria-label="Oznacz trening jako wykonany"></button>
       </div>
       <div class="ex-mini-list">

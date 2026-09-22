@@ -338,6 +338,7 @@
     background:var(--bg-elev); border:1px solid var(--line); border-radius:12px;
     padding:12px; display:flex; flex-direction:column; gap:8px;
   }
+  .week-meta-card.collapsed{ gap:0; padding:10px 12px; }
   .week-meta-top{
     display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:14px; color:var(--text);
   }
@@ -355,10 +356,29 @@
     outline:none; border-color:var(--accent-dim);
   }
 
+  .collapsible-head{ cursor:pointer; user-select:none; }
+  .collapsible-head:active{ opacity:0.75; }
+  .chevron{ display:inline-block; font-size:11px; color:var(--text-faint); transition:transform 0.15s ease; }
+  .week-meta-card.collapsed .collapsible-body{ display:none; }
+  .week-meta-card.collapsed .week-meta-top{ margin:0; }
+  .collapse-summary{ display:flex; align-items:center; gap:6px; }
+
   .edit-day-block{
     background:var(--bg-elev); border:1px solid var(--line); border-radius:var(--radius);
     padding:14px; margin-bottom:16px;
   }
+  .edit-day-block.collapsed{ padding:0; overflow:hidden; }
+  .edit-day-block.collapsed .edit-day-collapsible-head{ padding:14px; }
+  .edit-day-block.collapsed .edit-day-body{ display:none; }
+  .edit-day-collapsible-head{
+    display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;
+  }
+  .edit-day-block.collapsed .edit-day-collapsible-head{ margin-bottom:0; }
+  .edit-day-collapse-title{
+    display:flex; align-items:center; gap:8px; font-weight:700; font-size:15px; color:var(--text); min-width:0;
+  }
+  .edit-day-collapse-name{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .edit-day-collapse-sub{ font-size:12px; color:var(--text-faint); flex-shrink:0; margin-left:10px; }
   .edit-day-head{
     display:flex; align-items:flex-end; gap:10px; margin-bottom:12px;
   }
@@ -449,10 +469,12 @@
   .hist-empty{text-align:center; padding:60px 20px; color:var(--text-faint); font-weight:600;}
   .hist-empty .big{font-size:44px; margin-bottom:12px;}
   .clear-history-btn{
-    display:block; width:100%; margin-bottom:16px; padding:12px; border-radius:10px;
-    background:var(--warn-bg); border:1px solid rgba(245,158,11,0.3); color:#fcd34d; font-size:13px; font-weight:700;
-    font-family:'Space Grotesk',sans-serif; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; width:100%; margin-bottom:16px;
+    height:42px; padding:0 14px; border-radius:8px; border:1px solid rgba(239,68,68,0.3);
+    background:var(--danger-bg); color:#f87171; font-family:'Space Grotesk',sans-serif;
+    font-size:13px; font-weight:700; cursor:pointer; gap:6px; transition:all 0.15s ease;
   }
+  .clear-history-btn:active{transform:scale(0.96); background:rgba(239,68,68,0.25);}
   .hist-delete-btn{
     flex-shrink:0; width:32px; height:32px; border-radius:8px; border:1px solid var(--line-strong);
     background:var(--bg-elev); color:var(--text-faint); font-size:13px; font-weight:700; cursor:pointer;
@@ -568,6 +590,7 @@
   }
   .confirm-btn.cancel{background:var(--bg-elev); color:var(--text-dim); border:1px solid var(--line);}
   .confirm-btn.danger{background:var(--danger); color:#ffffff;}
+  .confirm-btn.primary-confirm{background:var(--accent); color:var(--accent-ink);}
 
   .auth-choice-card{
     background:var(--bg-elev); border:1px solid var(--line); border-radius:12px;
@@ -810,7 +833,7 @@
     <div class="confirm-text" id="confirmModalText"></div>
     <div class="confirm-actions">
       <button class="confirm-btn cancel" onclick="hideConfirmModal()">Anuluj</button>
-      <button class="confirm-btn danger" onclick="runConfirmedAction()">Usuń</button>
+      <button class="confirm-btn danger" id="confirmModalActionBtn" onclick="runConfirmedAction()">Usuń</button>
     </div>
   </div>
 </div>
@@ -874,15 +897,6 @@
         Wyloguj się
       </button>
     </div>
-
-    <details style="font-size:12px; color:var(--text-dim); margin-top:8px;">
-      <summary style="cursor:pointer; font-weight:700; color:#60a5fa;">⚙ Konfiguracja Firebase</summary>
-      <div style="margin-top:8px; line-height:1.4;">
-        Aplikacja ma już wbudowaną Twoją konfigurację Firebase. W razie potrzeby możesz ją nadpisać poniżej:
-      </div>
-      <textarea id="customFirebaseConfigInput" placeholder='{"apiKey":"...","authDomain":"...","projectId":"..."}' style="width:100%; height:75px; font-family:'JetBrains Mono',monospace; font-size:11px; padding:6px; border:1px solid var(--line); border-radius:8px; margin-top:6px; resize:none; background:var(--bg-elev); color:var(--text);"></textarea>
-      <button class="body-save-btn" style="margin-top:6px; padding:8px;" onclick="saveCustomFirebaseConfig()">Zapisz konfigurację</button>
-    </details>
   </div>
 </div>
 
@@ -941,13 +955,6 @@ let isSyncingFromRemote = false;
 const appId = typeof __app_id !== 'undefined' ? __app_id : 'forge-pro-app';
 
 function getFirebaseConfig(){
-  if(typeof __firebase_config !== 'undefined'){
-    try { return JSON.parse(__firebase_config); } catch(e){}
-  }
-  const saved = localStorage.getItem('forge_custom_firebase_cfg');
-  if(saved){
-    try { return JSON.parse(saved); } catch(e){}
-  }
   return BUILTIN_FIREBASE_CONFIG;
 }
 
@@ -1148,31 +1155,11 @@ function updateCloudStatusUI(user, statusLabel){
 }
 
 window.openCloudModal = function(){
-  const cfg = localStorage.getItem('forge_custom_firebase_cfg') || JSON.stringify(BUILTIN_FIREBASE_CONFIG, null, 2);
-  document.getElementById('customFirebaseConfigInput').value = cfg;
   document.getElementById('cloudModalOverlay').classList.add('open');
 };
 
 window.closeCloudModal = function(){
   document.getElementById('cloudModalOverlay').classList.remove('open');
-};
-
-window.saveCustomFirebaseConfig = function(){
-  const raw = document.getElementById('customFirebaseConfigInput').value.trim();
-  if(!raw){
-    localStorage.removeItem('forge_custom_firebase_cfg');
-    window.showToast('Przywrócono domyślną konfigurację');
-    setTimeout(() => { location.reload(); }, 600);
-    return;
-  }
-  try {
-    JSON.parse(raw);
-    localStorage.setItem('forge_custom_firebase_cfg', raw);
-    window.showToast('Zapisano! Przeładowywanie...');
-    setTimeout(() => { location.reload(); }, 600);
-  } catch(e){
-    window.showToast('Niepoprawny format JSON konfiguracji');
-  }
 };
 
 window.syncStateToCloud = syncStateToCloud;
@@ -1489,7 +1476,7 @@ function renderHome(){
     card.innerHTML = `
       <div class="day-head">
         <div class="day-title">${dayPlan.name}</div>
-        <button class="day-check ${complete ? 'done' : ''}" onclick="event.stopPropagation(); toggleDayComplete(${state.currentWeek}, ${day.id})" aria-label="Oznacz trening jako wykonany"></button>
+        <button class="day-check ${complete ? 'done' : ''}" onclick="event.stopPropagation(); confirmToggleDayComplete(${state.currentWeek}, ${day.id})" aria-label="Oznacz trening jako wykonany"></button>
       </div>
       <div class="ex-mini-list">
         ${dayPlan.exercises.map(ex => `
@@ -1502,6 +1489,18 @@ function renderHome(){
     `;
     dayList.appendChild(card);
   });
+}
+
+function confirmToggleDayComplete(week, day){
+  const prog = getDayProgress(week, day);
+  if(prog.completed){
+    // odznaczanie nie wymaga potwierdzenia
+    toggleDayComplete(week, day);
+    return;
+  }
+  showConfirmModal('Oznaczyć ten trening jako wykonany i zapisać w historii?', () => {
+    toggleDayComplete(week, day);
+  }, 'Zapisz trening', 'primary');
 }
 
 function toggleDayComplete(week, day){
@@ -1725,7 +1724,7 @@ function renderSession(){
   });
 
   const allExercisesDone = dayPlan.exercises.every(ex => prog.setsDone[ex.id]?.every(Boolean));
-  html += `<button class="next-btn" id="sessionNextBtn" ${allExercisesDone ? '' : 'disabled'} onclick="finishSession()">
+  html += `<button class="next-btn" id="sessionNextBtn" ${allExercisesDone ? '' : 'disabled'} onclick="confirmFinishSession()">
     ${allExercisesDone ? 'Zakończ trening ✓' : `Ukończ wszystkie serie (${doneSets}/${totalSets})`}
   </button>`;
 
@@ -1860,6 +1859,12 @@ function stopRestTimer(){
   timerInterval = null;
   const bar = document.getElementById('restTimerBar');
   if(bar) bar.classList.remove('active');
+}
+
+function confirmFinishSession(){
+  showConfirmModal('Zakończyć trening i zapisać go w historii?', () => {
+    finishSession();
+  }, 'Zapisz trening', 'primary');
 }
 
 function finishSession(){
@@ -2344,6 +2349,13 @@ function changeWeekCount(delta){
   showToast(`Ustawiono ${state.totalWeeks} tyg. w planie`);
 }
 
+let expandedWeekMeta = new Set();
+function toggleWeekMetaCard(w){
+  if(expandedWeekMeta.has(w)) expandedWeekMeta.delete(w);
+  else expandedWeekMeta.add(w);
+  renderWeeksMetaEditor();
+}
+
 function renderWeeksMetaEditor(){
   const container = document.getElementById('editorWeeksMetaList');
   if(!container) return;
@@ -2363,13 +2375,14 @@ function renderWeeksMetaEditor(){
   for(let w = 1; w <= state.totalWeeks; w++){
     const meta = getWeekMeta(w);
     const card = document.createElement('div');
-    card.className = 'week-meta-card';
+    const isOpen = expandedWeekMeta.has(w);
+    card.className = 'week-meta-card' + (isOpen ? '' : ' collapsed');
     card.innerHTML = `
-      <div class="week-meta-top">
+      <div class="week-meta-top collapsible-head" onclick="toggleWeekMetaCard(${w})">
         <span>Tydzień ${w}</span>
-        <span class="mono" style="font-size:12px; color:#60a5fa;">Tydzień ${w}</span>
+        <span class="mono collapse-summary" style="font-size:12px; color:#60a5fa;">RIR ${meta.rir} · ${restOptions.find(o=>o.s===meta.rest)?.l || meta.rest+'s'} <span class="chevron">${isOpen ? '▾' : '▸'}</span></span>
       </div>
-      <div class="week-meta-grid">
+      <div class="week-meta-grid collapsible-body">
         <div class="week-meta-field">
           <label>RIR</label>
           <select onchange="updateWeekMeta(${w}, 'rir', this.value)">
@@ -2388,6 +2401,13 @@ function renderWeeksMetaEditor(){
   }
 }
 
+let expandedEditorDays = new Set();
+function toggleEditorDay(dayId){
+  if(expandedEditorDays.has(dayId)) expandedEditorDays.delete(dayId);
+  else expandedEditorDays.add(dayId);
+  renderEditor();
+}
+
 function renderEditor(){
   document.getElementById('editorWeeksCount').textContent = state.totalWeeks;
   renderWeeksMetaEditor();
@@ -2396,11 +2416,12 @@ function renderEditor(){
 
   state.customDays.forEach((d, dayIdx) => {
     const block = document.createElement('div');
-    block.className = 'edit-day-block';
+    const isOpen = expandedEditorDays.has(d.id);
+    block.className = 'edit-day-block' + (isOpen ? '' : ' collapsed');
 
     const canDelete = state.customDays.length > 1;
     const deleteBtnHtml = canDelete ? `
-      <button class="btn-del-day" onclick="deleteEditorDay(${dayIdx})" title="Usuń trening">
+      <button class="btn-del-day" onclick="event.stopPropagation(); deleteEditorDay(${dayIdx})" title="Usuń trening">
         🗑 Usuń trening
       </button>
     ` : '';
@@ -2442,16 +2463,25 @@ function renderEditor(){
     `).join('');
 
     block.innerHTML = `
-      <div class="edit-day-head">
-        <div class="edit-input-group">
-          <label>Nazwa treningu</label>
-          <input type="text" value="${d.name}" onchange="updateEditorDay(${dayIdx}, 'name', this.value)">
+      <div class="edit-day-collapsible-head collapsible-head" onclick="toggleEditorDay(${d.id})">
+        <div class="edit-day-collapse-title">
+          <span class="chevron">${isOpen ? '▾' : '▸'}</span>
+          <span class="edit-day-collapse-name">${d.name || 'Trening'}</span>
         </div>
-        ${deleteBtnHtml}
+        <span class="edit-day-collapse-sub mono">${d.exercises.length} ${d.exercises.length === 1 ? 'ćwiczenie' : 'ćwiczeń'}</span>
       </div>
-      <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Ćwiczenia w tym treningu</div>
-      <div>${exercisesHtml}</div>
-      <button class="btn-add-ex" onclick="addEditorExercise(${dayIdx})">+ Dodaj ćwiczenie</button>
+      <div class="edit-day-body collapsible-body">
+        <div class="edit-day-head">
+          <div class="edit-input-group">
+            <label>Nazwa treningu</label>
+            <input type="text" value="${d.name}" onchange="updateEditorDay(${dayIdx}, 'name', this.value)">
+          </div>
+          ${deleteBtnHtml}
+        </div>
+        <div style="font-size:11px; color:var(--text-dim); margin-bottom:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.05em;">Ćwiczenia w tym treningu</div>
+        <div>${exercisesHtml}</div>
+        <button class="btn-add-ex" onclick="addEditorExercise(${dayIdx})">+ Dodaj ćwiczenie</button>
+      </div>
     `;
     container.appendChild(block);
   });
@@ -2619,9 +2649,13 @@ function confirmClearHistory(){
 }
 
 let pendingConfirmAction = null;
-function showConfirmModal(message, onConfirm){
+function showConfirmModal(message, onConfirm, confirmLabel, variant){
   pendingConfirmAction = onConfirm;
   document.getElementById('confirmModalText').textContent = message;
+  const btn = document.getElementById('confirmModalActionBtn');
+  btn.textContent = confirmLabel || 'Usuń';
+  btn.classList.toggle('danger', variant !== 'primary');
+  btn.classList.toggle('primary-confirm', variant === 'primary');
   document.getElementById('confirmModalOverlay').classList.add('open');
 }
 
@@ -2666,7 +2700,9 @@ window.switchTab = switchTab;
 window.startSession = startSession;
 window.exitSession = exitSession;
 window.toggleDayComplete = toggleDayComplete;
+window.confirmToggleDayComplete = confirmToggleDayComplete;
 window.finishSession = finishSession;
+window.confirmFinishSession = confirmFinishSession;
 window.confirmResetCurrentSession = confirmResetCurrentSession;
 window.resetCurrentSessionData = resetCurrentSessionData;
 window.toggleSet = toggleSet;
@@ -2691,6 +2727,8 @@ window.changeWeekCount = changeWeekCount;
 window.updateWeekMeta = updateWeekMeta;
 window.addEditorDay = addEditorDay;
 window.deleteEditorDay = deleteEditorDay;
+window.toggleEditorDay = toggleEditorDay;
+window.toggleWeekMetaCard = toggleWeekMetaCard;
 window.updateEditorDay = updateEditorDay;
 window.addEditorExercise = addEditorExercise;
 window.deleteEditorExercise = deleteEditorExercise;

@@ -15,7 +15,6 @@
 
 <!-- Ikona wektorowa (SVG) oraz ikony dla ekranu głównego iOS & Android & PC Desktop -->
 <link rel="icon" type="image/svg+xml" sizes="any" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230b111e'/%3E%3Cstop offset='100%25' stop-color='%23172640'/%3E%3C/linearGradient%3E%3ClinearGradient id='bar' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%232563eb'/%3E%3C/linearGradient%3E%3ClinearGradient id='plate' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%231d4ed8'/%3E%3C/linearGradient%3E%3Cdefs%3E%3Crect width='512' height='512' rx='128' fill='url(%23bg)'/%3E%3Crect x='12' y='12' width='488' height='488' rx='116' fill='none' stroke='%2322324d' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='140' fill='%232563eb' opacity='0.16'/%3E%3Crect x='70' y='242' width='372' height='28' rx='14' fill='url(%23bar)'/%3E%3Crect x='78' y='222' width='20' height='68' rx='6' fill='%2364748b'/%3E%3Crect x='414' y='222' width='20' height='68' rx='6' fill='%2364748b'/%3E%3Crect x='108' y='196' width='30' height='120' rx='10' fill='url(%23plate)'/%3E%3Crect x='374' y='196' width='30' height='120' rx='10' fill='url(%23plate)'/%3E%3Crect x='146' y='160' width='40' height='192' rx='14' fill='url(%23plate)'/%3E%3Crect x='326' y='160' width='40' height='192' rx='14' fill='url(%23plate)'/%3E%3Ccircle cx='256' cy='256' r='30' fill='%230f172a' stroke='%2338bdf8' stroke-width='6'/%3E%3Cpolygon points='256,240 268,264 244,264' fill='%2338bdf8'/%3E%3C/svg%3E">
-<link rel="shortcut icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%230b111e'/%3E%3Cstop offset='100%25' stop-color='%23172640'/%3E%3C/linearGradient%3E%3ClinearGradient id='bar' x1='0' y1='0' x2='1' y2='0'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%232563eb'/%3E%3C/linearGradient%3E%3ClinearGradient id='plate' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0%25' stop-color='%2338bdf8'/%3E%3Cstop offset='100%25' stop-color='%231d4ed8'/%3E%3C/linearGradient%3E%3Cdefs%3E%3Crect width='512' height='512' rx='128' fill='url(%23bg)'/%3E%3Crect x='12' y='12' width='488' height='488' rx='116' fill='none' stroke='%2322324d' stroke-width='6'/%3E%3Ccircle cx='256' cy='256' r='140' fill='%232563eb' opacity='0.16'/%3E%3Crect x='70' y='242' width='372' height='28' rx='14' fill='url(%23bar)'/%3E%3Crect x='78' y='222' width='20' height='68' rx='6' fill='%2364748b'/%3E%3Crect x='414' y='222' width='20' height='68' rx='6' fill='%2364748b'/%3E%3Crect x='108' y='196' width='30' height='120' rx='10' fill='url(%23plate)'/%3E%3Crect x='374' y='196' width='30' height='120' rx='10' fill='url(%23plate)'/%3E%3Crect x='146' y='160' width='40' height='192' rx='14' fill='url(%23plate)'/%3E%3Crect x='326' y='160' width='40' height='192' rx='14' fill='url(%23plate)'/%3E%3Ccircle cx='256' cy='256' r='30' fill='%230f172a' stroke='%2338bdf8' stroke-width='6'/%3E%3Cpolygon points='256,240 268,264 244,264' fill='%2338bdf8'/%3E%3C/svg%3E">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
@@ -125,6 +124,21 @@
     transition: all 0.15s ease;
   }
   .week-pill.active{background:var(--accent); color:var(--accent-ink); border-color:var(--accent-dim); box-shadow:0 4px 16px rgba(37,99,235,0.4);}
+
+  .home-top-controls{
+    display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:16px;
+  }
+  .home-top-controls .week-selector{
+    margin-bottom:0; flex:1; min-width:0;
+  }
+  .reset-cycle-btn{
+    font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:700;
+    background:rgba(239, 68, 68, 0.12); border:1px solid rgba(239, 68, 68, 0.35);
+    color:#f87171; border-radius:20px; padding:8px 12px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:6px; flex-shrink:0; white-space:nowrap;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15); transition:all 0.15s ease;
+  }
+  .reset-cycle-btn:active{ transform:scale(0.96); background:rgba(239, 68, 68, 0.25); }
 
   .day-card{
     background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
@@ -237,7 +251,6 @@
   .col-label{font-size:10px; font-weight:700; color:var(--text-faint); text-transform:uppercase; letter-spacing:0.06em;}
   .set-header-row{display:grid; grid-template-columns: 28px 1fr 1fr 40px; gap:8px; margin-bottom:4px;}
 
-  /* Zaawansowany Wyświetlacz Przerwy: Tryb Pełnoekranowy (Wielkie Cyfry) & Pływające Okienko (PiP) */
   .rest-timer-overlay{
     position: fixed; inset: 0; z-index: 120;
     background: rgba(11, 17, 30, 0.94);
@@ -319,7 +332,6 @@
   }
   .timer-bottom-action-btn.skip:active{ background: rgba(239, 68, 68, 0.3); transform: scale(0.98); }
 
-  /* Zminimalizowany Pływający Kafelek Przerwy (Draggable Floating Bubble) */
   .rest-timer-pip-widget{
     position: fixed; z-index: 110;
     bottom: 96px; right: 18px;
@@ -487,7 +499,6 @@
   .collapsible-head:active{ opacity:0.75; }
   .chevron{ display:inline-block; font-size:11px; color:var(--text-faint); transition:transform 0.15s ease; }
 
-  /* Menedżer Planów Styles */
   .plans-manager-box{
     display:flex; flex-direction:column; gap:10px;
   }
@@ -527,7 +538,6 @@
     background:var(--danger-bg); border-color:rgba(239,68,68,0.3); color:#f87171;
   }
 
-  /* Pasek szybkich narzędzi tygodnia */
   .week-tools-bar{
     display:flex; gap:8px; margin-top:10px;
   }
@@ -539,7 +549,6 @@
   }
   .week-tool-btn:active{background:var(--accent-deep); transform:scale(0.98);}
 
-  /* Drag & Drop Styles */
   .drag-handle {
     display: flex;
     align-items: center;
@@ -743,7 +752,12 @@
     padding:16px 18px; margin-bottom:12px; box-shadow:var(--shadow);
   }
   .hist-item-top{display:flex; justify-content:space-between; align-items:center;}
-  .hist-item-title{font-weight:700; font-size:15px; color:var(--text);}
+  .hist-item-title{font-weight:700; font-size:15px; color:var(--text); display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .hist-plan-badge{
+    font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px;
+    background:rgba(56, 189, 248, 0.12); color:#38bdf8; border:1px solid rgba(56, 189, 248, 0.3);
+    font-family:'Space Grotesk',sans-serif;
+  }
   .hist-item-date{font-family:'JetBrains Mono',monospace; font-size:12px; font-weight:600; color:var(--text-faint); margin-top:2px;}
   .hist-tonnage-tag{
     display:inline-block; font-family:'JetBrains Mono',monospace; font-size:11px; font-weight:700;
@@ -875,7 +889,13 @@
 <main>
   <!-- EKRAN 1: PLAN GŁÓWNY -->
   <div class="screen active" id="screen-home">
-    <div class="week-selector" id="weekSelector"></div>
+    <div class="home-top-controls">
+      <div class="week-selector" id="weekSelector"></div>
+      <button class="reset-cycle-btn" onclick="confirmResetCycleProgress()" title="Zresetuj odznaczenia i rozpocznij cykl od nowa">
+        <span>🔄</span>
+        <span>Zresetuj postęp</span>
+      </button>
+    </div>
     <div id="dayList"></div>
   </div>
 
@@ -973,7 +993,6 @@
 
   <!-- EKRAN 4: EDYTOR PLANU & KOPIA ZAPASOWA -->
   <div class="screen" id="screen-editor">
-    <!-- FILAR 2: MENEDŻER WIELU PLANÓW -->
     <div class="editor-section">
       <div class="editor-section-title" style="display:flex; justify-content:space-between; align-items:center;">
         <span>Menedżer Planów</span>
@@ -1029,13 +1048,13 @@
       </div>
     </div>
 
-    <!-- ZAPLANOWANA OBJĘTOŚĆ TYGODNIOWA (PRZENIESIONA NA SAM DÓŁ EDYTORA) -->
+    <!-- ZAPLANOWANA OBJĘTOŚĆ TYGODNIOWA -->
     <div class="editor-section">
       <div class="editor-section-title">Zaplanowana objętość tygodniowa</div>
       <div id="editorVolumeBars"></div>
     </div>
 
-    <!-- KOPIA ZAPASOWA DANYCH (NA SAMYM DOLE EDYTORA) -->
+    <!-- KOPIA ZAPASOWA DANYCH -->
     <div class="editor-section">
       <div class="editor-section-title">Kopia zapasowa danych</div>
       <div class="backup-box">
@@ -1053,7 +1072,7 @@
   </div>
 </main>
 
-<!-- NOWY WIELKI WYŚWIETLACZ PRZERWY (FOCUS OVERLAY Z WIELKIMI CYFRAMI) -->
+<!-- WYŚWIETLACZ PRZERWY (FOCUS OVERLAY Z WIELKIMI CYFRAMI) -->
 <div class="rest-timer-overlay" id="restTimerOverlay">
   <div class="timer-overlay-top">
     <div class="timer-overlay-badge">
@@ -1091,7 +1110,7 @@
   </div>
 </div>
 
-<!-- NOWY ZMINIMALIZOWANY, PRZESUWANY WYŚWIETLACZ PŁYWAJĄCY (PIP WIDGET) -->
+<!-- PRZESUWANY WYŚWIETLACZ PŁYWAJĄCY (PIP WIDGET) -->
 <div class="rest-timer-pip-widget" id="restTimerPipWidget">
   <span class="pip-drag-dot">⠿</span>
   <span class="pip-clock" id="timerPipClockDisplay">01:30</span>
@@ -1652,9 +1671,14 @@ window.addEventListener('appinstalled', () => {
   showToast('Forge Pro zainstalowane pomyślnie! 🎉');
 });
 
-/* =========================================================================
-   ZARZĄDZANIE BIBLIOTEKĄ WIELU PLANÓW (FILAR 2)
-   ========================================================================= */
+function getCurrentPlanName(){
+  if(state.savedPlans && state.savedPlans.length > 0){
+    const cur = state.savedPlans.find(p => p.id === state.currentPlanId);
+    if(cur && cur.name) return cur.name;
+    if(state.savedPlans[0] && state.savedPlans[0].name) return state.savedPlans[0].name;
+  }
+  return 'Plan Główny';
+}
 
 function ensurePlansInitialized(){
   if(!state.savedPlans || !Array.isArray(state.savedPlans) || state.savedPlans.length === 0){
@@ -1694,7 +1718,6 @@ function toggleEditPlanName(){
   if(!input || !btn || !select) return;
 
   if(!isEditingPlanName){
-    // Zamiana selektora na pole tekstowe
     isEditingPlanName = true;
     const cur = state.savedPlans.find(p => p.id === state.currentPlanId) || state.savedPlans[0];
     input.value = cur ? cur.name : '';
@@ -1706,7 +1729,6 @@ function toggleEditPlanName(){
     btn.classList.add('primary');
     btn.title = 'Zapisz nazwę';
   } else {
-    // Zapis nowej nazwy i powrót do widoku select
     const newName = input.value.trim();
     if(newName){
       renameCurrentPlan(newName);
@@ -1794,7 +1816,6 @@ function deleteCurrentPlan(){
   const deletedName = state.savedPlans[idx].name;
   state.savedPlans.splice(idx, 1);
 
-  // Przełączenie na sąsiedni plan
   const nextPlan = state.savedPlans[Math.min(idx, state.savedPlans.length - 1)];
   state.currentPlanId = nextPlan.id;
   state.totalWeeks = nextPlan.totalWeeks || 6;
@@ -1865,10 +1886,6 @@ function handleSelectPlanChange(planId){
     switchActivePlan(planId);
   }
 }
-
-/* =========================================================================
-   FILAR 1: KOPIOWANIE STRUKTURY TYGODNI
-   ========================================================================= */
 
 function openCopyWeekModal(){
   const modal = document.getElementById('copyWeekModalOverlay');
@@ -1977,10 +1994,6 @@ function confirmClearCurrentPlan(){
   });
 }
 
-/* =========================================================================
-   BLOKADA WYGASZANIA EKRANU (WAKE LOCK) ORAZ ZAPIS PRZY ZAMYKANIU
-   ========================================================================= */
-
 let wakeLock = null;
 async function acquireWakeLock(){
   if('wakeLock' in navigator){
@@ -1991,20 +2004,13 @@ async function acquireWakeLock(){
           wakeLock = null;
         });
       }
-    } catch(err){
-      // Przeglądarka może odmówić przy włączonym trybie oszczędzania energii
-    }
+    } catch(err){}
   }
 }
 
-// Aktywacja blokady wygaszania przy pierwszym dotknięciu lub załadowaniu strony
 window.addEventListener('load', acquireWakeLock);
 window.addEventListener('touchstart', acquireWakeLock, { passive: true });
 window.addEventListener('click', acquireWakeLock, { passive: true });
-
-/* =========================================================================
-   ŁADOWANIE, ZAPISYWANIE I SYNCHRONIZACJA
-   ========================================================================= */
 
 function applyNewState(newState){
   if(!newState) return;
@@ -2072,7 +2078,6 @@ document.addEventListener('visibilitychange', () => {
     saveState(true, true);
   } else if(document.visibilityState === 'visible'){
     acquireWakeLock();
-    // Natychmiastowa synchronizacja czasu po powrocie z zablokowanego ekranu
     if(timerInterval && !isTimerPaused){
       tickTimer();
     }
@@ -2345,6 +2350,7 @@ function toggleDayComplete(week, day){
       const record = {
         id: Date.now(),
         week, day,
+        planName: getCurrentPlanName(),
         dayName: dayPlan.name,
         focus: dayPlan.focus,
         date: prog.date,
@@ -2421,6 +2427,21 @@ function checkCycleProgression(week){
     }
   }
   return false;
+}
+
+function confirmResetCycleProgress(){
+  const planName = getCurrentPlanName();
+  showConfirmModal(`Czy na pewno chcesz zresetować postęp w planie "${planName}" i rozpocząć cykl od nowa? Wszystkie odznaczone treningi oraz wpisane serie w tym planie zostaną wyzerowane. Twoja historia treningów i pomiary sylwetki pozostaną nienaruszone.`, () => {
+    resetCycleProgress();
+  }, 'Zresetuj postęp', 'danger');
+}
+
+function resetCycleProgress(){
+  state.progress = {};
+  state.currentWeek = 1;
+  saveState(true, true);
+  renderHome();
+  showToast('Zresetowano postęp planu! Rozpoczęto Tydzień 1 🔄');
 }
 
 function startSession(week, day){
@@ -2696,10 +2717,6 @@ function updateSessionDOM(){
   }
 }
 
-/* =========================================================================
-   LICZNIK PRZERWY OPARTY O BEZWZGLĘDNY CZAS (DZIAŁA PRZY WYGASZONYM EKRANIE)
-   ========================================================================= */
-
 let timerInterval = null;
 let timerEndTime = 0;
 let timerInitialSeconds = 0;
@@ -2714,7 +2731,6 @@ function startRestTimer(seconds){
   isTimerPaused = false;
   isTimerMinimized = false;
 
-  // Prośba o powiadomienia systemowe (do informowania w tle)
   if('Notification' in window && Notification.permission === 'default'){
     try { Notification.requestPermission().catch(() => {}); } catch(e){}
   }
@@ -2743,7 +2759,6 @@ function tickTimer(){
     playTimerBeep();
     showToast('⏱ Czas na kolejną serię!');
 
-    // Powiadomienie w tle, jeśli telefon jest zablokowany lub aplikacja schowana
     if(document.visibilityState !== 'visible' && 'Notification' in window && Notification.permission === 'granted'){
       try {
         new Notification('Forge Pro', {
@@ -2852,10 +2867,6 @@ function stopRestTimer(e){
   if(pip) pip.classList.remove('active');
 }
 
-/* =========================================================================
-   PŁYNNE PRZECIĄGANIE ZMINIMALIZOWANEGO TIMERA (TOUCH & MOUSE DRAG)
-   ========================================================================= */
-
 (function initPipDrag(){
   let isDragging = false;
   let startX = 0, startY = 0;
@@ -2903,7 +2914,6 @@ function stopRestTimer(e){
     let newLeft = initialLeft + dx;
     let newTop = initialTop + dy;
 
-    // Ograniczenie do obszaru okna
     newLeft = Math.max(10, Math.min(winW - pipW - 10, newLeft));
     newTop = Math.max(10, Math.min(winH - pipH - 10, newTop));
 
@@ -2917,7 +2927,6 @@ function stopRestTimer(e){
     const pip = document.getElementById('restTimerPipWidget');
     if(pip){
       pip.classList.remove('dragging');
-      // Jeśli użytkownik tylko puknął w kafelek bez przesuwania, powiększamy okno
       if(!moved && target && !target.closest('.pip-close-btn') && !target.closest('.pip-expand-btn')){
         expandRestTimer();
       }
@@ -2983,6 +2992,7 @@ function finishSession(){
   const record = {
     id: Date.now(),
     week, day,
+    planName: getCurrentPlanName(),
     dayName: dayPlan.name,
     focus: dayPlan.focus,
     date: prog.date,
@@ -3532,10 +3542,6 @@ function toggleEditorDay(dayId){
   renderEditor();
 }
 
-/* =========================================================================
-   SYSTEM TOUCH & MOUSE DRAG AND DROP
-   ========================================================================= */
-
 function initTouchDrag(e, type, dayIdx, exIdx, element, label) {
   if (touchDragState) return;
   const touch = e.touches[0];
@@ -3832,10 +3838,6 @@ function renderEditorPlansManager(){
   }
 }
 
-/* =========================================================================
-   MULTITOUCH DLA DRAG & DROP
-   ========================================================================= */
-
 window.addEventListener('touchstart', (e) => {
   if (!touchDragState) return;
   for (let i = 0; i < e.touches.length; i++) {
@@ -3895,10 +3897,6 @@ window.addEventListener('touchcancel', (e) => {
     finishTouchDrag();
   }
 }, { passive: false });
-
-/* =========================================================================
-   RENDEROWANIE EDYTORA PLANU
-   ========================================================================= */
 
 function renderEditor(){
   renderEditorPlansManager();
@@ -4229,10 +4227,6 @@ function deleteEditorExercise(dayIdx, exIdx){
   showToast('Usunięto ćwiczenie');
 }
 
-/* =========================================================================
-   HISTORIA TRENINGÓW
-   ========================================================================= */
-
 function renderHistory(){
   const container = document.getElementById('historyContent');
   if(!container) return;
@@ -4248,11 +4242,15 @@ function renderHistory(){
     const dateStr = d.toLocaleDateString('pl-PL', { day:'numeric', month:'short', year:'numeric' });
     const timeStr = d.toLocaleTimeString('pl-PL', { hour:'2-digit', minute:'2-digit' });
     const tonnageStr = rec.tonnage ? `<div class="hist-tonnage-tag">Tonaż: ${rec.tonnage} kg</div>` : '';
+    const planBadgeStr = rec.planName ? `<span class="hist-plan-badge">${rec.planName}</span>` : '';
 
     return `<div class="hist-item">
       <div class="hist-item-top" onclick="toggleHistDetail(${rec.id})" style="cursor:pointer;">
         <div>
-          <div class="hist-item-title">${rec.dayName} · Tyg ${rec.week}</div>
+          <div class="hist-item-title">
+            <span>${rec.dayName} · Tyg ${rec.week}</span>
+            ${planBadgeStr}
+          </div>
           <div class="hist-item-date mono">${dateStr} · ${timeStr}</div>
           ${tonnageStr}
         </div>
@@ -4318,10 +4316,6 @@ function confirmClearHistory(){
   });
 }
 
-/* =========================================================================
-   MODAL POTWIERDZEŃ, TOAST, NAWIGACJA
-   ========================================================================= */
-
 let pendingConfirmAction = null;
 function showConfirmModal(message, onConfirm, confirmLabel, variant){
   pendingConfirmAction = onConfirm;
@@ -4379,15 +4373,13 @@ function render(){
   else renderHome();
 }
 
-/* =========================================================================
-   EKSPORT DO ZAKRESU WINDOW
-   ========================================================================= */
-
 window.switchTab = switchTab;
 window.startSession = startSession;
 window.exitSession = exitSession;
 window.toggleDayComplete = toggleDayComplete;
 window.confirmToggleDayComplete = confirmToggleDayComplete;
+window.confirmResetCycleProgress = confirmResetCycleProgress;
+window.resetCycleProgress = resetCycleProgress;
 window.finishSession = finishSession;
 window.confirmFinishSession = confirmFinishSession;
 window.confirmResetCurrentSession = confirmResetCurrentSession;
@@ -4463,5 +4455,3 @@ if ('serviceWorker' in navigator) {
 </script>
 </body>
 </html>
-
-```

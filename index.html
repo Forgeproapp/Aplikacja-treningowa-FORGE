@@ -16,6 +16,7 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<script src="https://accounts.google.com/gsi/client" async></script>
 
 <!-- Ikona wektorowa (SVG) - Kowadło, skrzyżowane młoty i iskry kuźni w złocie -->
 <meta name="msapplication-TileColor" content="#07080a">
@@ -1016,7 +1017,45 @@
   }
   .wc-tonnage{
     font-size:12.5px; font-weight:700; color:var(--text-dim); font-family:'Space Grotesk',sans-serif;
-    background:var(--bg-elev); border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin-bottom:18px;
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:8px; padding:8px 10px; margin-bottom:14px;
+  }
+  .wc-note-label, .hist-note-label{
+    display:block; text-align:left; font-size:11px; font-weight:700; color:var(--text-faint);
+    text-transform:uppercase; letter-spacing:0.04em; margin-bottom:6px;
+  }
+  .wc-note-input, .hist-note-input{
+    width:100%; min-height:72px; resize:vertical; text-align:left;
+    padding:10px; border-radius:8px; border:1.5px solid var(--line);
+    background:var(--bg-elev); color:var(--text); font-family:'Space Grotesk',sans-serif;
+    font-size:14px; font-weight:600; line-height:1.4;
+  }
+  .wc-note-input{margin-bottom:14px;}
+  .hist-note-block{margin-bottom:12px;}
+  .hist-note-save{
+    margin-top:8px; padding:8px 12px; border-radius:8px; border:1px solid var(--line);
+    background:var(--bg-card); color:#fbbf24; font-family:'Space Grotesk',sans-serif;
+    font-size:12px; font-weight:800; cursor:pointer;
+  }
+  .hist-note-preview{
+    margin-top:6px; font-size:12.5px; font-weight:600; color:var(--text-dim); line-height:1.4;
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+  .sheet-status{font-size:12.5px; color:var(--text-dim); line-height:1.45; margin-bottom:10px;}
+  .sheet-error{
+    margin-bottom:10px; padding:10px 12px; border-radius:10px;
+    background:rgba(239,68,68,0.15); border:1px solid #ef4444; color:#fca5a5;
+    font-size:12px; line-height:1.4; font-weight:600;
+  }
+  .sheet-actions{display:flex; flex-direction:column; gap:8px;}
+  .sheet-actions > .backup-btn{flex:0 0 auto; width:100%;}
+  .sheet-actions-row{display:flex; gap:8px;}
+  .sheet-actions-row .backup-btn{flex:1; width:auto;}
+  a.backup-btn{text-decoration:none;}
+  .backup-btn:disabled{opacity:0.55; cursor:default;}
+  .sheet-link-input{
+    width:100%; padding:10px; border-radius:8px; border:1px solid var(--line);
+    background:var(--bg-elev); color:var(--text-dim); font-family:'JetBrains Mono',monospace;
+    font-size:11px; font-weight:600;
   }
   .wc-accept-btn{
     width:100%; padding:14px; border-radius:10px; border:none;
@@ -1309,18 +1348,19 @@
 
     <!-- KOPIA ZAPASOWA I UDOSTĘPNIANIE -->
     <div class="editor-section">
-      <div class="editor-section-title">Kopia zapasowa i udostępnianie</div>
+      <div class="editor-section-title">Udostępnianie planu</div>
       <div style="font-size:12px; color:var(--text-faint); line-height:1.4; margin-bottom:10px;">
         Chcesz podesłać komuś swój plan? Link jest krótki, prawie jak adres tej strony. Odbiorca nie musi mieć konta ani aplikacji.
       </div>
       <button class="share-plan-hero-btn" onclick="shareCurrentPlan()">🔗 Udostępnij bieżący plan (link)</button>
-      <div style="font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase; margin:14px 0 8px;">Pełna kopia zapasowa (wszystkie plany, historia, pomiary)</div>
-      <div class="backup-box">
-        <button class="backup-btn" onclick="openExportModal()">💾 Eksportuj kopię</button>
-        <button class="backup-btn" onclick="document.getElementById('importFileInput').click()">📥 Wgraj plik JSON</button>
-        <button class="backup-btn" onclick="openImportTextModal()">📋 Wklej tekst JSON</button>
-        <input type="file" id="importFileInput" accept=".json,application/json" style="display:none;" onchange="importDataJson(event)">
+    </div>
+
+    <div class="editor-section">
+      <div class="editor-section-title">Historia w arkuszu Google</div>
+      <div style="font-size:12px; color:var(--text-faint); line-height:1.4; margin-bottom:10px;">
+        Ukończone treningi same lecą do arkusza na Twoim koncie Google. Link podesłany trenerowi pokazuje raport. Trener czyta go w Arkuszach i nie wgrywa nic do swojej apki.
       </div>
+      <div id="sheetPanel"></div>
     </div>
   </div>
 
@@ -1446,6 +1486,8 @@
     <div class="wc-title">Gratulacje, dziku!</div>
     <div class="wc-text">Właśnie dołożyłeś kolejną cegiełkę w drodze do formy życia.</div>
     <div class="wc-tonnage" id="workoutCompleteTonnage">Tonaż sesji: 0 kg</div>
+    <label class="wc-note-label" for="workoutCompleteNote">Notatka do tego treningu</label>
+    <textarea id="workoutCompleteNote" class="wc-note-input" maxlength="2000" placeholder="Opcjonalnie: jak poszło, ból, uwagi dla trenera..."></textarea>
     <button class="wc-accept-btn" onclick="closeWorkoutCompleteModal()">💪 Przyjmij</button>
   </div>
 </div>
@@ -1625,40 +1667,6 @@
   </div>
 </div>
 
-<!-- Modal eksportu danych -->
-<div class="confirm-overlay" id="exportModalOverlay">
-  <div class="confirm-modal" style="max-width:400px;">
-    <div style="font-size:16px; font-weight:800; margin-bottom:6px; color:var(--text);">Kopia zapasowa danych</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.4; margin-bottom:14px;">
-      Wybierz sposób zapisu: pobierz plik bezpośrednio, zapisz w aplikacji Pliki na telefonie lub skopiuj kod do schowka:
-    </div>
-    <div style="display:flex; flex-direction:column; gap:8px; margin-bottom:12px;">
-      <button class="start-btn" style="padding:12px; font-size:14px;" onclick="triggerFileDownload()">📥 Pobierz plik (.json)</button>
-      <button class="start-btn secondary" id="btnShareNative" style="padding:12px; font-size:14px; display:none;" onclick="triggerNativeShare()">📲 Zapisz w Plikach / Udostępnij</button>
-      <button class="start-btn secondary" style="padding:12px; font-size:14px;" onclick="copyJsonToClipboard()">📋 Kopiuj tekst do schowka</button>
-    </div>
-    <textarea id="exportJsonTextarea" readonly style="width:100%; height:75px; font-family:'JetBrains Mono',monospace; font-size:11px; padding:8px; border:1px solid var(--line); border-radius:8px; background:var(--bg-elev); color:var(--text-dim); resize:none; margin-bottom:12px;"></textarea>
-    <div class="confirm-actions">
-      <button class="confirm-btn cancel" style="width:100%;" onclick="closeExportModal()">Zamknij</button>
-    </div>
-  </div>
-</div>
-
-<!-- Modal wklejania tekstu do importu -->
-<div class="confirm-overlay" id="importTextModalOverlay">
-  <div class="confirm-modal" style="max-width:400px;">
-    <div style="font-size:16px; font-weight:800; margin-bottom:6px; color:var(--text);">Przywróć dane z tekstu</div>
-    <div style="font-size:12px; color:var(--text-faint); line-height:1.4; margin-bottom:12px;">
-      Wklej poniżej wcześniej skopiowany tekst kopii zapasowej:
-    </div>
-    <textarea id="importJsonTextarea" placeholder='{"totalWeeks": 6, ...}' style="width:100%; height:110px; font-family:'JetBrains Mono',monospace; font-size:12px; padding:8px; border:1.5px solid var(--line); border-radius:8px; background:var(--bg-elev); color:var(--text); resize:none; margin-bottom:12px;"></textarea>
-    <div class="confirm-actions">
-      <button class="confirm-btn cancel" onclick="closeImportTextModal()">Anuluj</button>
-      <button class="confirm-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#07080a; font-weight:800;" onclick="applyJsonFromText()">Przywróć</button>
-    </div>
-  </div>
-</div>
-
 <!-- Modal synchronizacji w chmurze -->
 <div class="confirm-overlay" id="cloudModalOverlay">
   <div class="confirm-modal" style="max-width:420px;">
@@ -1776,7 +1784,12 @@ async function initFirebase(){
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
+      window.forgeAuthUser = user;
+      window.forgeAuthKnown = true;
       updateCloudUI();
+      if(typeof window.onSheetAuthReady === 'function'){
+        window.onSheetAuthReady();
+      }
       if(user){
         setCloudError(null);
         subscribeToSyncRoom();
@@ -1793,6 +1806,10 @@ async function initFirebase(){
     });
   } catch(err){
     handleFirebaseError(err);
+    window.forgeAuthKnown = true;
+    if(typeof window.onSheetAuthReady === 'function'){
+      window.onSheetAuthReady();
+    }
   }
 }
 
@@ -2259,6 +2276,7 @@ window.state = {
 };
 
 let state = window.state;
+let lastHistoryFingerprint = null;
 let activeSession = null;
 const STORAGE_KEY = 'forge_pro_state_v4';
 let saveTimer = null;
@@ -2961,6 +2979,7 @@ function applyNewState(newState){
   ensureAllExercisesWeeks();
   saveStateLocalOnly();
   render();
+  noteRemoteHistory();
 }
 window.applyNewState = applyNewState;
 
@@ -2977,6 +2996,7 @@ function loadState(){
   ensureWorkoutLibraryInitialized();
   ensureAllExercisesWeeks();
   render();
+  if(lastHistoryFingerprint === null) lastHistoryFingerprint = historyFingerprint();
 }
 
 loadState();
@@ -3017,6 +3037,7 @@ function doSave(){
     if(typeof window.syncStateToCloud === 'function'){
       window.syncStateToCloud();
     }
+    noteRemoteHistory();
   }catch(e){
     console.error('Save failed:', e);
     showToast('⚠ Błąd zapisu danych');
@@ -3312,6 +3333,7 @@ function toggleDayComplete(week, day){
         focus: dayPlan.focus,
         date: prog.date,
         tonnage: tonnage,
+        note: '',
         exercises: dayPlan.exercises.map(ex => ({
           name: ex.name,
           target: ex.target,
@@ -3951,6 +3973,7 @@ function finishSession(){
     focus: dayPlan.focus,
     date: prog.date,
     tonnage: tonnage,
+    note: '',
     exercises: dayPlan.exercises.map(ex => ({
       name: ex.name,
       target: ex.target,
@@ -3967,13 +3990,15 @@ function finishSession(){
   const nextDay = state.customDays[curIdx + 1];
   const nextDayId = (!advanced && nextDay) ? nextDay.id : null;
 
-  openWorkoutCompleteModal(tonnage, nextDayId, advanced);
+  openWorkoutCompleteModal(tonnage, nextDayId, advanced, record.id);
 }
 
-function openWorkoutCompleteModal(tonnage, nextDayId, advanced){
-  pendingCompleteExit = { nextDayId, advanced };
+function openWorkoutCompleteModal(tonnage, nextDayId, advanced, recordId){
+  pendingCompleteExit = { nextDayId, advanced, recordId };
   const tonnageEl = document.getElementById('workoutCompleteTonnage');
   if(tonnageEl) tonnageEl.textContent = `Tonaż sesji: ${tonnage} kg`;
+  const noteEl = document.getElementById('workoutCompleteNote');
+  if(noteEl) noteEl.value = '';
   const modal = document.getElementById('workoutCompleteModalOverlay');
   if(modal) modal.classList.add('open');
   if(navigator.vibrate){ try{ navigator.vibrate([30, 40, 30]); }catch(err){} }
@@ -3984,6 +4009,15 @@ function closeWorkoutCompleteModal(){
   if(modal) modal.classList.remove('open');
   const exit = pendingCompleteExit || {};
   pendingCompleteExit = null;
+  const noteEl = document.getElementById('workoutCompleteNote');
+  const note = noteEl ? noteEl.value.trim() : '';
+  if(exit.recordId && note){
+    const rec = state.history.find(r => String(r.id) === String(exit.recordId));
+    if(rec){
+      rec.note = note;
+      saveState(true, true);
+    }
+  }
   exitSession(exit.nextDayId || null, exit.advanced || false);
 }
 
@@ -4522,167 +4556,425 @@ function deleteBodyLogItem(idx){
   showToast('Usunięto pomiar');
 }
 
-function getBackupFileName(){
-  const dateTag = new Date().toISOString().split('T')[0];
-  return `forge_backup_${dateTag}.json`;
-}
+// Web client ID: Firebase Console → Authentication → Sign-in method → Google → Web client ID.
+const GOOGLE_SHEETS_CLIENT_ID = '';
+const SHEETS_SCOPE = 'https://www.googleapis.com/auth/spreadsheets';
+const SHEETS_CLIENT_HELP = 'Brak Web client ID. W Firebase Console → Authentication → Google skopiuj Web client ID i wklej go w kodzie jako GOOGLE_SHEETS_CLIENT_ID. Potem włącz Google Sheets API w projekcie forge-725df.';
 
-function openExportModal(){
-  syncCurrentPlanToSaved();
-  const jsonStr = JSON.stringify(state, null, 2);
-  document.getElementById('exportJsonTextarea').value = jsonStr;
-  
-  const shareBtn = document.getElementById('btnShareNative');
-  if(navigator.canShare && window.File){
-    try {
-      const testFile = new File([new Blob([jsonStr], {type:'application/json'})], getBackupFileName(), {type:'application/json'});
-      if(navigator.canShare({ files: [testFile] })){
-        shareBtn.style.display = 'block';
-      } else {
-        shareBtn.style.display = 'none';
-      }
-    } catch(e){
-      shareBtn.style.display = 'none';
-    }
-  } else {
-    shareBtn.style.display = 'none';
-  }
+let sheetsAccessToken = null;
+let sheetsTokenExpiresAt = 0;
+let sheetsTokenClient = null;
+let sheetsTokenWait = null;
+let sheetSyncTimer = null;
+let sheetSyncInFlight = false;
+let sheetSyncQueued = false;
+let sheetRuntime = { needsReauth: false, lastError: '', syncing: false };
 
-  document.getElementById('exportModalOverlay').classList.add('open');
-}
-
-function closeExportModal(){
-  document.getElementById('exportModalOverlay').classList.remove('open');
-}
-
-function triggerFileDownload(){
-  try{
-    syncCurrentPlanToSaved();
-    const jsonStr = JSON.stringify(state, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const fileName = getBackupFileName();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.style.display = 'none';
-    a.href = url;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
-    setTimeout(() => {
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    }, 1000);
-    showToast('Pobieranie kopii zapasowej ✓');
-  }catch(err){
-    showToast('Pobieranie zablokowane - użyj schowka');
+function historyFingerprint(){
+  try {
+    return JSON.stringify(window.state?.history || []);
+  } catch(e){
+    return '';
   }
 }
 
-async function triggerNativeShare(){
-  try{
-    syncCurrentPlanToSaved();
-    const jsonStr = JSON.stringify(state, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const fileName = getBackupFileName();
-    const file = new File([blob], fileName, { type: 'application/json' });
-    await navigator.share({
-      files: [file],
-      title: 'Kopia zapasowa Forge Pro'
-    });
-    showToast('Zapisano kopię ✓');
-  }catch(err){
-    if(err.name !== 'AbortError'){
-      showToast('Wybierz inną metodę zapisu');
-    }
-  }
-}
-
-function copyJsonToClipboard(){
-  const textarea = document.getElementById('exportJsonTextarea');
-  textarea.focus();
-  textarea.select();
-  textarea.setSelectionRange(0, 999999);
-  
-  let success = false;
-  try{
-    success = document.execCommand('copy');
-  }catch(e){
-    success = false;
-  }
-  
-  if(success){
-    showToast('📋 Skopiowano do schowka!');
-  } else {
-    showToast('Zaznacz tekst ręcznie i skopiuj');
-  }
-}
-
-function openImportTextModal(){
-  document.getElementById('importJsonTextarea').value = '';
-  document.getElementById('importTextModalOverlay').classList.add('open');
-}
-
-function closeImportTextModal(){
-  document.getElementById('importTextModalOverlay').classList.remove('open');
-}
-
-function applyJsonFromText(){
-  const raw = document.getElementById('importJsonTextarea').value.trim();
-  if(!raw){
-    showToast('Wklej najpierw tekst kopii zapasowej');
+function noteRemoteHistory(){
+  const fp = historyFingerprint();
+  if(lastHistoryFingerprint === null){
+    lastHistoryFingerprint = fp;
     return;
   }
-  try{
-    const imported = JSON.parse(raw);
-    if(imported.customDays && imported.history){
-      applyNewState(imported);
-      state.editSeq = (Number(state.editSeq) || 0) + 1;
-      state.lastUpdatedAt = new Date().toISOString();
-      state.pendingCloudSync = true;
-      state.forceCloudOverwrite = true;
-      saveStateLocalOnly();
-      if(typeof window.syncStateToCloud === 'function'){
-        window.syncStateToCloud(true);
+  if(fp === lastHistoryFingerprint) return;
+  lastHistoryFingerprint = fp;
+  scheduleSheetSync();
+}
+
+function isGoogleSignedIn(){
+  const user = window.forgeAuthUser;
+  return !!(user && !user.isAnonymous && user.email);
+}
+
+function sheetMeta(){
+  if(!state.googleSheet || typeof state.googleSheet !== 'object'){
+    state.googleSheet = { spreadsheetId: '', spreadsheetUrl: '', accountEmail: '', lastSyncAt: '' };
+  }
+  return state.googleSheet;
+}
+
+function formatSheetTime(iso){
+  const d = new Date(iso);
+  if(Number.isNaN(d.getTime())) return '';
+  return d.toLocaleString('pl-PL', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+}
+
+function sheetCell(value){
+  if(value === undefined || value === null) return '';
+  return String(value);
+}
+
+function buildSheetRows(){
+  const history = [...(state.history || [])].reverse();
+  const sessions = [['ID', 'Data', 'Godzina', 'Plan', 'Trening', 'Tydzień', 'Partie', 'Tonaż', 'Notatka']];
+  const sets = [['ID treningu', 'Ćwiczenie', 'Seria', 'Kg', 'Powtórzenia']];
+  history.forEach(rec => {
+    const d = new Date(rec.date);
+    const valid = !Number.isNaN(d.getTime());
+    sessions.push([
+      sheetCell(rec.id),
+      valid ? d.toLocaleDateString('pl-PL') : '',
+      valid ? d.toLocaleTimeString('pl-PL', { hour:'2-digit', minute:'2-digit' }) : '',
+      sheetCell(rec.planName),
+      sheetCell(rec.dayName),
+      rec.week != null ? sheetCell(rec.week) : '',
+      sheetCell(rec.focus),
+      rec.tonnage != null ? sheetCell(rec.tonnage) : '',
+      sheetCell(rec.note)
+    ]);
+    (rec.exercises || []).forEach(ex => {
+      const weights = Array.isArray(ex.weights) ? ex.weights : [];
+      const reps = Array.isArray(ex.reps) ? ex.reps : [];
+      const numSets = Math.max(weights.length, reps.length);
+      for(let s = 0; s < numSets; s++){
+        const weight = weights[s];
+        const rep = reps[s];
+        const emptyWeight = weight === undefined || weight === null || weight === '';
+        const emptyRep = rep === undefined || rep === null || rep === '';
+        if(emptyWeight && emptyRep) continue;
+        sets.push([
+          sheetCell(rec.id),
+          sheetCell(ex.name),
+          String(s + 1),
+          emptyWeight ? '' : sheetCell(weight),
+          emptyRep ? '' : sheetCell(rep)
+        ]);
       }
-      closeImportTextModal();
-      showToast('Kopia przywrócona i wysłana do chmury! ✓');
-    } else {
-      showToast('Nieprawidłowy format danych JSON');
+    });
+  });
+  return { sessions, sets };
+}
+
+function isSheetsAuthError(err){
+  const msg = String((err && (err.message || err.type)) || '');
+  const status = err && err.status;
+  return status === 401 || err?.type === 'interaction_required' || /interaction_required|invalid_grant|insufficient authentication scopes|access_denied|popup_closed|popup_failed/i.test(msg);
+}
+
+function handleSheetError(err){
+  const status = err && err.status;
+  const msg = String((err && err.message) || err || '');
+  sheetsAccessToken = status === 401 ? null : sheetsAccessToken;
+  if(status === 401){
+    sheetRuntime.needsReauth = true;
+    sheetRuntime.lastError = 'Dostęp do Arkuszy wygasł. Odśwież go, a historia poleci dalej.';
+    return;
+  }
+  if(status === 404){
+    sheetRuntime.lastError = 'Nie ma już tego arkusza na koncie. Podłącz nowy.';
+    return;
+  }
+  if(status === 403 && /has not been used|it is disabled|SERVICE_DISABLED/i.test(msg)){
+    sheetRuntime.lastError = 'Włącz Google Sheets API w projekcie Google Cloud (forge-725df).';
+    return;
+  }
+  if(status === 403 && /insufficient authentication scopes/i.test(msg)){
+    sheetsAccessToken = null;
+    sheetsTokenExpiresAt = 0;
+    sheetRuntime.needsReauth = true;
+    sheetRuntime.lastError = 'Google nie ma zgody na zapis do Arkuszy. Odśwież dostęp.';
+    return;
+  }
+  sheetRuntime.lastError = msg || 'Nie udało się wysłać historii do arkusza.';
+}
+
+function waitForGis(timeoutMs){
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const tick = () => {
+      if(window.google?.accounts?.oauth2) return resolve();
+      if(Date.now() - start > timeoutMs) return reject(new Error('Biblioteka logowania Google jeszcze się nie załadowała. Spróbuj za chwilę.'));
+      setTimeout(tick, 120);
+    };
+    tick();
+  });
+}
+
+function ensureSheetsTokenClient(){
+  if(sheetsTokenClient) return sheetsTokenClient;
+  sheetsTokenClient = window.google.accounts.oauth2.initTokenClient({
+    client_id: GOOGLE_SHEETS_CLIENT_ID,
+    scope: SHEETS_SCOPE,
+    callback: (resp) => {
+      const wait = sheetsTokenWait;
+      sheetsTokenWait = null;
+      if(!wait) return;
+      if(resp && resp.access_token){
+        sheetsAccessToken = resp.access_token;
+        const seconds = Number(resp.expires_in) || 3600;
+        sheetsTokenExpiresAt = Date.now() + seconds * 1000 - 60000;
+        wait.resolve(sheetsAccessToken);
+        return;
+      }
+      const err = new Error((resp && (resp.error_description || resp.error)) || 'Brak dostępu do Arkuszy');
+      err.type = resp && resp.error;
+      wait.reject(err);
+    },
+    error_callback: (err) => {
+      const wait = sheetsTokenWait;
+      sheetsTokenWait = null;
+      if(!wait) return;
+      const wrapped = new Error((err && (err.message || err.type)) || 'Brak dostępu do Arkuszy');
+      wrapped.type = err && err.type;
+      wait.reject(wrapped);
     }
-  }catch(err){
-    showToast('Błąd parsowania: sprawdź czy wkleiłeś cały tekst');
+  });
+  return sheetsTokenClient;
+}
+
+function requestSheetsToken(interactive){
+  if(!GOOGLE_SHEETS_CLIENT_ID){
+    const err = new Error(SHEETS_CLIENT_HELP);
+    err.code = 'no-client-id';
+    return Promise.reject(err);
+  }
+  if(sheetsAccessToken && Date.now() < sheetsTokenExpiresAt){
+    return Promise.resolve(sheetsAccessToken);
+  }
+  return waitForGis(8000).then(() => new Promise((resolve, reject) => {
+    const client = ensureSheetsTokenClient();
+    sheetsTokenWait = { resolve, reject };
+    try {
+      client.requestAccessToken({ prompt: interactive ? 'consent' : '' });
+    } catch(e){
+      sheetsTokenWait = null;
+      reject(e);
+    }
+  }));
+}
+
+async function sheetsFetch(url, options, token){
+  const res = await fetch(url, {
+    method: options.method || 'GET',
+    headers: {
+      Authorization: 'Bearer ' + token,
+      'Content-Type': 'application/json'
+    },
+    body: options.body
+  });
+  if(!res.ok){
+    let detail = '';
+    try {
+      const body = await res.json();
+      detail = body.error?.message || '';
+    } catch(e){}
+    const err = new Error(detail || ('HTTP ' + res.status));
+    err.status = res.status;
+    throw err;
+  }
+  if(res.status === 204) return null;
+  return res.json();
+}
+
+function renderSheetPanel(){
+  const root = document.getElementById('sheetPanel');
+  if(!root) return;
+  const signedIn = isGoogleSignedIn();
+  const meta = state.googleSheet || {};
+  const connected = !!meta.spreadsheetId;
+  const email = window.forgeAuthUser && window.forgeAuthUser.email ? window.forgeAuthUser.email : '';
+  const mismatch = signedIn && connected && meta.accountEmail && email && meta.accountEmail !== email;
+  let status = '';
+  let actions = '';
+  let error = sheetRuntime.lastError || '';
+
+  if(!window.forgeAuthKnown){
+    status = 'Sprawdzam konto Google…';
+  } else if(!signedIn){
+    status = 'Zaloguj się przez Google. Historia poleci do arkusza na tym koncie, a link do niego podesłesz, kiedy chcesz oddać raport.';
+    actions = '<button class="backup-btn" type="button" onclick="openCloudModal()">Zaloguj przez Google</button>';
+  } else if(!GOOGLE_SHEETS_CLIENT_ID && !connected){
+    status = 'Konto: ' + escapeHtml(email);
+    error = error || SHEETS_CLIENT_HELP;
+  } else if(!connected || mismatch){
+    status = mismatch
+      ? ('Arkusz jest na koncie ' + escapeHtml(meta.accountEmail) + '. Teraz jesteś na ' + escapeHtml(email) + '.')
+      : ('Konto: ' + escapeHtml(email) + '. Podłącz arkusz raz — dalej historia zapisuje się sama.');
+    const label = mismatch ? 'Podłącz arkusz tego konta' : 'Podłącz arkusz';
+    actions = '<button class="backup-btn" type="button" onclick="connectGoogleSheet()"' + (sheetRuntime.syncing ? ' disabled' : '') + '>' + label + '</button>';
+  } else {
+    const when = meta.lastSyncAt ? formatSheetTime(meta.lastSyncAt) : '';
+    if(!GOOGLE_SHEETS_CLIENT_ID) error = error || SHEETS_CLIENT_HELP;
+    status = sheetRuntime.syncing
+      ? 'Wysyłanie historii…'
+      : (when ? ('Ostatnia wysyłka: ' + escapeHtml(when)) : 'Arkusz podłączony. Historia wyśle się po najbliższym treningu.');
+    const link = meta.spreadsheetUrl || ('https://docs.google.com/spreadsheets/d/' + meta.spreadsheetId);
+    actions = '<div class="sheet-actions-row">' +
+      '<a class="backup-btn" href="' + escapeHtml(link) + '" target="_blank" rel="noopener">Otwórz arkusz</a>' +
+      '<button class="backup-btn" type="button" onclick="copySheetLink()">Kopiuj link</button>' +
+      '</div>';
+    if(sheetRuntime.needsReauth){
+      actions += '<button class="backup-btn" type="button" onclick="refreshSheetAccess()">Odśwież dostęp</button>';
+    }
+    if(error){
+      actions += '<button class="backup-btn" type="button" onclick="refreshSheetAccess()">Wyślij historię ponownie</button>';
+    }
+    actions += '<input id="sheetLinkInput" class="sheet-link-input" readonly value="' + escapeHtml(link) + '">';
+  }
+
+  root.innerHTML = '<div class="sheet-status">' + status + '</div>' +
+    (error ? '<div class="sheet-error">' + escapeHtml(error) + '</div>' : '') +
+    (actions ? '<div class="sheet-actions">' + actions + '</div>' : '');
+}
+window.refreshSheetPanel = renderSheetPanel;
+
+function scheduleSheetSync(){
+  if(!state.googleSheet?.spreadsheetId) return;
+  if(!window.forgeAuthKnown || !isGoogleSignedIn()) return;
+  const meta = state.googleSheet;
+  const email = window.forgeAuthUser && window.forgeAuthUser.email;
+  if(meta.accountEmail && email && meta.accountEmail !== email) return;
+  clearTimeout(sheetSyncTimer);
+  sheetSyncTimer = setTimeout(() => { syncSheetNow(false); }, 800);
+}
+
+async function syncSheetNow(interactive){
+  const meta = state.googleSheet;
+  if(!meta?.spreadsheetId) return;
+  if(!isGoogleSignedIn()) return;
+  if(meta.accountEmail && window.forgeAuthUser.email && meta.accountEmail !== window.forgeAuthUser.email) return;
+  if(sheetSyncInFlight){
+    sheetSyncQueued = true;
+    return;
+  }
+  sheetSyncInFlight = true;
+  sheetRuntime.syncing = true;
+  renderSheetPanel();
+  try {
+    const token = await requestSheetsToken(interactive);
+    const rows = buildSheetRows();
+    const id = meta.spreadsheetId;
+    await sheetsFetch('https://sheets.googleapis.com/v4/spreadsheets/' + id + '/values:batchClear', {
+      method: 'POST',
+      body: JSON.stringify({ ranges: ['Treningi!A:I', 'Serie!A:E'] })
+    }, token);
+    await sheetsFetch('https://sheets.googleapis.com/v4/spreadsheets/' + id + '/values:batchUpdate', {
+      method: 'POST',
+      body: JSON.stringify({
+        valueInputOption: 'RAW',
+        data: [
+          { range: 'Treningi!A1', values: rows.sessions },
+          { range: 'Serie!A1', values: rows.sets }
+        ]
+      })
+    }, token);
+    meta.lastSyncAt = new Date().toISOString();
+    saveStateLocalOnly();
+    sheetRuntime.needsReauth = false;
+    sheetRuntime.lastError = '';
+  } catch(err){
+    if(err && err.code === 'no-client-id'){
+      sheetRuntime.lastError = err.message;
+      sheetRuntime.needsReauth = false;
+    } else if(!err || !err.status || isSheetsAuthError(err)){
+      sheetsAccessToken = null;
+      sheetsTokenExpiresAt = 0;
+      sheetRuntime.needsReauth = true;
+      sheetRuntime.lastError = interactive ? 'Google nie dało dostępu do Arkuszy. Spróbuj jeszcze raz.' : '';
+    } else {
+      handleSheetError(err);
+    }
+  } finally {
+    sheetSyncInFlight = false;
+    sheetRuntime.syncing = false;
+    renderSheetPanel();
+    if(sheetSyncQueued){
+      sheetSyncQueued = false;
+      syncSheetNow(false);
+    }
   }
 }
 
-function importDataJson(e){
-  const file = e.target.files[0];
-  if(!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(event){
-    try{
-      const imported = JSON.parse(event.target.result);
-      if(imported.customDays && imported.history){
-        applyNewState(imported);
-        state.editSeq = (Number(state.editSeq) || 0) + 1;
-        state.lastUpdatedAt = new Date().toISOString();
-        state.pendingCloudSync = true;
-        state.forceCloudOverwrite = true;
-        saveStateLocalOnly();
-        if(typeof window.syncStateToCloud === 'function'){
-          window.syncStateToCloud(true);
-        }
-        showToast('Kopia z pliku przywrócona! ✓');
-      } else {
-        showToast('Nieprawidłowy format pliku JSON');
-      }
-    }catch(err){
-      showToast('Błąd odczytu pliku');
+async function connectGoogleSheet(){
+  if(!isGoogleSignedIn()){
+    if(typeof openCloudModal === 'function') openCloudModal();
+    return;
+  }
+  sheetRuntime.syncing = true;
+  sheetRuntime.lastError = '';
+  sheetRuntime.needsReauth = false;
+  renderSheetPanel();
+  try {
+    const token = await requestSheetsToken(true);
+    const created = await sheetsFetch('https://sheets.googleapis.com/v4/spreadsheets', {
+      method: 'POST',
+      body: JSON.stringify({
+        properties: { title: 'Forge Pro — historia' },
+        sheets: [
+          { properties: { title: 'Treningi' } },
+          { properties: { title: 'Serie' } }
+        ]
+      })
+    }, token);
+    const meta = sheetMeta();
+    meta.spreadsheetId = created.spreadsheetId;
+    meta.spreadsheetUrl = created.spreadsheetUrl || ('https://docs.google.com/spreadsheets/d/' + created.spreadsheetId);
+    meta.accountEmail = window.forgeAuthUser.email || '';
+    meta.lastSyncAt = '';
+    saveState(true, true);
+    await syncSheetNow(false);
+    if(!sheetRuntime.lastError) showToast('Arkusz podłączony');
+  } catch(err){
+    if(err && err.code === 'no-client-id'){
+      sheetRuntime.lastError = err.message;
+    } else if(isSheetsAuthError(err)){
+      sheetsAccessToken = null;
+      sheetsTokenExpiresAt = 0;
+      sheetRuntime.needsReauth = false;
+      sheetRuntime.lastError = 'Google nie dało dostępu do Arkuszy. Spróbuj jeszcze raz.';
+    } else {
+      handleSheetError(err);
     }
-  };
-  reader.readAsText(file);
-  e.target.value = '';
+    sheetRuntime.syncing = false;
+    renderSheetPanel();
+  }
 }
+
+async function refreshSheetAccess(){
+  sheetRuntime.needsReauth = false;
+  sheetRuntime.lastError = '';
+  await syncSheetNow(true);
+  if(!sheetRuntime.lastError && !sheetRuntime.needsReauth){
+    showToast('Historia wysłana do arkusza');
+  }
+}
+
+async function copySheetLink(){
+  const meta = state.googleSheet || {};
+  const url = meta.spreadsheetUrl || (meta.spreadsheetId ? ('https://docs.google.com/spreadsheets/d/' + meta.spreadsheetId) : '');
+  if(!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('Link do arkusza skopiowany');
+  } catch(e){
+    const input = document.getElementById('sheetLinkInput');
+    if(input){
+      input.focus();
+      input.select();
+    }
+    showToast('Zaznacz link i skopiuj go ręcznie');
+  }
+}
+
+function onSheetAuthReady(){
+  if(!isGoogleSignedIn()){
+    sheetsAccessToken = null;
+    sheetsTokenExpiresAt = 0;
+    renderSheetPanel();
+    return;
+  }
+  renderSheetPanel();
+  if(state.googleSheet?.spreadsheetId) syncSheetNow(false);
+}
+window.onSheetAuthReady = onSheetAuthReady;
 
 function changeWeekCount(delta){
   const next = state.totalWeeks + delta;
@@ -6002,6 +6294,7 @@ function renderHistory(){
     const timeStr = d.toLocaleTimeString('pl-PL', { hour:'2-digit', minute:'2-digit' });
     const tonnageStr = rec.tonnage ? `<div class="hist-tonnage-tag">Tonaż: ${escapeHtml(rec.tonnage)} kg ⚒️</div>` : '';
     const planBadgeStr = rec.planName ? `<span class="hist-plan-badge">${escapeHtml(rec.planName)}</span>` : '';
+    const notePreview = rec.note ? `<div class="hist-note-preview">${escapeHtml(rec.note)}</div>` : '';
 
     return `<div class="hist-item" data-hist-id="${escapeHtml(rec.id)}">
       <div class="hist-item-top" onclick="toggleHistDetail(this.parentElement.dataset.histId)" style="cursor:pointer;">
@@ -6012,10 +6305,16 @@ function renderHistory(){
           </div>
           <div class="hist-item-date mono">${dateStr} · ${timeStr}</div>
           ${tonnageStr}
+          ${notePreview}
         </div>
         <button class="hist-delete-btn" onclick="event.stopPropagation(); deleteHistoryItem(this.closest('.hist-item').dataset.histId)" aria-label="Usuń wpis">✕</button>
       </div>
       <div class="hist-detail" id="hist-detail-${escapeHtml(rec.id)}">
+        <div class="hist-note-block">
+          <label class="hist-note-label" for="hist-note-${escapeHtml(rec.id)}">Notatka</label>
+          <textarea id="hist-note-${escapeHtml(rec.id)}" class="hist-note-input" maxlength="2000" placeholder="Dopisz uwagę do tego treningu...">${escapeHtml(rec.note || '')}</textarea>
+          <button type="button" class="hist-note-save" data-hist-id="${escapeHtml(rec.id)}" onclick="saveHistoryNote(this.dataset.histId)">Zapisz notatkę</button>
+        </div>
         ${(rec.exercises || []).map(ex => {
           const numSets = Math.max(ex.weights ? ex.weights.length : 0, ex.reps ? ex.reps.length : 0);
           
@@ -6050,6 +6349,23 @@ function renderHistory(){
       </div>
     </div>`;
   }).join('');
+}
+
+function saveHistoryNote(id){
+  const input = document.getElementById(`hist-note-${id}`);
+  const rec = (state.history || []).find(r => String(r.id) === String(id));
+  if(!rec || !input) return;
+  const next = input.value.trim();
+  if((rec.note || '') === next){
+    showToast('Notatka bez zmian');
+    return;
+  }
+  rec.note = next;
+  saveState(true, true);
+  renderHistory();
+  const detail = document.getElementById(`hist-detail-${id}`);
+  if(detail) detail.classList.add('open');
+  showToast('Notatka zapisana');
 }
 
 function toggleHistDetail(id){
@@ -6220,7 +6536,7 @@ const WIKI_SECTIONS = [
           'Przy każdym ćwiczeniu widzisz, co zrobiłeś ostatnio. Spróbuj to pobić choćby o jedno powtórzenie.',
           'Wpisz ciężar w pierwszej serii — apka sama przepisze go do kolejnych. Zmieniasz tylko wtedy, gdy trzeba.',
           'Kliknięcie w kółko po prawej odhacza serię i włącza licznik przerwy. Możesz go zminimalizować i dalej korzystać z apki.',
-          'Po ostatniej serii kliknij „Zakończ trening”. Gdy skończysz cały tydzień, apka sama przejdzie do następnego.'
+          'Po ostatniej serii kliknij „Zakończ trening”. W oknie na końcu możesz dopisać notatkę. Gdy skończysz cały tydzień, apka sama przejdzie do następnego.'
         ],
         actions: [{ label: 'Otwórz trening', tab: 'home' }]
       },
@@ -6234,7 +6550,7 @@ const WIKI_SECTIONS = [
           'Ustaw, ile tygodni trwa cykl, a dla każdego tygodnia — jak ciężko trenujesz (RIR) i ile odpoczywasz.',
           'Liczbę serii możesz zmieniać tydzień po tygodniu. Jeśli chcesz, skopiuj tydzień 1 do wszystkich pozostałych jednym kliknięciem.',
           'Ćwiczenia i dni przesuwasz, przeciągając je palcem. Na dole widzisz, ile serii tygodniowo dostanie każda partia.',
-          'Planem podzielisz się linkiem. Pełną kopię wszystkiego (plany, historia, pomiary) zapiszesz jako plik.'
+          'Planem podzielisz się linkiem. Historia treningów leci sama do arkusza Google na twoim koncie — link do arkusza oddajesz, kiedy chcesz pokazać raport.'
         ],
         actions: [{ label: 'Otwórz edytor', tab: 'editor' }]
       },
@@ -6258,7 +6574,7 @@ const WIKI_SECTIONS = [
         thesis: 'Każdy skończony trening zostaje tu na zawsze — nawet jeśli zaczniesz plan od nowa.',
         points: [
           'Widzisz datę, nazwę planu i łączny tonaż, czyli sumę ciężar × powtórzenia ze wszystkich serii.',
-          'Kliknij trening, żeby zobaczyć każdą serię po kolei.',
+          'Kliknij trening, żeby zobaczyć każdą serię i dopisać notatkę. Notatka ląduje w arkuszu Google razem z treningiem.',
           'Reset planu nie usuwa historii, a usunięcie historii nie zmienia planu.'
         ],
         actions: [{ label: 'Otwórz historię', tab: 'history' }]
@@ -6408,15 +6724,10 @@ window.setChartMetric = setChartMetric;
 window.renderHistory = renderHistory;
 window.addBodyMeasurement = addBodyMeasurement;
 window.deleteBodyLogItem = deleteBodyLogItem;
-window.openExportModal = openExportModal;
-window.closeExportModal = closeExportModal;
-window.triggerFileDownload = triggerFileDownload;
-window.triggerNativeShare = triggerNativeShare;
-window.copyJsonToClipboard = copyJsonToClipboard;
-window.openImportTextModal = openImportTextModal;
-window.closeImportTextModal = closeImportTextModal;
-window.applyJsonFromText = applyJsonFromText;
-window.importDataJson = importDataJson;
+window.connectGoogleSheet = connectGoogleSheet;
+window.refreshSheetAccess = refreshSheetAccess;
+window.copySheetLink = copySheetLink;
+window.saveHistoryNote = saveHistoryNote;
 window.changeWeekCount = changeWeekCount;
 window.updateWeekMeta = updateWeekMeta;
 window.addEditorDay = addEditorDay;
@@ -6449,6 +6760,8 @@ window.closeCopyWeekModal = closeCopyWeekModal;
 window.applyCopyWeekSubmit = applyCopyWeekSubmit;
 window.copyWeek1ToAll = copyWeek1ToAll;
 window.confirmClearCurrentPlan = confirmClearCurrentPlan;
+
+renderSheetPanel();
 
 window.onload = function(){
   if(isAppStandalone()){

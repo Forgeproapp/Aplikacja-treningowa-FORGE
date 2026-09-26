@@ -1,4 +1,4 @@
-const CACHE_NAME = 'forge-pro-cache-v2';
+const CACHE_NAME = 'forge-pro-cache-v3';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -40,7 +40,12 @@ self.addEventListener('activate', (event) => {
 // Strategia: Sieć najpierw, w razie braku zasięgu serwuj z pamięci podręcznej (offline)
 self.addEventListener('fetch', (event) => {
   // Ignoruj zapytania do bazy danych Firestore / Google Auth (one mają własny mechanizm offline)
-  if (event.request.url.includes('firestore.googleapis.com') || event.request.url.includes('identitytoolkit')) {
+  if (
+    event.request.url.includes('firestore.googleapis.com') ||
+    event.request.url.includes('identitytoolkit') ||
+    event.request.url.includes('sheets.googleapis.com') ||
+    event.request.url.includes('accounts.google.com')
+  ) {
     return;
   }
 

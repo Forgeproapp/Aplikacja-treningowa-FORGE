@@ -2155,34 +2155,36 @@ initFirebase();
 <script>
 const MUSCLE_TARGETS = ['Klatka', 'Plecy', 'Czworogłowe', 'Dwugłowe', 'Pośladki', 'Barki', 'Biceps', 'Triceps', 'Brzuch'];
 
+const DEFAULT_PLAN_NAME = 'Plan początkowy';
+
 const DEFAULT_DAYS = [
   {
     id: 1, name: 'Trening 1', focus: 'Plecy / Barki',
     exercises: [
-      { id: 'ex_1_0', name:'Płaska (wyciskanie)', target:'Klatka', secondary:'Triceps', sets:3, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_1_1', name:'Wiosło na wyciągu siedząc', target:'Plecy', secondary:'Biceps', sets:3, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_1_2', name:'OHP (żołnierskie)', target:'Barki', secondary:'Triceps', sets:4, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_1_3', name:'Chest supported row nachwyt', target:'Plecy', secondary:'Biceps', sets:2, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_1_4', name:'Wznosy bokiem (linki)', target:'Barki', secondary:'Brak', sets:4, weight:'', reps:'10-20', note:'' },
+      { id: 'ex_1_0', name:'Bench Press', target:'Klatka', secondary:'Triceps', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_1_1', name:'Seated Cable Row', target:'Plecy', secondary:'Biceps', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_1_2', name:'OHP', target:'Barki', secondary:'Triceps', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_1_3', name:'Chest Supported Row', target:'Plecy', secondary:'Biceps', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_1_4', name:'Lateral Raises', target:'Barki', secondary:'Brak', sets:3, weight:'', reps:'10', note:'' },
     ]
   },
   {
     id: 2, name: 'Trening 2', focus: 'Nogi',
     exercises: [
-      { id: 'ex_2_0', name:'Przysiady ze sztangą', target:'Czworogłowe', secondary:'Brak', sets:3, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_2_1', name:'RDL (martwy ciąg rumuński)', target:'Dwugłowe', secondary:'Plecy', sets:3, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_2_2', name:'Wyprosty czwórgłowych', target:'Czworogłowe', secondary:'Brak', sets:3, weight:'', reps:'10-20', note:'' },
-      { id: 'ex_2_3', name:'Uginanie nóg leżąc', target:'Dwugłowe', secondary:'Brak', sets:3, weight:'', reps:'10-20', note:'' },
+      { id: 'ex_2_0', name:'Squat', target:'Czworogłowe', secondary:'Pośladki', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_2_1', name:'RDL', target:'Dwugłowe', secondary:'Plecy', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_2_2', name:'Leg Extension', target:'Czworogłowe', secondary:'Brak', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_2_3', name:'Leg Curl', target:'Dwugłowe', secondary:'Brak', sets:3, weight:'', reps:'10', note:'' },
     ]
   },
   {
     id: 3, name: 'Trening 3', focus: 'Klatka / Plecy górne',
     exercises: [
-      { id: 'ex_3_0', name:'Skos dodatni (hantle)', target:'Klatka', secondary:'Triceps', sets:3, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_3_1', name:'Podciąganie podchwytem', target:'Plecy', secondary:'Biceps', sets:3, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_3_2', name:'Wyciskanie siedząc maszyna', target:'Klatka', secondary:'Triceps', sets:4, weight:'', reps:'8-12', note:'' },
-      { id: 'ex_3_3', name:'Dipy (poręcze)', target:'Klatka', secondary:'Triceps', sets:2, weight:'', reps:'6-10', note:'' },
-      { id: 'ex_3_4', name:'Wznosy bokiem hantle', target:'Barki', secondary:'Brak', sets:4, weight:'', reps:'10-20', note:'' },
+      { id: 'ex_3_0', name:'Incline Bench Press', target:'Klatka', secondary:'Triceps', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_3_1', name:'Pullup', target:'Plecy', secondary:'Biceps', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_3_2', name:'Shoulder Press', target:'Barki', secondary:'Triceps', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_3_3', name:'Dip', target:'Klatka', secondary:'Triceps', sets:3, weight:'', reps:'10', note:'' },
+      { id: 'ex_3_4', name:'Lateral Raises', target:'Barki', secondary:'Brak', sets:3, weight:'', reps:'10', note:'' },
     ]
   }
 ];
@@ -2299,14 +2301,14 @@ function getCurrentPlanName(){
     if(cur && cur.name) return cur.name;
     if(state.savedPlans[0] && state.savedPlans[0].name) return state.savedPlans[0].name;
   }
-  return 'Plan Kuźni';
+  return DEFAULT_PLAN_NAME;
 }
 
 function ensurePlansInitialized(){
   if(!state.savedPlans || !Array.isArray(state.savedPlans) || state.savedPlans.length === 0){
     const initPlan = {
       id: 'plan_' + Date.now(),
-      name: 'Plan Kuźni (PPL)',
+      name: DEFAULT_PLAN_NAME,
       totalWeeks: state.totalWeeks || 6,
       customDays: JSON.parse(JSON.stringify(state.customDays || DEFAULT_DAYS)),
       weekMeta: JSON.parse(JSON.stringify(state.weekMeta || DEFAULT_WEEK_META)),
@@ -3035,7 +3037,7 @@ function ensureExerciseWeeks(ex){
       ex.weightsByWeek[w] = (w === 1) ? (ex.weight !== undefined && ex.weight !== null ? ex.weight : '') : '';
     }
     if(ex.repsByWeek[w] === undefined){
-      ex.repsByWeek[w] = (w === 1) ? (ex.reps || '8-12') : '';
+      ex.repsByWeek[w] = (w === 1) ? (ex.reps || '10') : '';
     }
   }
 }
@@ -3063,7 +3065,7 @@ function getPlanForWeek(w){
           : (w === 1 && ex.weight !== undefined && ex.weight !== null ? ex.weight : '');
         const repsVal = (ex.repsByWeek && ex.repsByWeek[w] !== undefined && ex.repsByWeek[w] !== null && ex.repsByWeek[w] !== '')
           ? ex.repsByWeek[w]
-          : (w === 1 ? (ex.reps || '8-12') : '');
+          : (w === 1 ? (ex.reps || '10') : '');
 
         return {
           id: `w${w}_${ex.id}`,
@@ -3474,17 +3476,13 @@ function renderSession(){
 
       for(let s=0; s<ex.sets; s++){
         const setDone = prog.setsDone[ex.id][s];
-        const isFirstSet = s === 0;
-        const weightPlaceholder = assignedWeight ? `${assignedWeight}` : ((isFirstSet && lastPerf && lastPerf.firstWeight) ? `${lastPerf.firstWeight}` : 'kg');
-        const repsPlaceholder = (isFirstSet && lastPerf && lastPerf.firstReps) ? `${lastPerf.firstReps}` : ex.reps.split('-')[0];
-
         html += `<div class="set-row">
           <div class="set-num mono">${s+1}</div>
-          <input class="set-input mono" data-ex="${ex.id}" data-set="${s}" data-type="weight" type="number" inputmode="decimal" placeholder="${weightPlaceholder}"
+          <input class="set-input mono" data-ex="${ex.id}" data-set="${s}" data-type="weight" type="number" inputmode="decimal"
             value="${prog.weights[ex.id][s]}"
             oninput="updateWeight('${ex.id}', ${s}, this.value)"
             onchange="updateWeight('${ex.id}', ${s}, this.value)">
-          <input class="set-input mono" data-ex="${ex.id}" data-set="${s}" data-type="reps" type="number" inputmode="numeric" placeholder="${repsPlaceholder}"
+          <input class="set-input mono" data-ex="${ex.id}" data-set="${s}" data-type="reps" type="number" inputmode="numeric"
             value="${prog.reps[ex.id][s]}"
             oninput="updateReps('${ex.id}', ${s}, this.value)"
             onchange="updateReps('${ex.id}', ${s}, this.value)">
@@ -5480,26 +5478,26 @@ function renderEditor(){
         <div class="edit-ex-specs-row">
           <div class="edit-subfield">
             <label>Serie</label>
-            <input class="mono" type="number" min="0" max="15" value="${setsVal}" placeholder="Serie" 
+            <input class="mono" type="number" min="0" max="15" value="${setsVal}"
               oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'sets', this.value)"
               onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'sets', this.value)">
           </div>
           <div class="edit-subfield">
             <label>Ciężar (kg)</label>
-            <input class="mono" type="number" step="0.5" inputmode="decimal" value="${weightVal}" placeholder="" 
+            <input class="mono" type="number" step="0.5" inputmode="decimal" value="${weightVal}"
               oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this.value)"
               onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this.value)">
           </div>
           <div class="edit-subfield">
             <label>Powtórzenia</label>
-            <input class="mono" type="text" value="${repsVal}" placeholder="np. 6-10" 
+            <input class="mono" type="text" value="${repsVal}"
               oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'reps', this.value)"
               onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'reps', this.value)">
           </div>
         </div>
         <div class="edit-ex-note-row">
           <label>Notatka techniczna / ustawienia (opcjonalnie)</label>
-          <input type="text" value="${ex.note || ''}" placeholder="" 
+          <input type="text" value="${ex.note || ''}" 
             oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)"
             onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)">
         </div>
@@ -5654,7 +5652,7 @@ function addEditorDay(){
         secondary: 'Brak',
         sets: 3,
         weight: '',
-        reps: '8-12',
+        reps: '10',
         note: ''
       }
     ]
@@ -5691,7 +5689,7 @@ function addEditorExercise(dayIdx){
     secondary: 'Brak',
     sets: 3,
     weight: '',
-    reps: '8-12',
+    reps: '10',
     note: ''
   };
   ensureExerciseWeeks(newEx);

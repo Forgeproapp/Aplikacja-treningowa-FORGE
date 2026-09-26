@@ -5543,75 +5543,91 @@ const WIKI_SECTIONS = [
     cards: [
       {
         id: 'levers',
-        title: 'Cztery dźwignie',
-        thesis: 'Cztery rzeczy dają prawie cały efekt. Reszta to szum.',
+        title: 'Od czego zależy efekt',
+        thesis: 'Mięśnie rosną, kiedy dajesz im powód, materiał i czas. Wszystko inne to dodatki.',
         points: [
-          'Dokładaj ciężar albo powtórzenia w zapisanym zakresie. To jest progresja.',
-          'Trzymaj tygodniową objętość koło MAV (ok. 12–20 serii na partię). MRV to sufit regeneracji, nie cel.',
-          'Jedz białko (ok. 1,6–2,2 g/kg) i trzymaj kalorie w wybranym kierunku: lekka nadwyżka na masę, deficyt na redukcję.',
-          'Śpij i rób deload. Bez regeneracji dokładanie serii nic nie buduje.'
+          'Powód to coraz trudniejszy trening. Z tygodnia na tydzień próbujesz zrobić odrobinę więcej — kilogram albo powtórzenie.',
+          'Powód to też wystarczająco dużo pracy. Dla większości partii dobrze działa około 12–20 ciężkich serii w tygodniu.',
+          'Materiał to jedzenie. Białko w każdym posiłku i kalorie dopasowane do celu: trochę więcej na masę, trochę mniej na redukcję.',
+          'Czas to sen i luźniejsze tygodnie. Mięsień rośnie po treningu, nie w jego trakcie.',
+          'Jeśli ogarniesz te cztery rzeczy, suplementy i „sekretne metody” przestaną mieć znaczenie.'
         ]
       },
       {
         id: 'rir',
-        title: 'Progresja i RIR',
-        thesis: 'Domyślny cykl zaostrza wysiłek tydzień po tygodniu, a na końcu puszcza.',
+        title: 'Jak ciężko trenować (RIR)',
+        thesis: 'RIR to liczba powtórzeń, które jeszcze zostały ci w zapasie. RIR 2 znaczy: mógłbyś zrobić jeszcze dwa, ale kończysz.',
         points: [
-          'Tydzień 1: RIR 3, przerwa 1,5 min. Zostawiasz około 3 powtórzenia w zapasie.',
-          'Tydzień 2: RIR 2, przerwa 2 min. Tygodnie 3–4: RIR 1, przerwa 2,5 min.',
-          'Tydzień 5: RIR 0, przerwa 3 min. Ostatnie powtórzenie jest ciężkie, ale seria ma się udać.',
-          'Tydzień 6: RIR 4, przerwa 1,5 min. To regeneracja, nie bój o rekord.',
-          'Dokładasz ciężar, gdy górna granica zakresu (np. 10 przy 6–10) schodzi przy zadanym RIR. Serii nie doprowadzasz do porażki.'
+          'Plan w apce zaczyna spokojnie i z każdym tygodniem przykręca śrubę. Tydzień 1 to RIR 3, tydzień 2 to RIR 2, tygodnie 3–4 to RIR 1.',
+          'W tygodniu 5 idziesz na RIR 0: ostatnie powtórzenie ma być naprawdę ciężkie, ale czyste. Nie „dociągasz” go na siłę.',
+          'Tydzień 6 to RIR 4 — lżejszy tydzień, żeby ciało złapało oddech. Nie testuj wtedy rekordów.',
+          'Przerwy rosną razem z wysiłkiem: od 1,5 min na początku do 3 min w najcięższym tygodniu. Apka odlicza je sama.',
+          'Kiedy robisz górę zakresu (np. 10 powtórzeń przy „6–10”) przy zadanym RIR, następnym razem dołóż ciężar.'
         ],
         actions: [{ label: 'Otwórz edytor', tab: 'editor' }]
       },
       {
         id: 'volume',
-        title: 'Ile serii',
-        thesis: 'Rośniesz w paśmie MAV. Poniżej MEV stoisz, przy MRV częściej się sypiesz niż rosniesz.',
+        title: 'Ile serii na partię',
+        thesis: 'Za mało serii — stoisz w miejscu. Za dużo — nie nadążasz z regeneracją. Szukasz środka.',
         points: [
-          'MV ~6–8 serii: konserwacja, utrzymanie masy.',
-          'MEV ~8–12: minimum efektywne. Od tego startujesz cykl.',
-          'MAV ~12–20: optimum wzrostu. Tu chcesz spędzić większość mezocyklu.',
-          'MRV ~20–25+: limit regeneracji. Hamulec, nie cel.',
-          'Partia główna liczy się jako 1,0. Dodatkowa (np. + Triceps (0.5)) jako pół serii.',
-          'Celuj w daną partię około 2 razy w tygodniu. Dokładaj serie tylko, gdy sen i siła są w porządku.'
+          'Liczą się tylko serie robocze, czyli te naprawdę ciężkie. Rozgrzewka się nie liczy.',
+          'Około 6–8 serii tygodniowo (MV) wystarczy, żeby utrzymać to, co masz.',
+          'Około 8–12 serii (MEV) to rozsądny start nowego cyklu.',
+          'Około 12–20 serii (MAV) to strefa, w której większość ludzi rośnie najlepiej.',
+          'Powyżej 20 (MRV) zwykle zaczyna się zmęczenie, które zjada postępy. Traktuj to jak czerwoną linię, nie cel.',
+          'Rozbij te serie na 2 treningi w tygodniu. Ćwiczenie, w którym partia tylko pomaga (np. triceps przy wyciskaniu), apka liczy jako pół serii.'
         ],
         actions: [{ label: 'Otwórz objętość', tab: 'stats', subtab: 'volume' }]
       },
       {
         id: 'exercises',
-        title: 'Jakie ćwiczenia zostawić',
-        thesis: 'Stały ruch przez cały cykl mówi, czy jesteś silniejszy. Zamiana co tydzień kasuje to porównanie.',
+        title: 'Dobór ćwiczeń: zakres, napięcie, rozciągnięcie',
+        thesis: 'Dobre ćwiczenie to takie, w którym mięsień, który chcesz rozbudować, jest najsłabszym ogniwem i pracuje w pełnym rozciągnięciu.',
         points: [
-          'Wielostawy trzymaj w 6–10 powtórzeniach, izolacje w 10–20. Tak jest w szablonie kuźni.',
-          'Najpierw ciężkie, stabilne ruchy, potem izolacje tej samej partii.',
-          'Zostaw te same nazwy ćwiczeń przez cały cykl. „Ostatnio w kuźni” porównuje wynik po nazwie.',
-          'Zmieniaj ćwiczenie, gdy boli staw albo ruch nie trafia w partię — nie z nudów.'
+          'Pełny zakres ruchu. Schodź tak nisko, jak pozwala ci staw i technika. Dolna, rozciągnięta część ruchu daje najwięcej, więc nie ucinaj jej, żeby dołożyć kilogramy.',
+          'Rozciągnięcie pod ciężarem. Wybieraj warianty, które mocno rozciągają mięsień: RDL zamiast samego podnoszenia z ziemi, uginanie na ławce skośnej, wyprosty nad głową na triceps, rozpiętki i wyciskanie z głębokim zejściem, uginanie nóg siedząc.',
+          'Napięcie tam, gdzie trzeba. Jeśli w wiosłowaniu pierwsze odpadają ci przedramiona albo dolny odcinek pleców, to plecy nie dostają pełnego bodźca. Szukaj wersji z podparciem, na wyciągu albo na maszynie.',
+          'Stabilność. Im mniej musisz balansować, tym więcej siły idzie w mięsień. Maszyny, wyciągi i ławki z podparciem to nie „gorsze” ćwiczenia.',
+          'Czucie. Po serii powinieneś czuć pracę w mięśniu docelowym, nie w stawach. Kolano, bark albo łokieć bolą? Zmień wariant.',
+          'Kiedy znajdziesz dobre ćwiczenie, trzymaj je przez cały cykl. Apka porównuje wyniki po nazwie ćwiczenia, więc częsta zmiana kasuje ci historię postępu.'
         ],
         actions: [{ label: 'Otwórz edytor', tab: 'editor' }]
       },
       {
-        id: 'food',
-        title: 'Jedzenie w czterech zdaniach',
-        thesis: 'Waga skacze. Kierunek sylwetki czytasz z talii i z tego, czy ciężary idą w górę.',
+        id: 'tempo',
+        title: 'Tempo pracy w serii',
+        thesis: 'Nie chodzi o to, żeby ruszać się wolno. Chodzi o to, żeby cały czas kontrolować ciężar.',
         points: [
-          'Masa: mała nadwyżka kalorii. Redukcja: deficyt. Utrzymanie: tyle, ile trzyma wagę i talię.',
-          'Białko ok. 1,6–2,2 g na kilogram masy ciała, rozłożone na posiłki.',
-          'Talia w górę przy stagnacji siły znaczy za dużo jedzenia. Talia w dół i ostry spadek siły znaczy za duży deficyt.',
-          'Jedna poranna waga nic nie znaczy. Patrz na trend z kilku wpisów.'
+          'Opuszczanie: spokojnie, mniej więcej 2–3 sekundy. Ciężar nie spada — to ty go opuszczasz.',
+          'Dół ruchu: bez odbijania. Możesz zatrzymać się na chwilę w rozciągnięciu, szczególnie na maszynach i hantlach. To zabiera pęd i zostawia pracę mięśniowi.',
+          'Podnoszenie: zdecydowanie, z zamiarem ruszenia ciężaru szybko. Pod koniec serii i tak zwolni samo — to znak, że się zbliżasz do limitu.',
+          'Góra ruchu: nie odpoczywaj z zablokowanymi łokciami czy kolanami przez kilka sekund, jeśli to zdejmuje napięcie. Płynnie przejdź do kolejnego powtórzenia.',
+          'Bardzo wolne powtórzenia (np. 10 sekund w dół) nie budują więcej mięśni. Robisz wtedy po prostu mniej powtórzeń z mniejszym ciężarem.',
+          'Trzymaj to samo tempo co tydzień. Inaczej nie wiesz, czy jesteś silniejszy, czy tylko zacząłeś bujać ciężarem.'
+        ]
+      },
+      {
+        id: 'food',
+        title: 'Jedzenie bez liczenia wszystkiego',
+        thesis: 'Waga łazienkowa skacze z dnia na dzień. Kierunek poznasz po talii i po tym, czy ciężary idą w górę.',
+        points: [
+          'Budujesz masę? Jedz trochę więcej, niż potrzebujesz. Chudniesz? Trochę mniej. Duże skoki w którąkolwiek stronę zwykle kończą się tłuszczem albo utratą siły.',
+          'Białko to ok. 1,6–2,2 g na kilogram masy ciała dziennie. Najprościej: porcja białka w każdym posiłku.',
+          'Talia rośnie, a ciężary stoją? Prawdopodobnie jesz za dużo. Talia spada, ale siła leci na łeb? Deficyt jest za duży.',
+          'Nie oceniaj po jednym ważeniu. Patrz, co się dzieje przez 2–3 tygodnie.'
         ],
         actions: [{ label: 'Otwórz pomiary', tab: 'stats', subtab: 'body' }]
       },
       {
         id: 'deload',
-        title: 'Kiedy odpuścić',
-        thesis: 'Deload jest częścią budowania, nie przerwą od niego.',
+        title: 'Kiedy zwolnić',
+        thesis: 'Lżejszy tydzień to nie strata czasu. To moment, w którym zmęczenie opada i widać, co zbudowałeś.',
         points: [
-          'Tydzień 6 (RIR 4) zostawiasz te same ćwiczenia i schodzisz z wysiłku.',
-          'Dwa tygodnie z rzędu gorsze ciężary albo zakresy przy tym samym śnie: zejdź objętością ku MEV. Nie dokładaj serii.',
-          'Sen i ból stawu są ważniejsze niż dobicie MRV.',
-          'Po pełnym cyklu zresetuj postęp planu i zacznij od tygodnia 1 z nowymi ciężarami. Historia i pomiary zostają.'
+          'W tygodniu 6 robisz te same ćwiczenia, tylko lżej (RIR 4). Ciało dostaje czas na naprawę.',
+          'Jeśli przez dwa tygodnie z rzędu wyniki spadają, a śpisz normalnie, nie dokładaj serii. Zabierz kilka — wróć bliżej 8–12 w tygodniu.',
+          'Ból stawu, słaby sen i brak chęci do treningu to sygnały, żeby odpuścić, zanim coś się zepsuje.',
+          'Po skończonym cyklu zresetuj postęp planu i zacznij od tygodnia 1 z nieco większymi ciężarami. Historia i pomiary zostają.'
         ],
         actions: [{ label: 'Otwórz trening', tab: 'home' }]
       }
@@ -5623,51 +5639,52 @@ const WIKI_SECTIONS = [
     cards: [
       {
         id: 'map',
-        title: 'Mapa',
-        thesis: 'Pięć zakładek na dole i trzy przyciski na górze. Reszta to ekrany, które z nich wychodzą.',
+        title: 'Gdzie co jest',
+        thesis: 'Wszystko jest pod pięcioma przyciskami na dole ekranu.',
         points: [
-          'Środek, Trening: plan tygodnia i start sesji.',
-          'Edytor: plany, ćwiczenia, tygodnie, RIR i kopie.',
-          'Wiki: ta baza.',
-          'Statystyki: objętość, wykres 1RM i pomiary. Historia: ukończone treningi.',
-          'Góra: Zainstaluj (ikona na ekranie telefonu), chmura i Zaloguj przez Google.'
+          'Trening (duży przycisk na środku) — tu zaczynasz każdy trening.',
+          'Edytor — tu układasz i zmieniasz swój plan.',
+          'Wiki — to, co właśnie czytasz.',
+          'Statystyki — ile serii robisz na każdą partię, jak rośnie siła i jak zmienia się sylwetka.',
+          'Historia — lista wszystkich zakończonych treningów.',
+          'Na górze możesz zainstalować apkę na telefonie i zalogować się przez Google, żeby dane synchronizowały się między urządzeniami.'
         ]
       },
       {
         id: 'session',
-        title: 'Trening i sesja',
-        thesis: 'Sesja to wpisanie ciężaru, powtórzeń i odhaczenie serii. Aplikacja pilnuje tygodnia i przerwy.',
+        title: 'Jak zrobić trening',
+        thesis: 'Wybierasz dzień, wpisujesz ciężar i powtórzenia, odhaczasz serię. Resztę apka robi za ciebie.',
         points: [
-          'Pigułki TYG na górze przełączają tydzień. Start dnia otwiera sesję.',
-          'Wpisany ciężar kopiuje się na puste kolejne serie tego ćwiczenia.',
-          'Ptaszek kończy serię i odpala licznik przerwy. Możesz go zmniejszyć do pływającego zegara.',
-          'Pasek „Ostatnio w kuźni” pokazuje poprzedni wynik tego ćwiczenia.',
-          '„Zakończ trening” zapisuje sesję. Po całym tygodniu apka przechodzi dalej. Reset cyklu zeruje odhaczenia w planie — historia i pomiary zostają.'
+          'Na górze ekranu Trening wybierasz tydzień (TYG 1, TYG 2…), a potem dzień, który chcesz zrobić.',
+          'Przy każdym ćwiczeniu widzisz, co zrobiłeś ostatnio. Spróbuj to pobić choćby o jedno powtórzenie.',
+          'Wpisz ciężar w pierwszej serii — apka sama przepisze go do kolejnych. Zmieniasz tylko wtedy, gdy trzeba.',
+          'Kliknięcie w kółko po prawej odhacza serię i włącza licznik przerwy. Możesz go zminimalizować i dalej korzystać z apki.',
+          'Po ostatniej serii kliknij „Zakończ trening”. Gdy skończysz cały tydzień, apka sama przejdzie do następnego.'
         ],
         actions: [{ label: 'Otwórz trening', tab: 'home' }]
       },
       {
         id: 'editor',
-        title: 'Edytor',
-        thesis: 'Tu składasz plan, zanim wejdziesz pod sztangę.',
+        title: 'Jak ułożyć plan',
+        thesis: 'W edytorze budujesz plan raz, a potem tylko go dopracowujesz.',
         points: [
-          'Menedżer planów: nowy, duplikuj, zmień nazwę, usuń. Szablon kuźni albo pusty arkusz.',
-          'Biblioteka ćwiczeń i biblioteka treningów — z nich wrzucasz ruchy do dni.',
-          'Ustawiasz liczbę tygodni, a w każdym osobno RIR i przerwę.',
-          'Serie możesz ustawić inaczej na każdy tydzień. Kopiujesz tydzień albo rozlewasz tydzień 1 na resztę.',
-          'Przeciągasz treningi i ćwiczenia. Pasek na dole pokazuje zaplanowaną objętość: główna partia = 1, dodatkowa = 0,5.',
-          'Link udostępnia sam plan. Eksport JSON zabiera wszystkie plany, historię i pomiary.'
+          'Na górze tworzysz nowy plan, kopiujesz obecny albo zmieniasz jego nazwę. Nowy plan możesz zacząć od gotowego szablonu albo od zera.',
+          'Biblioteka ćwiczeń i biblioteka treningów trzymają twoje ulubione ruchy i całe dni, żeby nie wpisywać ich za każdym razem.',
+          'Ustaw, ile tygodni trwa cykl, a dla każdego tygodnia — jak ciężko trenujesz (RIR) i ile odpoczywasz.',
+          'Liczbę serii możesz zmieniać tydzień po tygodniu. Jeśli chcesz, skopiuj tydzień 1 do wszystkich pozostałych jednym kliknięciem.',
+          'Ćwiczenia i dni przesuwasz, przeciągając je palcem. Na dole widzisz, ile serii tygodniowo dostanie każda partia.',
+          'Planem podzielisz się linkiem. Pełną kopię wszystkiego (plany, historia, pomiary) zapiszesz jako plik.'
         ],
         actions: [{ label: 'Otwórz edytor', tab: 'editor' }]
       },
       {
         id: 'stats',
-        title: 'Statystyki',
-        thesis: 'Objętość mówi, czy partia dostaje dość serii. Wykres mówi, czy jesteś silniejszy. Pomiary mówią, czy rośnie sylwetka.',
+        title: 'Jak czytać statystyki',
+        thesis: 'Trzy pytania: czy robię dość serii, czy jestem silniejszy i czy zmienia się sylwetka.',
         points: [
-          'Słupki to serie robocze z odhaczonych treningów, na tle MV, MEV, MAV i MRV.',
-          'Wykres to szacowane 1RM ze wzoru Epleya: ciężar × (1 + powtórzenia / 30). Służy do porównania w czasie, nie jest dokładnym maksem.',
-          'Dziennik pomiarów: waga, talia, klatka, ramię, udo i łydka.'
+          'Słupki pokazują, ile ciężkich serii zrobiłeś w tym tygodniu na każdą partię. Kolor mówi, czy to za mało, w sam raz, czy już za dużo.',
+          'Wykres pokazuje szacowany maks na jedno powtórzenie, wyliczony z twoich serii. Nie musisz go dźwigać — ważne, żeby linia szła w górę.',
+          'W zakładce „Waga & Pomiary” zapisujesz wagę i obwody: talię, klatkę, ramię, udo i łydkę. Mierz się raz na tydzień lub dwa, o tej samej porze.'
         ],
         actions: [
           { label: 'Otwórz objętość', tab: 'stats', subtab: 'volume' },
@@ -5676,12 +5693,12 @@ const WIKI_SECTIONS = [
       },
       {
         id: 'history',
-        title: 'Historia',
-        thesis: 'Historia zostaje, nawet gdy zresetujesz cykl planu.',
+        title: 'Historia treningów',
+        thesis: 'Każdy skończony trening zostaje tu na zawsze — nawet jeśli zaczniesz plan od nowa.',
         points: [
-          'Każdy zakończony trening ląduje tu z datą, nazwą planu i tonażem (ciężar × powtórzenia).',
-          'Rozwiń wpis, żeby zobaczyć serie.',
-          'Usunięcie historii nie rusza bieżącego planu. Reset planu nie rusza historii.'
+          'Widzisz datę, nazwę planu i łączny tonaż, czyli sumę ciężar × powtórzenia ze wszystkich serii.',
+          'Kliknij trening, żeby zobaczyć każdą serię po kolei.',
+          'Reset planu nie usuwa historii, a usunięcie historii nie zmienia planu.'
         ],
         actions: [{ label: 'Otwórz historię', tab: 'history' }]
       }

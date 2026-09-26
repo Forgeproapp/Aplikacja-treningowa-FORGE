@@ -1020,6 +1020,46 @@
   .confirm-btn.cancel{background:var(--bg-elev); color:var(--text-dim); border:1px solid var(--line);}
   .confirm-btn.danger{background:var(--danger); color:#ffffff;}
   .confirm-btn.primary-confirm{background:linear-gradient(135deg, #f59e0b, #d97706); color:#07080a; font-weight:800;}
+
+  .wiki-lead{
+    font-size:13px; color:var(--text-faint); line-height:1.5; margin:0 2px 16px;
+  }
+  .wiki-group-title{
+    font-size:11px; font-weight:800; letter-spacing:0.08em; text-transform:uppercase;
+    color:#fbbf24; margin:4px 2px 10px;
+  }
+  .wiki-card{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
+    margin-bottom:10px; box-shadow:var(--shadow); overflow:hidden;
+  }
+  .wiki-card-head{
+    width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:14px; background:none; border:none; color:var(--text);
+    font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:800; text-align:left; cursor:pointer;
+  }
+  .wiki-card-head:active{background:var(--bg-elev);}
+  .wiki-chevron{
+    flex-shrink:0; width:22px; height:22px; display:flex; align-items:center; justify-content:center;
+    color:#fbbf24; font-size:16px; line-height:1; transition:transform 0.15s ease;
+  }
+  .wiki-card.open .wiki-chevron{transform:rotate(90deg);}
+  .wiki-card-body{display:none; padding:0 14px 14px;}
+  .wiki-card.open .wiki-card-body{display:block;}
+  .wiki-thesis{
+    font-size:13.5px; font-weight:700; color:var(--text); line-height:1.45; margin:0 0 10px;
+  }
+  .wiki-points{margin:0; padding:0 0 0 18px;}
+  .wiki-points li{
+    font-size:13px; color:var(--text-dim); line-height:1.45; margin-bottom:6px;
+  }
+  .wiki-points li:last-child{margin-bottom:0;}
+  .wiki-actions{display:flex; flex-wrap:wrap; gap:8px; margin-top:12px;}
+  .wiki-open-btn{
+    border:1px solid rgba(245,158,11,0.45); background:var(--accent-deep); color:#fbbf24;
+    font-family:'Space Grotesk',sans-serif; font-size:12.5px; font-weight:800;
+    border-radius:8px; padding:8px 12px; cursor:pointer;
+  }
+  .wiki-open-btn:active{transform:scale(0.97);}
 </style>
 </head>
 <body>
@@ -1149,13 +1189,7 @@
 
   <!-- EKRAN 4: EDYTOR PLANU & KOPIA ZAPASOWA -->
   <div class="screen" id="screen-wiki">
-    <div class="editor-section" style="text-align:center; padding:36px 20px;">
-      <div style="font-size:44px; margin-bottom:12px;">📖</div>
-      <div style="font-size:17px; font-weight:800; color:var(--text); margin-bottom:8px;">Wiki Kuźni</div>
-      <div style="font-size:13.5px; color:var(--text-faint); line-height:1.6; max-width:380px; margin:0 auto;">
-        Tu wkrótce pojawi się baza wiedzy o treningu sylwetkowym oraz przewodnik po funkcjach aplikacji. Wróć tu niebawem! ⚒️
-      </div>
-    </div>
+    <div id="wikiContent"></div>
   </div>
 
   <div class="screen" id="screen-editor">
@@ -5502,6 +5536,217 @@ function runConfirmedAction(){
   if(action) action();
 }
 
+const WIKI_SECTIONS = [
+  {
+    id: 'sylwetka',
+    title: 'Jak budować sylwetkę',
+    cards: [
+      {
+        id: 'levers',
+        title: 'Cztery dźwignie',
+        thesis: 'Cztery rzeczy dają prawie cały efekt. Reszta to szum.',
+        points: [
+          'Dokładaj ciężar albo powtórzenia w zapisanym zakresie. To jest progresja.',
+          'Trzymaj tygodniową objętość koło MAV (ok. 12–20 serii na partię). MRV to sufit regeneracji, nie cel.',
+          'Jedz białko (ok. 1,6–2,2 g/kg) i trzymaj kalorie w wybranym kierunku: lekka nadwyżka na masę, deficyt na redukcję.',
+          'Śpij i rób deload. Bez regeneracji dokładanie serii nic nie buduje.'
+        ]
+      },
+      {
+        id: 'rir',
+        title: 'Progresja i RIR',
+        thesis: 'Domyślny cykl zaostrza wysiłek tydzień po tygodniu, a na końcu puszcza.',
+        points: [
+          'Tydzień 1: RIR 3, przerwa 1,5 min. Zostawiasz około 3 powtórzenia w zapasie.',
+          'Tydzień 2: RIR 2, przerwa 2 min. Tygodnie 3–4: RIR 1, przerwa 2,5 min.',
+          'Tydzień 5: RIR 0, przerwa 3 min. Ostatnie powtórzenie jest ciężkie, ale seria ma się udać.',
+          'Tydzień 6: RIR 4, przerwa 1,5 min. To regeneracja, nie bój o rekord.',
+          'Dokładasz ciężar, gdy górna granica zakresu (np. 10 przy 6–10) schodzi przy zadanym RIR. Serii nie doprowadzasz do porażki.'
+        ],
+        actions: [{ label: 'Otwórz edytor', tab: 'editor' }]
+      },
+      {
+        id: 'volume',
+        title: 'Ile serii',
+        thesis: 'Rośniesz w paśmie MAV. Poniżej MEV stoisz, przy MRV częściej się sypiesz niż rosniesz.',
+        points: [
+          'MV ~6–8 serii: konserwacja, utrzymanie masy.',
+          'MEV ~8–12: minimum efektywne. Od tego startujesz cykl.',
+          'MAV ~12–20: optimum wzrostu. Tu chcesz spędzić większość mezocyklu.',
+          'MRV ~20–25+: limit regeneracji. Hamulec, nie cel.',
+          'Partia główna liczy się jako 1,0. Dodatkowa (np. + Triceps (0.5)) jako pół serii.',
+          'Celuj w daną partię około 2 razy w tygodniu. Dokładaj serie tylko, gdy sen i siła są w porządku.'
+        ],
+        actions: [{ label: 'Otwórz objętość', tab: 'stats', subtab: 'volume' }]
+      },
+      {
+        id: 'exercises',
+        title: 'Jakie ćwiczenia zostawić',
+        thesis: 'Stały ruch przez cały cykl mówi, czy jesteś silniejszy. Zamiana co tydzień kasuje to porównanie.',
+        points: [
+          'Wielostawy trzymaj w 6–10 powtórzeniach, izolacje w 10–20. Tak jest w szablonie kuźni.',
+          'Najpierw ciężkie, stabilne ruchy, potem izolacje tej samej partii.',
+          'Zostaw te same nazwy ćwiczeń przez cały cykl. „Ostatnio w kuźni” porównuje wynik po nazwie.',
+          'Zmieniaj ćwiczenie, gdy boli staw albo ruch nie trafia w partię — nie z nudów.'
+        ],
+        actions: [{ label: 'Otwórz edytor', tab: 'editor' }]
+      },
+      {
+        id: 'food',
+        title: 'Jedzenie w czterech zdaniach',
+        thesis: 'Waga skacze. Kierunek sylwetki czytasz z talii i z tego, czy ciężary idą w górę.',
+        points: [
+          'Masa: mała nadwyżka kalorii. Redukcja: deficyt. Utrzymanie: tyle, ile trzyma wagę i talię.',
+          'Białko ok. 1,6–2,2 g na kilogram masy ciała, rozłożone na posiłki.',
+          'Talia w górę przy stagnacji siły znaczy za dużo jedzenia. Talia w dół i ostry spadek siły znaczy za duży deficyt.',
+          'Jedna poranna waga nic nie znaczy. Patrz na trend z kilku wpisów.'
+        ],
+        actions: [{ label: 'Otwórz pomiary', tab: 'stats', subtab: 'body' }]
+      },
+      {
+        id: 'deload',
+        title: 'Kiedy odpuścić',
+        thesis: 'Deload jest częścią budowania, nie przerwą od niego.',
+        points: [
+          'Tydzień 6 (RIR 4) zostawiasz te same ćwiczenia i schodzisz z wysiłku.',
+          'Dwa tygodnie z rzędu gorsze ciężary albo zakresy przy tym samym śnie: zejdź objętością ku MEV. Nie dokładaj serii.',
+          'Sen i ból stawu są ważniejsze niż dobicie MRV.',
+          'Po pełnym cyklu zresetuj postęp planu i zacznij od tygodnia 1 z nowymi ciężarami. Historia i pomiary zostają.'
+        ],
+        actions: [{ label: 'Otwórz trening', tab: 'home' }]
+      }
+    ]
+  },
+  {
+    id: 'apka',
+    title: 'Jak poruszać się po apce',
+    cards: [
+      {
+        id: 'map',
+        title: 'Mapa',
+        thesis: 'Pięć zakładek na dole i trzy przyciski na górze. Reszta to ekrany, które z nich wychodzą.',
+        points: [
+          'Środek, Trening: plan tygodnia i start sesji.',
+          'Edytor: plany, ćwiczenia, tygodnie, RIR i kopie.',
+          'Wiki: ta baza.',
+          'Statystyki: objętość, wykres 1RM i pomiary. Historia: ukończone treningi.',
+          'Góra: Zainstaluj (ikona na ekranie telefonu), chmura i Zaloguj przez Google.'
+        ]
+      },
+      {
+        id: 'session',
+        title: 'Trening i sesja',
+        thesis: 'Sesja to wpisanie ciężaru, powtórzeń i odhaczenie serii. Aplikacja pilnuje tygodnia i przerwy.',
+        points: [
+          'Pigułki TYG na górze przełączają tydzień. Start dnia otwiera sesję.',
+          'Wpisany ciężar kopiuje się na puste kolejne serie tego ćwiczenia.',
+          'Ptaszek kończy serię i odpala licznik przerwy. Możesz go zmniejszyć do pływającego zegara.',
+          'Pasek „Ostatnio w kuźni” pokazuje poprzedni wynik tego ćwiczenia.',
+          '„Zakończ trening” zapisuje sesję. Po całym tygodniu apka przechodzi dalej. Reset cyklu zeruje odhaczenia w planie — historia i pomiary zostają.'
+        ],
+        actions: [{ label: 'Otwórz trening', tab: 'home' }]
+      },
+      {
+        id: 'editor',
+        title: 'Edytor',
+        thesis: 'Tu składasz plan, zanim wejdziesz pod sztangę.',
+        points: [
+          'Menedżer planów: nowy, duplikuj, zmień nazwę, usuń. Szablon kuźni albo pusty arkusz.',
+          'Biblioteka ćwiczeń i biblioteka treningów — z nich wrzucasz ruchy do dni.',
+          'Ustawiasz liczbę tygodni, a w każdym osobno RIR i przerwę.',
+          'Serie możesz ustawić inaczej na każdy tydzień. Kopiujesz tydzień albo rozlewasz tydzień 1 na resztę.',
+          'Przeciągasz treningi i ćwiczenia. Pasek na dole pokazuje zaplanowaną objętość: główna partia = 1, dodatkowa = 0,5.',
+          'Link udostępnia sam plan. Eksport JSON zabiera wszystkie plany, historię i pomiary.'
+        ],
+        actions: [{ label: 'Otwórz edytor', tab: 'editor' }]
+      },
+      {
+        id: 'stats',
+        title: 'Statystyki',
+        thesis: 'Objętość mówi, czy partia dostaje dość serii. Wykres mówi, czy jesteś silniejszy. Pomiary mówią, czy rośnie sylwetka.',
+        points: [
+          'Słupki to serie robocze z odhaczonych treningów, na tle MV, MEV, MAV i MRV.',
+          'Wykres to szacowane 1RM ze wzoru Epleya: ciężar × (1 + powtórzenia / 30). Służy do porównania w czasie, nie jest dokładnym maksem.',
+          'Dziennik pomiarów: waga, talia, klatka, ramię, udo i łydka.'
+        ],
+        actions: [
+          { label: 'Otwórz objętość', tab: 'stats', subtab: 'volume' },
+          { label: 'Otwórz pomiary', tab: 'stats', subtab: 'body' }
+        ]
+      },
+      {
+        id: 'history',
+        title: 'Historia',
+        thesis: 'Historia zostaje, nawet gdy zresetujesz cykl planu.',
+        points: [
+          'Każdy zakończony trening ląduje tu z datą, nazwą planu i tonażem (ciężar × powtórzenia).',
+          'Rozwiń wpis, żeby zobaczyć serie.',
+          'Usunięcie historii nie rusza bieżącego planu. Reset planu nie rusza historii.'
+        ],
+        actions: [{ label: 'Otwórz historię', tab: 'history' }]
+      }
+    ]
+  }
+];
+
+let wikiRendered = false;
+
+function escapeWikiText(value){
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+function renderWiki(){
+  if(wikiRendered) return;
+  const root = document.getElementById('wikiContent');
+  if(!root) return;
+
+  let html = `<p class="wiki-lead">Najkrótsza baza kuźni: co naprawdę buduje sylwetkę i gdzie to kliknąć w aplikacji.</p>`;
+  WIKI_SECTIONS.forEach(section => {
+    html += `<div class="wiki-group-title">${escapeWikiText(section.title)}</div>`;
+    section.cards.forEach((card, index) => {
+      const open = index === 0 ? ' open' : '';
+      const points = (card.points || []).map(point => `<li>${escapeWikiText(point)}</li>`).join('');
+      const actions = (card.actions || []).map(action => {
+        const subtab = action.subtab ? `, '${escapeWikiText(action.subtab)}'` : '';
+        return `<button type="button" class="wiki-open-btn" onclick="openWikiTarget('${escapeWikiText(action.tab)}'${subtab})">${escapeWikiText(action.label)}</button>`;
+      }).join('');
+      const actionsHtml = actions ? `<div class="wiki-actions">${actions}</div>` : '';
+      html += `<article class="wiki-card${open}" id="wiki-card-${escapeWikiText(card.id)}">
+        <button type="button" class="wiki-card-head" onclick="toggleWikiCard('${escapeWikiText(card.id)}')" aria-expanded="${index === 0 ? 'true' : 'false'}">
+          <span>${escapeWikiText(card.title)}</span>
+          <span class="wiki-chevron" aria-hidden="true">›</span>
+        </button>
+        <div class="wiki-card-body">
+          <p class="wiki-thesis">${escapeWikiText(card.thesis)}</p>
+          <ul class="wiki-points">${points}</ul>
+          ${actionsHtml}
+        </div>
+      </article>`;
+    });
+  });
+
+  root.innerHTML = html;
+  wikiRendered = true;
+}
+
+function toggleWikiCard(cardId){
+  const card = document.getElementById('wiki-card-' + cardId);
+  if(!card) return;
+  const open = card.classList.toggle('open');
+  const head = card.querySelector('.wiki-card-head');
+  if(head) head.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+function openWikiTarget(tab, subtab){
+  switchTab(tab);
+  if(tab === 'stats' && subtab) switchStatsSubtab(subtab);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 function switchTab(tab){
   document.querySelectorAll('.tabbar-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   document.getElementById('screen-home').classList.toggle('active', tab === 'home');
@@ -5515,6 +5760,7 @@ function switchTab(tab){
   if(tab === 'stats') switchStatsSubtab('volume');
   if(tab === 'history') renderHistory();
   if(tab === 'home') renderHome();
+  if(tab === 'wiki') renderWiki();
 }
 
 function showToast(msg){
@@ -5558,6 +5804,9 @@ window.minimizeRestTimer = minimizeRestTimer;
 window.expandRestTimer = expandRestTimer;
 window.toggleTimerPause = toggleTimerPause;
 window.switchStatsSubtab = switchStatsSubtab;
+window.toggleWikiCard = toggleWikiCard;
+window.openWikiTarget = openWikiTarget;
+window.renderWiki = renderWiki;
 window.renderProgressChart = renderProgressChart;
 window.addBodyMeasurement = addBodyMeasurement;
 window.deleteBodyLogItem = deleteBodyLogItem;

@@ -1268,7 +1268,7 @@
     <div class="editor-section">
       <div class="editor-section-title">Kopia zapasowa i udostępnianie</div>
       <div style="font-size:12px; color:var(--text-faint); line-height:1.4; margin-bottom:10px;">
-        Chcesz podesłać komuś swój plan? Wystarczy jeden link — nie musi mieć konta ani aplikacji.
+        Chcesz podesłać komuś swój plan? Link jest krótki, prawie jak adres tej strony. Odbiorca nie musi mieć konta ani aplikacji.
       </div>
       <button class="share-plan-hero-btn" onclick="shareCurrentPlan()">🔗 Udostępnij bieżący plan (link)</button>
       <div style="font-size:11px; font-weight:700; color:var(--text-faint); text-transform:uppercase; margin:14px 0 8px;">Pełna kopia zapasowa (wszystkie plany, historia, pomiary)</div>
@@ -1732,6 +1732,9 @@ async function initFirebase(){
       if(user){
         setCloudError(null);
         subscribeToSyncRoom();
+        if(typeof window.consumeSharedPlanFromUrl === 'function'){
+          window.consumeSharedPlanFromUrl();
+        }
       } else {
         try {
           await signInAnonymously(auth);
@@ -1744,6 +1747,60 @@ async function initFirebase(){
     handleFirebaseError(err);
   }
 }
+
+const SHARE_CODE_ALPHABET = 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+function randomShareCode(len){
+  const bytes = new Uint8Array(len);
+  crypto.getRandomValues(bytes);
+  let out = '';
+  for(let i = 0; i < len; i++){
+    out += SHARE_CODE_ALPHABET[bytes[i] % SHARE_CODE_ALPHABET.length];
+  }
+  return out;
+}
+
+function waitForShareDb(timeoutMs){
+  return new Promise((resolve, reject) => {
+    const start = Date.now();
+    const tick = () => {
+      if(db && auth && auth.currentUser) return resolve();
+      if(Date.now() - start > timeoutMs) return reject(new Error('Chmura nie jest jeszcze gotowa'));
+      setTimeout(tick, 120);
+    };
+    tick();
+  });
+}
+
+window.saveSharedPlan = async function(planObj){
+  await waitForShareDb(8000);
+  const payload = JSON.stringify(planObj);
+  for(let attempt = 0; attempt < 5; attempt++){
+    const code = randomShareCode(6);
+    const ref = doc(db, 'sharedPlans', code);
+    const existing = await getDoc(ref);
+    if(existing.exists()) continue;
+    await setDoc(ref, {
+      name: planObj.name || 'Plan',
+      payload,
+      createdAt: new Date().toISOString()
+    });
+    return code;
+  }
+  throw new Error('Nie udało się utworzyć krótkiego linku');
+};
+
+window.loadSharedPlan = async function(code){
+  await waitForShareDb(8000);
+  if(!/^[a-zA-Z0-9]{4,12}$/.test(code)) return null;
+  const snap = await getDoc(doc(db, 'sharedPlans', code));
+  if(!snap.exists()) return null;
+  const data = snap.data();
+  if(!data || typeof data.payload !== 'string') return null;
+  const obj = JSON.parse(data.payload);
+  if(!obj || !obj.name || !Array.isArray(obj.customDays)) return null;
+  return obj;
+};
 
 function subscribeToSyncRoom(){
   if(!db || !auth || !auth.currentUser) return;
@@ -2282,7 +2339,23 @@ function buildPlanShareUrl(plan){
   return `${base}#importPlan=${encoded}`;
 }
 
+function buildShortPlanShareUrl(code){
+  return location.origin + location.pathname + '?p=' + code;
+}
+
+function planToShareObject(plan){
+  return {
+    name: plan.name,
+    totalWeeks: plan.totalWeeks,
+    customDays: plan.customDays,
+    weekMeta: plan.weekMeta
+  };
+}
+
+let shareInFlight = false;
+
 async function shareCurrentPlan(){
+  if(shareInFlight) return;
   ensurePlansInitialized();
   syncCurrentPlanToSaved();
   const plan = state.savedPlans.find(p => p.id === state.currentPlanId);
@@ -2295,27 +2368,39 @@ async function shareCurrentPlan(){
     return;
   }
 
-  const url = buildPlanShareUrl(plan);
-
-  if(navigator.share){
-    try {
-      await navigator.share({
-        title: `Plan Kuźni: ${plan.name}`,
-        text: `Zobacz mój plan treningowy "${plan.name}" z Forge Pro ⚒️`,
-        url: url
-      });
-      return;
-    } catch(err){
-      if(err && err.name === 'AbortError') return;
-      // przejdź do fallbacku poniżej
-    }
+  shareInFlight = true;
+  let url;
+  try {
+    showToast('Tworzę krótki link…');
+    if(typeof window.saveSharedPlan !== 'function') throw new Error('brak chmury');
+    const code = await window.saveSharedPlan(planToShareObject(plan));
+    url = buildShortPlanShareUrl(code);
+  } catch(err){
+    url = buildPlanShareUrl(plan);
   }
 
   try {
-    await navigator.clipboard.writeText(url);
-    showToast('Link do planu skopiowany do schowka! 🔗');
-  } catch(err){
-    openShareLinkFallbackModal(url);
+    if(navigator.share){
+      try {
+        await navigator.share({
+          title: `Plan Kuźni: ${plan.name}`,
+          text: `Zobacz mój plan treningowy "${plan.name}" z Forge Pro ⚒️`,
+          url: url
+        });
+        return;
+      } catch(err){
+        if(err && err.name === 'AbortError') return;
+      }
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      showToast(url.includes('?p=') ? 'Krótki link skopiowany! 🔗' : 'Chmura niedostępna — skopiowano dłuższy link');
+    } catch(err){
+      openShareLinkFallbackModal(url);
+    }
+  } finally {
+    shareInFlight = false;
   }
 }
 
@@ -2346,19 +2431,7 @@ function copyShareLinkFallback(){
 
 let pendingImportPlan = null;
 
-function checkForImportedPlanInUrl(){
-  const hash = location.hash || '';
-  const match = hash.match(/importPlan=([^&]+)/);
-  if(!match) return;
-
-  const decoded = decodePlanFromShare(match[1]);
-  history.replaceState(null, '', location.pathname + location.search);
-
-  if(!decoded){
-    showToast('Nieprawidłowy lub uszkodzony link do planu ⚠️');
-    return;
-  }
-
+function presentImportedPlan(decoded){
   pendingImportPlan = decoded;
   const nameEl = document.getElementById('importPlanName');
   if(nameEl) nameEl.textContent = decoded.name;
@@ -2372,6 +2445,46 @@ function checkForImportedPlanInUrl(){
   const modal = document.getElementById('importPlanModalOverlay');
   if(modal) modal.classList.add('open');
 }
+
+function checkForImportedPlanInUrl(){
+  const hash = location.hash || '';
+  const match = hash.match(/importPlan=([^&]+)/);
+  if(!match) return;
+
+  const decoded = decodePlanFromShare(match[1]);
+  history.replaceState(null, '', location.pathname + location.search);
+
+  if(!decoded){
+    showToast('Nieprawidłowy lub uszkodzony link do planu ⚠️');
+    return;
+  }
+
+  presentImportedPlan(decoded);
+}
+
+let sharedPlanConsumeStarted = false;
+
+window.consumeSharedPlanFromUrl = async function(){
+  if(sharedPlanConsumeStarted) return;
+  const params = new URLSearchParams(location.search);
+  const code = params.get('p');
+  if(!code || typeof window.loadSharedPlan !== 'function') return;
+  sharedPlanConsumeStarted = true;
+  try {
+    const decoded = await window.loadSharedPlan(code);
+    const url = new URL(location.href);
+    url.searchParams.delete('p');
+    history.replaceState(null, '', url.pathname + url.search + url.hash);
+    if(!decoded){
+      showToast('Nie znaleziono planu pod tym linkiem ⚠️');
+      return;
+    }
+    presentImportedPlan(decoded);
+  } catch(err){
+    sharedPlanConsumeStarted = false;
+    showToast('Nie udało się pobrać planu. Sprawdź połączenie i odśwież stronę.');
+  }
+};
 
 function dismissImportPlan(){
   pendingImportPlan = null;

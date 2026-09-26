@@ -12,13 +12,14 @@
 <meta name="apple-mobile-web-app-title" content="Forge Pro">
 <meta name="mobile-web-app-capable" content="yes">
 <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/png" sizes="32x32" href="icon-192.png">
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <script src="https://accounts.google.com/gsi/client" async></script>
 
-<!-- Ikona wektorowa (SVG) - Kowadło, skrzyżowane młoty i iskry kuźni w złocie -->
+<!-- Logo złotego młota: favicon karty i ikona skrótu PWA -->
 <meta name="msapplication-TileColor" content="#07080a">
 
 <style>
@@ -1125,7 +1126,7 @@
 <header class="top">
   <div class="top-row">
     <div class="brand">
-      <img class="brand-icon" src="data:image/png;base64,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" alt="Forge Pro logo" width="20" height="20">
+      <img class="brand-icon" src="logo-120.png" alt="Forge Pro logo" width="20" height="20">
       <span>FORGE</span>
       <b>PRO</b>
     </div>

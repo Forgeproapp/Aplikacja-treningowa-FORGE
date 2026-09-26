@@ -1,10 +1,16 @@
-const CACHE_NAME = 'forge-pro-cache-v3';
+const CACHE_NAME = 'forge-pro-cache-v4';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './favicon.ico',
+  './favicon-16.png',
+  './favicon-32.png',
+  './logo-120.png',
   './icon-192.png',
   './icon-512.png',
+  './icon-192-maskable.png',
+  './icon-512-maskable.png',
   './apple-touch-icon.png',
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap'
 ];

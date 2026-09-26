@@ -1648,7 +1648,7 @@
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
 import { getAuth, signInAnonymously, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+import { initializeFirestore, persistentLocalCache, persistentMultipleTabManager, getFirestore, doc, setDoc, getDoc, getDocFromServer, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
 const BUILTIN_FIREBASE_CONFIG = {
   apiKey: "AIzaSyChnyBst4ByA-K8UfasxArgAnyle1JPnog",
@@ -1665,7 +1665,11 @@ let db = null;
 let unsubscribeSnapshot = null;
 let currentUser = null;
 let isSyncingFromRemote = false;
-let hasLoadedRemoteOnce = false;
+let initialReconcileDone = false;
+let serverSyncReady = false;
+let pendingCloudPush = false;
+let cloudWriteSeq = 0;
+let syncSession = 0;
 
 const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 const deviceLabel = isMobileDevice ? 'telefonu' : 'komputera';
@@ -1802,6 +1806,138 @@ window.loadSharedPlan = async function(code){
   return obj;
 };
 
+function timeMs(value){
+  const ms = new Date(value || 0).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function numericEditSeq(value){
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
+}
+
+function remoteEditSeq(remote){
+  if(!remote) return 0;
+  if(remote.editSeq !== undefined && remote.editSeq !== null && remote.editSeq !== ''){
+    return numericEditSeq(remote.editSeq);
+  }
+  try {
+    return numericEditSeq(JSON.parse(remote.stateJson || '{}').editSeq);
+  } catch(e){
+    return 0;
+  }
+}
+
+function loggedEntryCount(obj){
+  if(!obj) return 0;
+  const history = Array.isArray(obj.history) ? obj.history.length : 0;
+  const body = Array.isArray(obj.bodyLog) ? obj.bodyLog.length : 0;
+  return history + body;
+}
+
+// 1 = local version is newer, -1 = remote is newer, 0 = same version.
+function compareSyncVersions(remote){
+  const localSeq = numericEditSeq(window.state?.editSeq);
+  const remoteSeq = remoteEditSeq(remote);
+  if(localSeq !== remoteSeq) return localSeq > remoteSeq ? 1 : -1;
+  const localTime = timeMs(window.state?.lastUpdatedAt);
+  const remoteTime = timeMs(remote?.updatedAt);
+  if(localTime !== remoteTime) return localTime > remoteTime ? 1 : -1;
+  return 0;
+}
+
+function hasLocalUserData(){
+  return loggedEntryCount(window.state) > 0;
+}
+
+// Local timestamp can be newer just because the app was opened or closed.
+// Push only real unsent edits, or a legacy local copy that actually holds
+// more logged workouts than the cloud.
+function shouldKeepLocalAndPush(remote){
+  if(window.state?.forceCloudOverwrite) return true;
+  if(compareSyncVersions(remote) <= 0) return false;
+  if(window.state?.pendingCloudSync) return true;
+  try {
+    const remoteState = JSON.parse(remote.stateJson || '{}');
+    return loggedEntryCount(window.state) > loggedEntryCount(remoteState);
+  } catch(e){
+    return false;
+  }
+}
+
+function applyRemotePayload(remoteData, notify){
+  if(!remoteData || !remoteData.stateJson) return false;
+  let parsed;
+  try {
+    parsed = JSON.parse(remoteData.stateJson);
+  } catch(e){
+    console.error('Błąd parsowania stanu z chmury:', e);
+    return false;
+  }
+  if(!parsed || typeof parsed !== 'object') return false;
+
+  const previousUpdatedAt = window.state?.lastUpdatedAt || null;
+  parsed.pendingCloudSync = false;
+  parsed.forceCloudOverwrite = false;
+  if(remoteData.updatedAt) parsed.lastUpdatedAt = remoteData.updatedAt;
+  const seq = remoteEditSeq(remoteData);
+  if(seq) parsed.editSeq = seq;
+
+  pendingCloudPush = false;
+  isSyncingFromRemote = true;
+  try {
+    if(typeof window.applyNewState === 'function'){
+      window.applyNewState(parsed);
+    }
+    if(window.state){
+      window.state.pendingCloudSync = false;
+    }
+  } finally {
+    isSyncingFromRemote = false;
+  }
+
+  if(notify && previousUpdatedAt !== (remoteData.updatedAt || null) && typeof window.showToast === 'function'){
+    const senderDevice = remoteData.senderDevice || 'chmury';
+    const nowStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    window.showToast(`🔥 Pobrano dane z ${senderDevice}! (${nowStr})`);
+  }
+  return true;
+}
+
+function finishInitialReconcile(snap, session){
+  if(session !== syncSession || initialReconcileDone) return;
+  initialReconcileDone = true;
+  serverSyncReady = true;
+
+  if(!snap.exists()){
+    pendingCloudPush = false;
+    if(hasLocalUserData() || window.state?.pendingCloudSync || window.state?.forceCloudOverwrite){
+      syncStateToCloud(true);
+    } else {
+      updateCloudUI();
+    }
+    return;
+  }
+
+  const remoteData = snap.data();
+  if(remoteData && shouldKeepLocalAndPush(remoteData)){
+    if(typeof window.showToast === 'function' && window.state?.pendingCloudSync){
+      window.showToast('🔥 Twoje dane są nowsze niż w chmurze - wysyłam lokalne zmiany');
+    }
+    syncStateToCloud(true);
+    updateCloudUI();
+    return;
+  }
+
+  pendingCloudPush = false;
+  if(remoteData && compareSyncVersions(remoteData) !== 0){
+    applyRemotePayload(remoteData, false);
+  } else if(window.state){
+    window.state.pendingCloudSync = false;
+  }
+  updateCloudUI();
+}
+
 function subscribeToSyncRoom(){
   if(!db || !auth || !auth.currentUser) return;
   if(unsubscribeSnapshot) {
@@ -1809,58 +1945,39 @@ function subscribeToSyncRoom(){
     unsubscribeSnapshot = null;
   }
 
-  hasLoadedRemoteOnce = false;
+  const session = ++syncSession;
+  initialReconcileDone = false;
+  serverSyncReady = false;
+  pendingCloudPush = false;
   const syncDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'data', 'workoutState');
 
   unsubscribeSnapshot = onSnapshot(syncDocRef, (snap) => {
-    if(snap.exists()){
-      const remoteData = snap.data();
-      if(remoteData && remoteData.stateJson){
-        if(remoteData.senderId === myClientId && hasLoadedRemoteOnce){
-          updateCloudUI();
-          return;
+    if(session !== syncSession) return;
+    if(snap.metadata.hasPendingWrites) return;
+
+    if(!initialReconcileDone){
+      // Cache can be older than the phone. Never upload from it.
+      if(snap.metadata.fromCache){
+        if(snap.exists() && compareSyncVersions(snap.data()) < 0){
+          applyRemotePayload(snap.data(), false);
         }
-
-        try {
-          const parsed = JSON.parse(remoteData.stateJson);
-          const localTime = new Date(window.state?.lastUpdatedAt || 0).getTime();
-          const remoteTime = new Date(remoteData.updatedAt || 0).getTime();
-
-          if(remoteTime >= localTime){
-            isSyncingFromRemote = true;
-            if(typeof window.applyNewState === 'function'){
-              window.applyNewState(parsed);
-            }
-            isSyncingFromRemote = false;
-
-            const senderDevice = remoteData.senderDevice || 'chmury';
-            const nowStr = new Date().toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            if(typeof window.showToast === 'function' && hasLoadedRemoteOnce){
-              window.showToast(`🔥 Pobrano dane z ${senderDevice}! (${nowStr})`);
-            }
-          } else if(!hasLoadedRemoteOnce){
-            // Dane lokalne na tym urządzeniu są nowsze niż to, co jest w chmurze
-            // (np. trening ukończony offline). Nie nadpisuj ich - zamiast tego
-            // wypchnij lokalny, świeższy stan do chmury, żeby inne urządzenia go dostały.
-            if(typeof window.showToast === 'function'){
-              window.showToast('🔥 Twoje dane są nowsze niż w chmurze - wysyłam lokalne zmiany');
-            }
-            syncStateToCloud();
-          }
-          hasLoadedRemoteOnce = true;
-          updateCloudUI();
-        } catch(e){
-          console.error('Błąd parsowania stanu z chmury:', e);
-        }
+        return;
       }
-    } else {
-      hasLoadedRemoteOnce = true;
-      const hasUserData = (window.state?.history && window.state.history.length > 0) || 
-                          (window.state?.bodyLog && window.state.bodyLog.length > 0);
-      if(hasUserData){
-        syncStateToCloud();
-      }
+      finishInitialReconcile(snap, session);
+      return;
     }
+
+    if(!snap.exists()) return;
+    const remoteData = snap.data();
+    if(!remoteData || !remoteData.stateJson) return;
+    if(remoteData.senderId === myClientId){
+      updateCloudUI();
+      return;
+    }
+    if(compareSyncVersions(remoteData) < 0){
+      applyRemotePayload(remoteData, true);
+    }
+    updateCloudUI();
   }, (err) => {
     handleFirebaseError(err);
     if(err.code === 'permission-denied') {
@@ -1869,6 +1986,17 @@ function subscribeToSyncRoom(){
       updateCloudUI('Błąd chmury');
     }
   });
+
+  reconcileFromServer(syncDocRef, session);
+}
+
+async function reconcileFromServer(syncDocRef, session){
+  try {
+    const snap = await getDocFromServer(syncDocRef);
+    finishInitialReconcile(snap, session);
+  } catch(err){
+    console.warn('Serwer chmury niedostępny, dane lokalne zostają do czasu połączenia.', err);
+  }
 }
 
 window.handleGoogleSignIn = async function(){
@@ -1898,28 +2026,53 @@ window.handleSignOut = async function(){
   }
 };
 
-async function syncStateToCloud(){
+async function syncStateToCloud(force){
   if(!db || !auth?.currentUser || isSyncingFromRemote) return;
   if(!window.state) return;
+  if(!serverSyncReady){
+    pendingCloudPush = true;
+    return;
+  }
+  if(!force && !window.state.pendingCloudSync && !pendingCloudPush) return;
+
+  const myWrite = ++cloudWriteSeq;
+  pendingCloudPush = false;
   try {
     updateCloudUI('Wysyłanie...');
     const syncDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'data', 'workoutState');
     const updatedAt = window.state.lastUpdatedAt || new Date().toISOString();
-    window.state.lastUpdatedAt = updatedAt;
-    const serializedState = JSON.stringify(window.state);
+    const editSeq = numericEditSeq(window.state.editSeq);
+    const payloadState = JSON.parse(JSON.stringify(window.state));
+    payloadState.pendingCloudSync = false;
+    payloadState.forceCloudOverwrite = false;
+    payloadState.lastUpdatedAt = updatedAt;
+    payloadState.editSeq = editSeq;
+    const serializedState = JSON.stringify(payloadState);
     if(typeof serializedState !== 'string') return;
-    
+
     const statePayload = {
       stateJson: serializedState,
       updatedAt: updatedAt,
+      editSeq: editSeq,
       senderId: myClientId,
       senderDevice: deviceLabel
     };
 
     await setDoc(syncDocRef, statePayload, { merge: true });
+    if(myWrite !== cloudWriteSeq) return;
+    if(numericEditSeq(window.state.editSeq) === editSeq){
+      window.state.pendingCloudSync = false;
+      window.state.forceCloudOverwrite = false;
+      if(typeof window.saveStateLocalOnly === 'function'){
+        window.saveStateLocalOnly();
+      }
+    }
     setCloudError(null);
     updateCloudUI();
   } catch(err){
+    if(myWrite === cloudWriteSeq && window.state){
+      window.state.pendingCloudSync = true;
+    }
     handleFirebaseError(err);
     if(err.code === 'permission-denied') {
       updateCloudUI('Brak uprawnień');
@@ -1986,8 +2139,14 @@ window.closeCloudModal = function(){
 window.syncStateToCloud = syncStateToCloud;
 
 window.addEventListener('online', () => {
-  updateCloudUI('Wysyłanie...');
-  syncStateToCloud();
+  updateCloudUI();
+  if(!db || !auth?.currentUser) return;
+  const syncDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'data', 'workoutState');
+  if(!initialReconcileDone){
+    reconcileFromServer(syncDocRef, syncSession);
+  } else if(window.state?.pendingCloudSync){
+    syncStateToCloud(true);
+  }
 });
 
 initFirebase();
@@ -2779,7 +2938,9 @@ checkForImportedPlanInUrl();
 
 function saveState(markUpdated = true, immediate = false){
   if(markUpdated){
+    window.state.editSeq = (Number(window.state.editSeq) || 0) + 1;
     window.state.lastUpdatedAt = new Date().toISOString();
+    window.state.pendingCloudSync = true;
   }
   syncCurrentPlanToSaved();
   clearTimeout(saveTimer);
@@ -2788,6 +2949,13 @@ function saveState(markUpdated = true, immediate = false){
   } else {
     saveTimer = setTimeout(() => doSave(), 300);
   }
+}
+
+function flushPendingSave(){
+  if(!saveTimer) return;
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  doSave();
 }
 
 function saveStateLocalOnly(){
@@ -2811,7 +2979,7 @@ function doSave(){
 
 document.addEventListener('visibilitychange', () => {
   if(document.visibilityState === 'hidden'){
-    saveState(true, true);
+    flushPendingSave();
   } else if(document.visibilityState === 'visible'){
     acquireWakeLock();
     if(timerInterval && !isTimerPaused){
@@ -2819,12 +2987,8 @@ document.addEventListener('visibilitychange', () => {
     }
   }
 });
-window.addEventListener('pagehide', () => {
-  saveState(true, true);
-});
-window.addEventListener('beforeunload', () => {
-  saveState(true, true);
-});
+window.addEventListener('pagehide', flushPendingSave);
+window.addEventListener('beforeunload', flushPendingSave);
 
 function getWeekMeta(w){
   if(state.weekMeta && state.weekMeta[w]){
@@ -4212,9 +4376,13 @@ function applyJsonFromText(){
     const imported = JSON.parse(raw);
     if(imported.customDays && imported.history){
       applyNewState(imported);
+      state.editSeq = (Number(state.editSeq) || 0) + 1;
       state.lastUpdatedAt = new Date().toISOString();
+      state.pendingCloudSync = true;
+      state.forceCloudOverwrite = true;
+      saveStateLocalOnly();
       if(typeof window.syncStateToCloud === 'function'){
-        window.syncStateToCloud();
+        window.syncStateToCloud(true);
       }
       closeImportTextModal();
       showToast('Kopia przywrócona i wysłana do chmury! ✓');
@@ -4236,9 +4404,13 @@ function importDataJson(e){
       const imported = JSON.parse(event.target.result);
       if(imported.customDays && imported.history){
         applyNewState(imported);
+        state.editSeq = (Number(state.editSeq) || 0) + 1;
         state.lastUpdatedAt = new Date().toISOString();
+        state.pendingCloudSync = true;
+        state.forceCloudOverwrite = true;
+        saveStateLocalOnly();
         if(typeof window.syncStateToCloud === 'function'){
-          window.syncStateToCloud();
+          window.syncStateToCloud(true);
         }
         showToast('Kopia z pliku przywrócona! ✓');
       } else {

@@ -1,10 +1,17 @@
-const CACHE_NAME = 'forge-pro-cache-v1';
+const CACHE_NAME = 'forge-pro-cache-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png',
   'https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap'
 ];
+
+function canCacheResponse(response){
+  return response && response.status === 200 && (response.type === 'basic' || response.type === 'cors');
+}
 
 // Instalacja i zapisanie aplikacji w pamięci offline
 self.addEventListener('install', (event) => {
@@ -41,7 +48,7 @@ self.addEventListener('fetch', (event) => {
     fetch(event.request)
       .then((response) => {
         // Kopiuj świeżą wersję do cache
-        if (response && response.status === 200 && response.type === 'basic') {
+        if (canCacheResponse(response)) {
           const responseToCache = response.clone();
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(event.request, responseToCache);

@@ -11,7 +11,7 @@
   document.documentElement.setAttribute('data-theme', theme);
   document.addEventListener('DOMContentLoaded', function(){
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'light' ? '#E7F7FB' : '#1B2130');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#E4BE4E' : '#1B2130');
     var label = document.getElementById('themeToggleLabel');
     var btn = document.getElementById('themeToggleBtn');
     if (label) label.textContent = theme === 'light' ? 'Jasny' : 'Grafit';
@@ -24,7 +24,7 @@
 <title>Forge Pro - Kuźnia Siły</title>
 
 <!-- Konfiguracja PWA dla iOS i Android. Motyw ustawia skrypt na początku head. -->
-<meta name="theme-color" content="#E7F7FB">
+<meta name="theme-color" content="#E4BE4E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Forge Pro">
@@ -38,7 +38,7 @@
 <script src="https://accounts.google.com/gsi/client" async></script>
 
 <!-- Logo złotego młota: favicon karty i ikona skrótu PWA -->
-<meta name="msapplication-TileColor" content="#E7F7FB">
+<meta name="msapplication-TileColor" content="#E4BE4E">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
@@ -110,64 +110,64 @@
 
   html[data-theme="light"]{
     color-scheme: light;
-    --bg: #E7F7FB;
-    --bg-elev: #D5EEF5;
-    --bg-card: #F7FCFE;
-    --line: #B7D6E2;
-    --line-soft: #D7EEF4;
-    --line-strong: #7EB4C6;
-    --text: #07131C;
-    --text-dim: #163244;
-    --text-faint: #3E6274;
-    --accent: #00A8C6;
-    --accent-hover: #007EA3;
-    --accent-dim: #22D3EE;
-    --accent-rgb: 0, 196, 232;
-    --accent-deep: rgba(0, 196, 232, 0.14);
-    --accent-ink: #041018;
-    --on-accent: #041018;
-    --gold: #0369A1;
-    --gold-pale: #0E7490;
-    --focus-bg: #FFFFFF;
-    --danger-text: #E11D48;
-    --danger: #E11D48;
-    --danger-bg: rgba(225, 29, 72, 0.10);
-    --done: #0F9F6E;
-    --done-bg: rgba(15, 159, 110, 0.12);
-    --done-border: #0F9F6E;
-    --warn: #7C3AED;
-    --warn-bg: rgba(124, 58, 237, 0.12);
-    --online: #0F9F6E;
-    --complete-bg: #E7FBF3;
-    --stone: #5B7C8C;
-    --placeholder: #7A9AAB;
-    --disabled-bg: #D5EEF5;
-    --disabled-fg: #7A9AAB;
-    --header-bg: rgba(231, 247, 251, 0.92);
-    --tabbar-bg: rgba(247, 252, 254, 0.96);
-    --tabbar-border: #B7D6E2;
-    --tab-idle: #3E6274;
-    --overlay: rgba(4, 16, 24, 0.46);
-    --timer-bg: rgba(231, 247, 251, 0.98);
-    --pip-bg: #F7FCFE;
-    --toast-bg: #07131C;
-    --toast-text: #E7F7FB;
-    --center-idle-bg: #F7FCFE;
-    --center-idle-icon: #3E6274;
-    --btn-bg: linear-gradient(120deg, #5EF6FF 0%, #00C2E0 58%, #7C5CFF 100%);
-    --btn-shadow: 0 8px 18px rgba(0, 194, 224, 0.28);
-    --shadow: 0 1px 2px rgba(7, 19, 28, 0.04), 0 10px 24px rgba(7, 50, 68, 0.08);
-    --input-focus-ring: 0 0 0 3px rgba(0, 194, 224, 0.28);
-    --chart-grid: #B7D6E2;
-    --chart-label: #3E6274;
-    --chart-line: #0891B2;
-    --chart-dot: #F7FCFE;
-    --chart-fill: rgba(0, 194, 224, 0.20);
-    --mv: #5B7C8C;
-    --mv-bg: rgba(91, 124, 140, 0.12);
-    --mev: #0369A1;
-    --mav: #6D28D9;
-    --mrv: #E11D48;
+    --bg: #E4BE4E;
+    --bg-elev: #D4A83A;
+    --bg-card: #F0CC62;
+    --line: #C4922A;
+    --line-soft: #E2B84E;
+    --line-strong: #A67C12;
+    --text: #2A1A06;
+    --text-dim: #4A3010;
+    --text-faint: #6B4A16;
+    --accent: #C8920A;
+    --accent-hover: #A67408;
+    --accent-dim: #F0C14B;
+    --accent-rgb: 232, 176, 32;
+    --accent-deep: rgba(138, 90, 0, 0.16);
+    --accent-ink: #2A1A06;
+    --on-accent: #2A1A06;
+    --gold: #6B3E09;
+    --gold-pale: #5C3408;
+    --focus-bg: #F6E2A4;
+    --danger-text: #9F1239;
+    --danger: #BE123C;
+    --danger-bg: rgba(159, 18, 57, 0.12);
+    --done: #3F6B1E;
+    --done-bg: rgba(63, 107, 30, 0.16);
+    --done-border: #3F6B1E;
+    --warn: #7A4E00;
+    --warn-bg: rgba(122, 78, 0, 0.16);
+    --online: #3F6B1E;
+    --complete-bg: #E7D48A;
+    --stone: #7A5A28;
+    --placeholder: #8A6840;
+    --disabled-bg: #D4A83A;
+    --disabled-fg: #7A5A28;
+    --header-bg: rgba(228, 190, 78, 0.94);
+    --tabbar-bg: rgba(224, 176, 58, 0.96);
+    --tabbar-border: #C4922A;
+    --tab-idle: #6B4A16;
+    --overlay: rgba(42, 26, 6, 0.46);
+    --timer-bg: rgba(228, 190, 78, 0.98);
+    --pip-bg: #F0CC62;
+    --toast-bg: #2A1A06;
+    --toast-text: #F6E2A4;
+    --center-idle-bg: #E4BE4E;
+    --center-idle-icon: #6B4A16;
+    --btn-bg: linear-gradient(120deg, #FFE08A 0%, #F0B429 55%, #D4920A 100%);
+    --btn-shadow: 0 8px 18px rgba(180, 120, 10, 0.28);
+    --shadow: 0 1px 2px rgba(42, 26, 6, 0.06), 0 10px 24px rgba(122, 78, 0, 0.16);
+    --input-focus-ring: 0 0 0 3px rgba(212, 146, 10, 0.35);
+    --chart-grid: #C4922A;
+    --chart-label: #6B4A16;
+    --chart-line: #7A4E00;
+    --chart-dot: #F0CC62;
+    --chart-fill: rgba(184, 134, 11, 0.28);
+    --mv: #7A5A28;
+    --mv-bg: rgba(122, 90, 40, 0.16);
+    --mev: #8A5A00;
+    --mav: #6B3E09;
+    --mrv: #9F1239;
     --gold-glow: none;
   }
 
@@ -1305,14 +1305,14 @@
   html[data-theme="light"] body{
     background-color:var(--bg);
     background-image:
-      linear-gradient(rgba(0, 196, 232, 0.07) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0, 196, 232, 0.07) 1px, transparent 1px),
-      radial-gradient(circle at 100% 0%, rgba(124, 92, 255, 0.16), transparent 34%),
-      radial-gradient(circle at 0% 0%, rgba(0, 212, 240, 0.20), transparent 42%);
+      linear-gradient(rgba(122, 78, 0, 0.10) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(122, 78, 0, 0.10) 1px, transparent 1px),
+      radial-gradient(circle at 100% 0%, rgba(255, 214, 102, 0.45), transparent 36%),
+      radial-gradient(circle at 0% 0%, rgba(212, 146, 10, 0.28), transparent 42%);
     background-size: 28px 28px, 28px 28px, auto, auto;
   }
-  html[data-theme="light"] header.top{border-bottom-color:rgba(0, 168, 198, 0.45);}
-  html[data-theme="light"] footer.tabbar{border-top-color:rgba(0, 168, 198, 0.35);}
+  html[data-theme="light"] header.top{border-bottom-color:rgba(122, 78, 0, 0.35);}
+  html[data-theme="light"] footer.tabbar{border-top-color:rgba(122, 78, 0, 0.35);}
 </style>
 </head>
 <body>
@@ -4472,7 +4472,7 @@ function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', next);
   try { localStorage.setItem('forge-theme', next); } catch(e) {}
   const meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content', next === 'light' ? '#E7F7FB' : '#1B2130');
+  if(meta) meta.setAttribute('content', next === 'light' ? '#E4BE4E' : '#1B2130');
   const apple = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
   if(apple) apple.setAttribute('content', next === 'light' ? 'default' : 'black-translucent');
   const label = document.getElementById('themeToggleLabel');

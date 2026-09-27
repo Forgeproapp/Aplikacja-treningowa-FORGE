@@ -2273,7 +2273,7 @@ window.state = {
   savedPlans: [],
   currentPlanId: null,
   exerciseLibrary: [],
-  workoutLibrary: []
+  workoutLibrary: null
 };
 
 let state = window.state;
@@ -2411,16 +2411,12 @@ function ensureExerciseLibraryInitialized(){
 }
 
 function ensureWorkoutLibraryInitialized(){
-  if(!state.workoutLibrary || !Array.isArray(state.workoutLibrary)){
-    state.workoutLibrary = [];
-  }
-  if(state.workoutLibrary.length === 0){
-    state.workoutLibrary = DEFAULT_DAYS.map(day => ({
-      id: 'wlib_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-      name: day.name,
-      exercises: JSON.parse(JSON.stringify(day.exercises || []))
-    }));
-  }
+  if(Array.isArray(state.workoutLibrary)) return;
+  state.workoutLibrary = DEFAULT_DAYS.map(day => ({
+    id: 'wlib_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+    name: day.name,
+    exercises: JSON.parse(JSON.stringify(day.exercises || []))
+  }));
 }
 
 function syncCurrentPlanToSaved(){
@@ -2929,7 +2925,7 @@ function copyWeek1ToAll(){
     renderEditor();
     renderHome();
     showToast('⚡ Skopiowano Tydzień 1 do wszystkich pozostałych tygodni ✓');
-  });
+  }, 'Kopiuj', 'primary');
 }
 
 function confirmClearCurrentPlan(){
@@ -5023,9 +5019,16 @@ function changeWeekCount(delta){
 
 let expandedEditorDays = new Set();
 function toggleEditorDay(dayId){
-  if(expandedEditorDays.has(dayId)) expandedEditorDays.delete(dayId);
+  const collapsing = expandedEditorDays.has(dayId);
+  if(collapsing) expandedEditorDays.delete(dayId);
   else expandedEditorDays.add(dayId);
   renderEditor();
+  if(!collapsing) return;
+  const block = document.querySelector('#editorDaysList .edit-day-block[data-day-id="' + dayId + '"]');
+  if(!block) return;
+  const header = document.querySelector('header.top');
+  const top = block.getBoundingClientRect().top + window.scrollY - (header ? header.offsetHeight : 0) - 8;
+  window.scrollTo({ top: Math.max(0, top), behavior: 'instant' });
 }
 
 function bindDragReorderHandle(handleEl, targetEl, type, dayIdx, exIdx, getLabel, holdMs){
@@ -5962,6 +5965,7 @@ function renderEditor(){
     const isOpen = expandedEditorDays.has(d.id);
     block.className = 'edit-day-block' + (isOpen ? '' : ' collapsed');
     block.dataset.dayIndex = dayIdx;
+    block.dataset.dayId = d.id;
 
     block.addEventListener('dragover', (e) => {
       if (draggedDayIndex === null) return;

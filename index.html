@@ -1,12 +1,18 @@
 <!DOCTYPE html>
-<html lang="pl" data-theme="light">
+<html lang="pl" data-theme="clear">
 <head>
 <script>
 (function(){
-  var theme = 'light';
+  var theme = 'clear';
   try {
     var saved = localStorage.getItem('forge-theme');
-    if (saved === 'light' || saved === 'clear') theme = saved;
+    var chosen = localStorage.getItem('forge-style');
+    if (chosen === 'grafit' && (saved === 'light' || saved === 'clear')) theme = saved;
+    else {
+      theme = 'clear';
+      localStorage.setItem('forge-theme', 'clear');
+      localStorage.setItem('forge-style', 'grafit');
+    }
   } catch (e) {}
   document.documentElement.setAttribute('data-theme', theme);
   document.addEventListener('DOMContentLoaded', function(){
@@ -24,7 +30,7 @@
 <title>Forge Pro - Kuźnia Siły</title>
 
 <!-- Konfiguracja PWA dla iOS i Android. Motyw ustawia skrypt na początku head. -->
-<meta name="theme-color" content="#E4BE4E">
+<meta name="theme-color" content="#1B2130">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Forge Pro">
@@ -38,7 +44,7 @@
 <script src="https://accounts.google.com/gsi/client" async></script>
 
 <!-- Logo złotego młota: favicon karty i ikona skrótu PWA -->
-<meta name="msapplication-TileColor" content="#E4BE4E">
+<meta name="msapplication-TileColor" content="#1B2130">
 
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap');
@@ -210,7 +216,7 @@
     transition: all 0.2s;
   }
   .cloud-badge-btn.online{border-color:var(--done); color:var(--online); background:var(--done-bg);}
-  .cloud-badge-btn.guest{border-color:var(--warn); color:var(--gold); background:var(--warn-bg);}
+  .cloud-badge-btn.guest{border-color:transparent; color:var(--on-accent); background:var(--btn-bg);}
   .cloud-badge-btn.syncing{border-color:var(--accent-dim); color:var(--gold); background:var(--accent-deep);}
   .cloud-dot{width:7px; height:7px; border-radius:50%; background:currentColor; box-shadow: 0 0 6px currentColor;}
   .header-login-btn{
@@ -1330,8 +1336,8 @@
       <b>PRO</b>
     </div>
     <div class="top-actions">
-      <button class="theme-toggle" id="themeToggleBtn" type="button" onclick="toggleTheme()" title="Przełącz na jaśniejszy ciemny motyw">
-        <span id="themeToggleLabel">Jasny</span>
+      <button class="theme-toggle" id="themeToggleBtn" type="button" onclick="toggleTheme()" title="Przełącz na jasny motyw">
+        <span id="themeToggleLabel">Grafit</span>
       </button>
       <button class="pwa-badge-btn" id="pwaInstallBtn" onclick="handlePwaInstallClick()" title="Zainstaluj Forge Pro na urządzeniu">
         <span>📲</span>

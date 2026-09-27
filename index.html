@@ -17,7 +17,7 @@
   document.documentElement.setAttribute('data-theme', theme);
   document.addEventListener('DOMContentLoaded', function(){
     var meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', theme === 'light' ? '#E4BE4E' : '#1B2130');
+    if (meta) meta.setAttribute('content', theme === 'light' ? '#F3EFE6' : '#1B2130');
     var label = document.getElementById('themeToggleLabel');
     var btn = document.getElementById('themeToggleBtn');
     if (label) label.textContent = theme === 'light' ? 'Jasny' : 'Grafit';
@@ -116,64 +116,64 @@
 
   html[data-theme="light"]{
     color-scheme: light;
-    --bg: #E4BE4E;
-    --bg-elev: #D4A83A;
-    --bg-card: #F0CC62;
-    --line: #C4922A;
-    --line-soft: #E2B84E;
-    --line-strong: #A67C12;
-    --text: #2A1A06;
-    --text-dim: #4A3010;
-    --text-faint: #6B4A16;
-    --accent: #C8920A;
-    --accent-hover: #A67408;
-    --accent-dim: #F0C14B;
-    --accent-rgb: 232, 176, 32;
-    --accent-deep: rgba(138, 90, 0, 0.16);
-    --accent-ink: #2A1A06;
-    --on-accent: #2A1A06;
-    --gold: #6B3E09;
-    --gold-pale: #5C3408;
-    --focus-bg: #F6E2A4;
-    --danger-text: #9F1239;
-    --danger: #BE123C;
-    --danger-bg: rgba(159, 18, 57, 0.12);
-    --done: #3F6B1E;
-    --done-bg: rgba(63, 107, 30, 0.16);
-    --done-border: #3F6B1E;
-    --warn: #7A4E00;
-    --warn-bg: rgba(122, 78, 0, 0.16);
-    --online: #3F6B1E;
-    --complete-bg: #E7D48A;
-    --stone: #7A5A28;
-    --placeholder: #8A6840;
-    --disabled-bg: #D4A83A;
-    --disabled-fg: #7A5A28;
-    --header-bg: rgba(228, 190, 78, 0.94);
-    --tabbar-bg: rgba(224, 176, 58, 0.96);
-    --tabbar-border: #C4922A;
-    --tab-idle: #6B4A16;
-    --overlay: rgba(42, 26, 6, 0.46);
-    --timer-bg: rgba(228, 190, 78, 0.98);
-    --pip-bg: #F0CC62;
-    --toast-bg: #2A1A06;
-    --toast-text: #F6E2A4;
-    --center-idle-bg: #E4BE4E;
-    --center-idle-icon: #6B4A16;
-    --btn-bg: linear-gradient(120deg, #FFE08A 0%, #F0B429 55%, #D4920A 100%);
-    --btn-shadow: 0 8px 18px rgba(180, 120, 10, 0.28);
-    --shadow: 0 1px 2px rgba(42, 26, 6, 0.06), 0 10px 24px rgba(122, 78, 0, 0.16);
-    --input-focus-ring: 0 0 0 3px rgba(212, 146, 10, 0.35);
-    --chart-grid: #C4922A;
-    --chart-label: #6B4A16;
-    --chart-line: #7A4E00;
-    --chart-dot: #F0CC62;
-    --chart-fill: rgba(184, 134, 11, 0.28);
-    --mv: #7A5A28;
-    --mv-bg: rgba(122, 90, 40, 0.16);
-    --mev: #8A5A00;
-    --mav: #6B3E09;
-    --mrv: #9F1239;
+    --bg: #F3EFE6;
+    --bg-elev: #F7F4EE;
+    --bg-card: #FFFFFF;
+    --line: #E4DDD2;
+    --line-soft: #EFEBE4;
+    --line-strong: #D4CBBA;
+    --text: #1C1917;
+    --text-dim: #44403C;
+    --text-faint: #78716C;
+    --accent: #E0A31A;
+    --accent-hover: #C48A0A;
+    --accent-dim: #F5C451;
+    --accent-rgb: 224, 163, 26;
+    --accent-deep: rgba(224, 163, 26, 0.14);
+    --accent-ink: #1C1917;
+    --on-accent: #1C1917;
+    --gold: #9A6700;
+    --gold-pale: #8A5A00;
+    --focus-bg: #FFFFFF;
+    --danger-text: #BE123C;
+    --danger: #E11D48;
+    --danger-bg: rgba(225, 29, 72, 0.10);
+    --done: #047857;
+    --done-bg: rgba(4, 120, 87, 0.10);
+    --done-border: #047857;
+    --warn: #9A6700;
+    --warn-bg: rgba(154, 103, 0, 0.12);
+    --online: #047857;
+    --complete-bg: #F3FBF6;
+    --stone: #78716C;
+    --placeholder: #A8A29E;
+    --disabled-bg: #E7E2D8;
+    --disabled-fg: #A8A29E;
+    --header-bg: rgba(255, 255, 255, 0.94);
+    --tabbar-bg: rgba(255, 255, 255, 0.96);
+    --tabbar-border: #E4DDD2;
+    --tab-idle: #78716C;
+    --overlay: rgba(28, 25, 23, 0.46);
+    --timer-bg: rgba(243, 239, 230, 0.98);
+    --pip-bg: #FFFFFF;
+    --toast-bg: #1C1917;
+    --toast-text: #F7F4EE;
+    --center-idle-bg: #FFFFFF;
+    --center-idle-icon: #78716C;
+    --btn-bg: #F5B942;
+    --btn-shadow: 0 8px 18px rgba(224, 163, 26, 0.28);
+    --shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 10px 24px rgba(28, 25, 23, 0.06);
+    --input-focus-ring: 0 0 0 3px rgba(245, 185, 66, 0.35);
+    --chart-grid: #E4DDD2;
+    --chart-label: #78716C;
+    --chart-line: #C48A0A;
+    --chart-dot: #FFFFFF;
+    --chart-fill: rgba(245, 185, 66, 0.22);
+    --mv: #78716C;
+    --mv-bg: rgba(120, 113, 108, 0.12);
+    --mev: #C48A0A;
+    --mav: #9A6700;
+    --mrv: #BE123C;
     --gold-glow: none;
   }
 
@@ -1315,15 +1315,10 @@
 
   html[data-theme="light"] body{
     background-color:var(--bg);
-    background-image:
-      linear-gradient(rgba(122, 78, 0, 0.10) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(122, 78, 0, 0.10) 1px, transparent 1px),
-      radial-gradient(circle at 100% 0%, rgba(255, 214, 102, 0.45), transparent 36%),
-      radial-gradient(circle at 0% 0%, rgba(212, 146, 10, 0.28), transparent 42%);
-    background-size: 28px 28px, 28px 28px, auto, auto;
+    background-image: radial-gradient(circle at 50% -8%, rgba(245, 185, 66, 0.16), transparent 38%);
   }
-  html[data-theme="light"] header.top{border-bottom-color:rgba(122, 78, 0, 0.35);}
-  html[data-theme="light"] footer.tabbar{border-top-color:rgba(122, 78, 0, 0.35);}
+  html[data-theme="light"] header.top,
+  html[data-theme="light"] footer.tabbar{border-color:#E4DDD2;}
 </style>
 </head>
 <body>
@@ -4483,7 +4478,7 @@ function applyTheme(theme){
   document.documentElement.setAttribute('data-theme', next);
   try { localStorage.setItem('forge-theme', next); } catch(e) {}
   const meta = document.querySelector('meta[name="theme-color"]');
-  if(meta) meta.setAttribute('content', next === 'light' ? '#E4BE4E' : '#1B2130');
+  if(meta) meta.setAttribute('content', next === 'light' ? '#F3EFE6' : '#1B2130');
   const apple = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
   if(apple) apple.setAttribute('content', next === 'light' ? 'default' : 'black-translucent');
   const label = document.getElementById('themeToggleLabel');

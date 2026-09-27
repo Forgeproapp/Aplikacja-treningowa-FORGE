@@ -308,6 +308,11 @@
     letter-spacing: 0.02em;
   }
   .start-btn:active{filter:brightness(0.9); transform:scale(0.98);}
+  .start-btn .badge{
+    background:rgba(42, 26, 6, 0.14);
+    color:var(--on-accent);
+    border-color:transparent;
+  }
   .start-btn.secondary{
     background:var(--bg-elev); color:var(--text); border:1px solid var(--line-strong); box-shadow:none;
   }
@@ -1494,10 +1499,10 @@
 
     <!-- BIBLIOTEKA ĆWICZEŃ -->
     <div class="editor-section">
-      <button class="plan-action-btn primary" style="width:100%; padding:14px; font-size:14px; margin-bottom:8px;" onclick="openExerciseLibraryModal()">
+      <button class="start-btn" style="margin-bottom:8px;" onclick="openExerciseLibraryModal()">
         📚 Biblioteka Ćwiczeń <span class="badge mono" id="editorExLibCountBadge" style="margin-left:6px;">0 ćwiczeń</span>
       </button>
-      <button class="plan-action-btn primary" style="width:100%; padding:14px; font-size:14px;" onclick="openWorkoutLibraryModal()">
+      <button class="start-btn" onclick="openWorkoutLibraryModal()">
         🗂 Biblioteka Treningów <span class="badge mono" id="editorWorkoutLibCountBadge" style="margin-left:6px;">0 treningów</span>
       </button>
     </div>

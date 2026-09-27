@@ -4,8 +4,8 @@
   "description": "Profesjonalny dziennik treningowy z periodyzacją i analizą objętości",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#07080a",
-  "theme_color": "#07080a",
+  "background_color": "#F6F3EC",
+  "theme_color": "#F6F3EC",
   "orientation": "portrait-primary",
   "icons": [
     {

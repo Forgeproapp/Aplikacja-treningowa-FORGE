@@ -3745,10 +3745,11 @@ function renderSession(){
         const setId = escapeJsAttr(ex.id);
         html += `<div class="set-row">
           <div class="set-num mono">${s+1}</div>
-          <input class="set-input mono" data-ex="${escapeHtml(ex.id)}" data-set="${s}" data-type="weight" type="number" inputmode="decimal"
+          <input class="set-input mono" data-ex="${escapeHtml(ex.id)}" data-set="${s}" data-type="weight" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false"
             value="${escapeHtml(prog.weights[ex.id][s])}"
-            oninput="updateWeight('${setId}', ${s}, this.value)"
-            onchange="updateWeight('${setId}', ${s}, this.value)">
+            oninput="updateWeight('${setId}', ${s}, this)"
+            onchange="updateWeight('${setId}', ${s}, this, true)"
+            onblur="updateWeight('${setId}', ${s}, this, true)">
           <input class="set-input mono" data-ex="${escapeHtml(ex.id)}" data-set="${s}" data-type="reps" type="number" inputmode="numeric"
             value="${escapeHtml(prog.reps[ex.id][s])}"
             oninput="updateReps('${setId}', ${s}, this.value)"
@@ -3777,20 +3778,69 @@ function resizeArray(arr, newLen, fill){
   return copy;
 }
 
-function updateWeight(exId, setIdx, val){
+// type=number drops a Polish decimal comma (22,5 becomes 225 or empty), so the
+// weight never copies down and never gets stored. Keep the raw text and canonicalize.
+function normalizeWeightDraft(raw){
+  if(raw === null || raw === undefined) return '';
+  let s = String(raw).trim().replace(/\s+/g, '').replace(/,/g, '.');
+  s = s.replace(/[^\d.]/g, '');
+  const dot = s.indexOf('.');
+  if(dot === -1) return s;
+  return s.slice(0, dot + 1) + s.slice(dot + 1).replace(/\./g, '');
+}
+
+function finalizeWeightDraft(raw, commit){
+  let val = normalizeWeightDraft(raw);
+  if(commit && val.endsWith('.')) val = val.slice(0, -1);
+  if(commit && val.startsWith('.')) val = '0' + val;
+  return val;
+}
+
+function weightCursorFromRaw(raw, cursor){
+  if(cursor == null) return null;
+  return normalizeWeightDraft(String(raw).slice(0, cursor)).length;
+}
+
+function writeWeightInput(el, val){
+  if(!el || el.value === val) return;
+  const raw = el.value;
+  const start = weightCursorFromRaw(raw, el.selectionStart);
+  const end = weightCursorFromRaw(raw, el.selectionEnd);
+  el.value = val;
+  if(document.activeElement === el && start != null && end != null){
+    const nextStart = Math.max(0, Math.min(val.length, start));
+    const nextEnd = Math.max(0, Math.min(val.length, end));
+    try { el.setSelectionRange(nextStart, nextEnd); } catch(e){}
+  }
+}
+
+function readWeightField(inputOrVal, commit){
+  const el = (inputOrVal && typeof inputOrVal === 'object' && inputOrVal.nodeType === 1) ? inputOrVal : null;
+  const raw = el ? el.value : inputOrVal;
+  const val = finalizeWeightDraft(raw, !!commit);
+  if(el) writeWeightInput(el, val);
+  return val;
+}
+
+function updateWeight(exId, setIdx, inputOrVal, commit){
   const { week, day } = activeSession;
   const prog = getDayProgress(week, day);
   if(!prog.weights[exId]) prog.weights[exId] = [];
   const oldVal = prog.weights[exId][setIdx] ?? '';
+  const val = readWeightField(inputOrVal, !!commit);
+  const oldKey = normalizeWeightDraft(oldVal);
   prog.weights[exId][setIdx] = val;
 
   const dayPlan = getPlanForWeek(week)[day];
   const ex = dayPlan.exercises.find(e => e.id === exId);
   const totalSets = ex ? ex.sets : (prog.weights[exId]?.length || 0);
+  let changed = normalizeWeightDraft(oldVal) !== val;
 
   for(let i = setIdx + 1; i < totalSets; i++){
     const curVal = prog.weights[exId][i];
-    if(curVal === undefined || curVal === '' || curVal === oldVal){
+    const curKey = (curVal === undefined || curVal === null) ? '' : normalizeWeightDraft(curVal);
+    if(curVal === undefined || curKey === '' || curKey === oldKey){
+      if(normalizeWeightDraft(curVal) !== val) changed = true;
       prog.weights[exId][i] = val;
       const inputEl = document.querySelector(`input[data-ex="${exId}"][data-set="${i}"][data-type="weight"]`);
       if(inputEl && inputEl !== document.activeElement){
@@ -3798,7 +3848,7 @@ function updateWeight(exId, setIdx, val){
       }
     }
   }
-  saveState();
+  if(changed) saveState();
 }
 
 function updateReps(exId, setIdx, val){
@@ -6278,9 +6328,9 @@ function renderEditor(){
           </div>
           <div class="edit-subfield">
             <label>Ciężar (kg)</label>
-            <input class="mono" type="number" step="0.5" inputmode="decimal" value="${escapeHtml(weightVal)}"
-              oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this.value)"
-              onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this.value)">
+            <input class="mono" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" value="${escapeHtml(weightVal)}"
+              oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this)"
+              onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this, true)">
           </div>
           <div class="edit-subfield">
             <label>Powtórzenia</label>
@@ -6408,7 +6458,7 @@ function updateEditorDay(dayIdx, field, val){
   renderHome();
 }
 
-function updateEditorExercise(dayIdx, exIdx, field, val){
+function updateEditorExercise(dayIdx, exIdx, field, val, commit){
   const w = state.editorWeek || 1;
   const ex = state.customDays[dayIdx].exercises[exIdx];
   ensureExerciseWeeks(ex);
@@ -6418,6 +6468,7 @@ function updateEditorExercise(dayIdx, exIdx, field, val){
     ex.setsByWeek[w] = val;
     if(w === 1) ex.sets = val;
   } else if(field === 'weight'){
+    val = readWeightField(val, !!commit);
     ex.weightsByWeek[w] = val;
     if(w === 1) ex.weight = val;
   } else if(field === 'reps'){

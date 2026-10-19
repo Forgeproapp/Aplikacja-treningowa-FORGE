@@ -298,6 +298,13 @@
   .day-check.done{background:var(--done); border-color:var(--done); color:#ffffff;}
   .day-check.done::after{content:'✓'; font-size:16px; font-weight:900;}
   .day-sub{font-size:13px; font-weight:600; color:var(--text-faint); margin-bottom:12px;}
+  .plan-briefing{
+    background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
+    padding:12px 14px; margin-bottom:14px;
+  }
+  .plan-briefing summary{cursor:pointer; font-weight:800; color:var(--text); font-size:14px; line-height:1.4;}
+  .plan-briefing p, .plan-briefing li{font-size:13px; color:var(--text-dim); line-height:1.45; margin:8px 0 0;}
+  .plan-briefing ul{margin:8px 0 0; padding-left:18px;}
   .ex-mini-list{
     display:flex; flex-direction:column; gap:6px; margin-bottom:16px;
     background:var(--bg-elev); padding:10px 12px; border-radius:var(--radius-sm); border:1px solid var(--line-soft);
@@ -346,6 +353,7 @@
     background:var(--bg-card); border:1px solid var(--line); border-radius:var(--radius);
     padding:16px; margin-bottom:16px; box-shadow:var(--shadow);
   }
+  .exercise-card.superset{border-left:3px solid var(--gold);}
   .exercise-card.current{
     border-color:var(--accent); box-shadow:0 0 0 2px rgba(var(--accent-rgb), 0.25), var(--shadow);
   }
@@ -363,6 +371,9 @@
   .badge.target,
   .badge.secondary-target{
     color:var(--gold); background:var(--accent-deep); border-color:var(--accent);
+  }
+  .badge.superset-slot{
+    color:var(--on-accent); background:var(--gold); border-color:var(--gold);
   }
 
   .ghost-box{
@@ -575,7 +586,7 @@
   }
 
   .vol-row{display:flex; align-items:center; gap:10px; margin-bottom:10px;}
-  .vol-name{width:86px; font-size:13px; font-weight:700; color:var(--text); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;}
+  .vol-name{width:132px; font-size:12px; font-weight:700; color:var(--text); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;}
   .vol-bar-bg{flex:1; height:12px; background:var(--bg-elev); border-radius:6px; overflow:hidden; border:1px solid var(--line-soft);}
   .vol-bar-fill{height:100%; background:linear-gradient(90deg, var(--accent-hover), var(--gold)); border-radius:6px; transition:width 0.4s ease;}
   .vol-count{width:46px; text-align:right; font-family:'JetBrains Mono',monospace; font-size:13px; font-weight:800; color:var(--gold);}
@@ -1354,6 +1365,7 @@
   <!-- EKRAN 1: PLAN GŁÓWNY (KUŹNIA TRENINGOWA) -->
   <div class="screen active" id="screen-home">
     <div class="week-selector" id="weekSelector"></div>
+    <div id="planBriefing"></div>
     <div id="dayList"></div>
   </div>
 
@@ -1547,6 +1559,7 @@
     <!-- ZAPLANOWANA OBJĘTOŚĆ TYGODNIOWA -->
     <div class="editor-section">
       <div class="editor-section-title">Zaplanowana objętość tygodniowa</div>
+      <div style="font-size:12px; color:var(--text-faint); line-height:1.4; margin:-4px 0 10px;">Serie bezpośrednie na partię główną. Agoniści z rozpiski są tylko opisem. Stara partia pomocnicza nadal liczy się jako 0,5.</div>
       <div id="editorVolumeBars"></div>
     </div>
 
@@ -2417,8 +2430,9 @@ window.addEventListener('online', () => {
 initFirebase();
 </script>
 
+<script src="js/forge-plan.js"></script>
 <script>
-const MUSCLE_TARGETS = ['Klatka', 'Plecy', 'Czworogłowe', 'Dwugłowe', 'Pośladki', 'Barki', 'Biceps', 'Triceps', 'Brzuch'];
+const MUSCLE_TARGETS = window.ForgePlan.MUSCLE_TARGETS;
 
 const DEFAULT_PLAN_NAME = 'Plan początkowy';
 
@@ -2632,6 +2646,7 @@ function syncCurrentPlanToSaved(){
     cur.customDays = JSON.parse(JSON.stringify(state.customDays));
     cur.weekMeta = JSON.parse(JSON.stringify(state.weekMeta));
     cur.progress = JSON.parse(JSON.stringify(state.progress));
+    cur.briefing = state.briefing || null;
   }
 }
 
@@ -2679,6 +2694,7 @@ function switchActivePlan(planId){
   state.customDays = JSON.parse(JSON.stringify(target.customDays || []));
   state.weekMeta = JSON.parse(JSON.stringify(target.weekMeta || DEFAULT_WEEK_META));
   state.progress = JSON.parse(JSON.stringify(target.progress || {}));
+  state.briefing = target.briefing || null;
   state.currentWeek = 1;
   state.editorWeek = 1;
 
@@ -2717,6 +2733,7 @@ function duplicateCurrentPlan(){
     totalWeeks: cur.totalWeeks,
     customDays: JSON.parse(JSON.stringify(cur.customDays)),
     weekMeta: JSON.parse(JSON.stringify(cur.weekMeta)),
+    briefing: cur.briefing ? JSON.parse(JSON.stringify(cur.briefing)) : null,
     progress: {}
   };
   state.savedPlans.push(duplicate);
@@ -2731,7 +2748,8 @@ function encodePlanForShare(plan){
     name: plan.name,
     totalWeeks: plan.totalWeeks,
     customDays: plan.customDays,
-    weekMeta: plan.weekMeta
+    weekMeta: plan.weekMeta,
+    briefing: plan.briefing || null
   };
   const json = JSON.stringify(shareObj);
   const utf8Bytes = new TextEncoder().encode(json);
@@ -2771,7 +2789,8 @@ function planToShareObject(plan){
     name: plan.name,
     totalWeeks: plan.totalWeeks,
     customDays: plan.customDays,
-    weekMeta: plan.weekMeta
+    weekMeta: plan.weekMeta,
+    briefing: plan.briefing || null
   };
 }
 
@@ -2863,13 +2882,44 @@ function presentImportedPlan(decoded){
     const dayCount = (decoded.customDays || []).length;
     const exCount = (decoded.customDays || []).reduce((sum, d) => sum + (d.exercises || []).length, 0);
     const weeks = decoded.totalWeeks || 6;
-    metaEl.textContent = `${dayCount} ${dayCount === 1 ? 'trening' : 'treningów'} · ${exCount} ${exCount === 1 ? 'ćwiczenie' : 'ćwiczeń'} · ${weeks} tyg. planu`;
+    const counts = `${dayCount} ${dayCount === 1 ? 'trening' : 'treningów'} · ${exCount} ${exCount === 1 ? 'ćwiczenie' : 'ćwiczeń'} · ${weeks} tyg. planu`;
+    const summary = decoded.briefing && decoded.briefing.summary ? `<span style="display:block; margin-top:6px;">${escapeHtml(decoded.briefing.summary)}</span>` : '';
+    metaEl.innerHTML = counts + summary;
   }
   const modal = document.getElementById('importPlanModalOverlay');
   if(modal) modal.classList.add('open');
 }
 
+function takePresetFromLocation(){
+  const params = new URLSearchParams(location.search);
+  let presetId = params.get('plan');
+  let source = presetId ? 'query' : '';
+  if(!presetId){
+    const hashPlan = (location.hash || '').match(/^#plan=([^&]+)/);
+    if(hashPlan){
+      presetId = decodeURIComponent(hashPlan[1]);
+      source = 'hash';
+    }
+  }
+  if(!presetId || !window.ForgePlan) return false;
+  const decoded = window.ForgePlan.buildPreset(presetId);
+  if(source === 'query'){
+    params.delete('plan');
+    const search = params.toString();
+    history.replaceState(null, '', location.pathname + (search ? '?' + search : '') + location.hash);
+  } else {
+    history.replaceState(null, '', location.pathname + location.search);
+  }
+  if(!decoded){
+    showToast('Nie znam takiego planu w linku ⚠️');
+    return true;
+  }
+  presentImportedPlan(decoded);
+  return true;
+}
+
 function checkForImportedPlanInUrl(){
+  if(takePresetFromLocation()) return;
   const hash = location.hash || '';
   const match = hash.match(/importPlan=([^&]+)/);
   if(!match) return;
@@ -2926,6 +2976,7 @@ function confirmImportPlan(){
     totalWeeks: pendingImportPlan.totalWeeks || 6,
     customDays: JSON.parse(JSON.stringify(pendingImportPlan.customDays || [])),
     weekMeta: JSON.parse(JSON.stringify(pendingImportPlan.weekMeta || DEFAULT_WEEK_META)),
+    briefing: pendingImportPlan.briefing ? JSON.parse(JSON.stringify(pendingImportPlan.briefing)) : null,
     progress: {}
   };
   imported.customDays.forEach(day => {
@@ -2974,6 +3025,7 @@ function deleteCurrentPlan(){
   state.customDays = JSON.parse(JSON.stringify(nextPlan.customDays || []));
   state.weekMeta = JSON.parse(JSON.stringify(nextPlan.weekMeta || DEFAULT_WEEK_META));
   state.progress = JSON.parse(JSON.stringify(nextPlan.progress || {}));
+  state.briefing = nextPlan.briefing || null;
   state.currentWeek = 1;
   state.editorWeek = 1;
 
@@ -3085,17 +3137,10 @@ function copyWeekData(fromW, toW){
 
   state.customDays.forEach(day => {
     (day.exercises || []).forEach(ex => {
-      if(!ex.setsByWeek) ex.setsByWeek = {};
-      if(!ex.weightsByWeek) ex.weightsByWeek = {};
-      if(!ex.repsByWeek) ex.repsByWeek = {};
-
-      const s = ex.setsByWeek[fromW] !== undefined ? ex.setsByWeek[fromW] : (fromW === 1 ? ex.sets : '');
-      const w = ex.weightsByWeek[fromW] !== undefined ? ex.weightsByWeek[fromW] : (fromW === 1 ? ex.weight : '');
-      const r = ex.repsByWeek[fromW] !== undefined ? ex.repsByWeek[fromW] : (fromW === 1 ? ex.reps : '');
-
-      ex.setsByWeek[toW] = s;
-      ex.weightsByWeek[toW] = w;
-      ex.repsByWeek[toW] = r;
+      const view = ForgePlan.resolveExerciseForWeek(ex, fromW);
+      writeExerciseWeekField(ex, toW, 'sets', view.sets);
+      writeExerciseWeekField(ex, toW, 'reps', view.reps);
+      writeExerciseWeekField(ex, toW, 'weight', view.weight);
     });
   });
 
@@ -3118,9 +3163,10 @@ function copyWeek1ToAll(){
     for(let w = 2; w <= state.totalWeeks; w++){
       state.customDays.forEach(day => {
         (day.exercises || []).forEach(ex => {
-          ex.setsByWeek[w] = ex.setsByWeek[1] !== undefined ? ex.setsByWeek[1] : ex.sets;
-          ex.weightsByWeek[w] = ex.weightsByWeek[1] !== undefined ? ex.weightsByWeek[1] : ex.weight;
-          ex.repsByWeek[w] = ex.repsByWeek[1] !== undefined ? ex.repsByWeek[1] : ex.reps;
+          const view = ForgePlan.resolveExerciseForWeek(ex, 1);
+          writeExerciseWeekField(ex, w, 'sets', view.sets);
+          writeExerciseWeekField(ex, w, 'reps', view.reps);
+          writeExerciseWeekField(ex, w, 'weight', view.weight);
         });
       });
     }
@@ -3289,22 +3335,42 @@ function updateWeekMeta(weekNum, field, value){
 }
 
 function ensureExerciseWeeks(ex){
-  if(!ex.setsByWeek) ex.setsByWeek = {};
-  if(!ex.weightsByWeek) ex.weightsByWeek = {};
-  if(!ex.repsByWeek) ex.repsByWeek = {};
+  ForgePlan.ensureWeekSlots(ex, Math.max(state.totalWeeks || 6, 1));
+}
 
-  const total = Math.max(state.totalWeeks || 6, 1);
-  for(let w = 1; w <= total; w++){
-    if(ex.setsByWeek[w] === undefined){
-      ex.setsByWeek[w] = (w === 1) ? (Number(ex.sets) || 3) : '';
-    }
-    if(ex.weightsByWeek[w] === undefined){
-      ex.weightsByWeek[w] = (w === 1) ? (ex.weight !== undefined && ex.weight !== null ? ex.weight : '') : '';
-    }
-    if(ex.repsByWeek[w] === undefined){
-      ex.repsByWeek[w] = (w === 1) ? (ex.reps || '10') : '';
-    }
+function writeExerciseWeekField(ex, week, field, value){
+  const block = ForgePlan.blockForWeek(ex, week);
+  if(field === 'sets'){
+    const bucket = block || ex;
+    if(!bucket.setsByWeek) bucket.setsByWeek = {};
+    bucket.setsByWeek[week] = value;
+    if(!block && week === 1) ex.sets = value;
+    return;
   }
+  if(field === 'reps'){
+    const bucket = block || ex;
+    if(!bucket.repsByWeek) bucket.repsByWeek = {};
+    bucket.repsByWeek[week] = value;
+    if(!block && week === 1) ex.reps = value;
+    return;
+  }
+  if(field === 'weight'){
+    if(!ex.weightsByWeek) ex.weightsByWeek = {};
+    ex.weightsByWeek[week] = value;
+    if(week === 1) ex.weight = value;
+    return;
+  }
+  const bucket = block || ex;
+  if(field === 'agonists'){
+    bucket.agonists = String(value || '').split(',').map(part => part.trim()).filter(Boolean);
+    return;
+  }
+  if(field === 'restSec'){
+    const parsed = parseInt(value, 10);
+    bucket.restSec = Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    return;
+  }
+  bucket[field] = value;
 }
 
 function ensureAllExercisesWeeks(){
@@ -3322,26 +3388,21 @@ function getPlanForWeek(w){
       name: day.name,
       focus: day.focus,
       exercises: day.exercises.map(ex => {
-        const setsVal = (ex.setsByWeek && ex.setsByWeek[w] !== undefined && ex.setsByWeek[w] !== '')
-          ? Number(ex.setsByWeek[w])
-          : (w === 1 ? (Number(ex.sets) || 1) : 0);
-        const weightVal = (ex.weightsByWeek && ex.weightsByWeek[w] !== undefined && ex.weightsByWeek[w] !== null && ex.weightsByWeek[w] !== '')
-          ? ex.weightsByWeek[w]
-          : (w === 1 && ex.weight !== undefined && ex.weight !== null ? ex.weight : '');
-        const repsVal = (ex.repsByWeek && ex.repsByWeek[w] !== undefined && ex.repsByWeek[w] !== null && ex.repsByWeek[w] !== '')
-          ? ex.repsByWeek[w]
-          : (w === 1 ? (ex.reps || '10') : '');
-
+        const view = ForgePlan.resolveExerciseForWeek(ex, w);
         return {
           id: `w${w}_${ex.id}`,
           rawId: ex.id,
-          name: ex.name,
-          target: ex.target || 'Inne',
-          secondary: ex.secondary || 'Brak',
-          sets: setsVal,
-          weight: weightVal,
-          reps: repsVal,
-          note: ex.note || ''
+          name: view.name,
+          target: view.target || 'Inne',
+          secondary: view.secondary || 'Brak',
+          agonists: view.agonists || [],
+          sets: view.sets,
+          weight: view.weight,
+          reps: view.reps,
+          note: view.note || '',
+          restSec: view.restSec,
+          superset: view.superset || '',
+          supersetSlot: view.supersetSlot || ''
         };
       })
     };
@@ -3434,13 +3495,35 @@ function estimate1RM(weight, reps){
   return Math.round(w * (1 + r / 30));
 }
 
+function renderPlanBriefing(){
+  const el = document.getElementById('planBriefing');
+  if(!el) return;
+  const briefing = state.briefing;
+  if(!briefing){
+    el.innerHTML = '';
+    return;
+  }
+  const warnings = (briefing.warnings || []).map(line => `<li>${escapeHtml(line)}</li>`).join('');
+  el.innerHTML = `
+    <details class="plan-briefing">
+      <summary>${escapeHtml(briefing.summary || 'Szczegóły planu')}</summary>
+      ${briefing.split ? `<p>${escapeHtml(briefing.split)}</p>` : ''}
+      ${briefing.structure ? `<p>${escapeHtml(briefing.structure)}</p>` : ''}
+      ${briefing.warmup ? `<p><b>Rozgrzewka.</b> ${escapeHtml(briefing.warmup)}</p>` : ''}
+      ${briefing.rests ? `<p><b>Przerwy.</b> ${escapeHtml(briefing.rests)}</p>` : ''}
+      ${warnings ? `<ul>${warnings}</ul>` : ''}
+    </details>`;
+}
+
 function renderHome(){
+  renderPlanBriefing();
   const weekSel = document.getElementById('weekSelector');
   weekSel.innerHTML = '';
   for(let w=1; w<=state.totalWeeks; w++){
     const pill = document.createElement('button');
     pill.className = 'week-pill' + (w === state.currentWeek ? ' active' : '');
     pill.textContent = 'TYG ' + w;
+    if(getWeekMeta(w).deload) pill.title = 'Deload';
     pill.onclick = () => { 
       state.currentWeek = w; 
       saveStateLocalOnly();
@@ -3472,6 +3555,10 @@ function renderHome(){
     const doneSets = countCompletedSets(state.currentWeek, day.id);
     const totalSets = totalSetsForDay(state.currentWeek, day.id);
 
+    const minutes = ForgePlan.minutesForWeek(day, state.currentWeek);
+    const subBits = [];
+    if(dayPlan.focus) subBits.push(dayPlan.focus);
+    if(minutes) subBits.push('ok. ' + minutes + ' min');
     const card = document.createElement('div');
     card.className = 'day-card' + (complete ? ' complete' : '');
     card.id = `day-card-${day.id}`;
@@ -3479,16 +3566,18 @@ function renderHome(){
       <div class="day-head">
         <div>
           <div class="day-title">${escapeHtml(dayPlan.name)}</div>
-          <div class="day-sub">${escapeHtml(dayPlan.focus || '')}</div>
+          <div class="day-sub">${escapeHtml(subBits.join(' · '))}</div>
         </div>
         <button class="day-check ${complete ? 'done' : ''}" onclick="event.stopPropagation(); confirmToggleDayComplete(${state.currentWeek}, ${day.id})" aria-label="Oznacz trening jako wykonany"></button>
       </div>
       <div class="ex-mini-list">
         ${dayPlan.exercises.map(ex => {
-          const setsDesc = ex.sets > 0 ? `${escapeHtml(ex.sets)}×${escapeHtml(ex.reps || '–')}${ex.weight ? ` · ${escapeHtml(ex.weight)}kg` : ''}` : 'Nie zaplanowano';
+          const restBit = ex.restSec ? ` · ${ForgePlan.formatRestSeconds(ex.restSec)}` : '';
+          const setsDesc = ex.sets > 0 ? `${escapeHtml(ex.sets)}×${escapeHtml(ex.reps || '–')}${restBit}${ex.weight ? ` · ${escapeHtml(ex.weight)}kg` : ''}` : 'Nie zaplanowano';
+          const label = (ex.supersetSlot ? ex.supersetSlot + '  ' : '') + (ex.name || '');
           return `
           <div class="ex-mini">
-            <span class="n">${escapeHtml(ex.name)}</span>
+            <span class="n">${escapeHtml(label)}</span>
             <span class="d mono">${setsDesc}</span>
           </div>
           `;
@@ -3672,16 +3761,20 @@ function renderSession(){
   document.getElementById('progressFill').style.width = totalSets ? `${(doneSets/totalSets*100)}%` : '0%';
 
   const content = document.getElementById('sessionContent');
+  const warmupHtml = (state.briefing && state.briefing.warmup)
+    ? `<div class="ex-note-display" style="margin-bottom:14px;">🔥 <span>${escapeHtml(state.briefing.warmup)}</span></div>`
+    : '';
   let html = `
     <div class="session-title-row">
       <div>
         <h2 style="font-size:22px; font-weight:800; margin:0 0 4px; color:var(--text);">${escapeHtml(dayPlan.name)}</h2>
-        <div style="color:var(--gold); font-size:14px; font-weight:700;">${meta.label} · RIR ${meta.rir}</div>
+        <div style="color:var(--gold); font-size:14px; font-weight:700;">${escapeHtml(meta.label)} · RIR ${meta.rir}</div>
       </div>
       <button class="session-reset-btn" onclick="confirmResetCurrentSession()" title="Wyczyść wpisane serie i ciężary">
         <span>🗑</span> Wyczyść trening
       </button>
     </div>
+    ${warmupHtml}
   `;
 
   dayPlan.exercises.forEach((ex, exIdx) => {
@@ -3696,7 +3789,10 @@ function renderSession(){
     }
 
     const allDone = prog.setsDone[ex.id].every(Boolean);
-    const isCurrent = !allDone && dayPlan.exercises.slice(0, exIdx).every(e => prog.setsDone[e.id]?.every(Boolean));
+    const isCurrent = !allDone && dayPlan.exercises.slice(0, exIdx).every(e => {
+      if(ex.superset && e.superset === ex.superset) return true;
+      return prog.setsDone[e.id]?.every(Boolean);
+    });
     const lastPerf = findLastExercisePerformance(ex.name);
 
     const assignedWeight = (ex.weight !== undefined && ex.weight !== null && ex.weight !== '') ? ex.weight : null;
@@ -3704,24 +3800,30 @@ function renderSession(){
     const weightBadgeHtml = displayWeight ? `<span class="badge" style="color:var(--gold-pale);">${escapeHtml(displayWeight)}</span>` : '';
 
     const secBadge = (ex.secondary && ex.secondary !== 'Brak') ? `<span class="badge secondary-target">+ ${escapeHtml(ex.secondary)} (0.5)</span>` : '';
+    const agonistBadges = (ex.agonists || []).map(muscle => `<span class="badge secondary-target">agonista: ${escapeHtml(muscle)}</span>`).join('');
     const noteHtml = (ex.note && ex.note.trim() !== '') ? `<div class="ex-note-display" style="margin-top:6px; margin-bottom:4px;">📝 <span>${escapeHtml(ex.note.trim())}</span></div>` : '';
+    const restLabel = ex.restSec
+      ? (ForgePlan.formatRestSeconds(ex.restSec) + (ex.superset ? ' · superseria' : ''))
+      : meta.restText;
+    const slotHtml = ex.supersetSlot ? `<span class="badge superset-slot">${escapeHtml(ex.supersetSlot)}</span> ` : '';
 
-    html += `<div class="exercise-card ${isCurrent ? 'current' : ''} ${allDone ? 'done' : ''}" id="ex-${escapeHtml(ex.id)}">
+    html += `<div class="exercise-card ${ex.superset ? 'superset' : ''} ${isCurrent ? 'current' : ''} ${allDone ? 'done' : ''}" id="ex-${escapeHtml(ex.id)}">
       <div class="ex-top">
         <div style="width:100%;">
-          <div class="ex-name">${escapeHtml(ex.name)}</div>
+          <div class="ex-name">${slotHtml}${escapeHtml(ex.name)}</div>
           ${noteHtml}
           <div class="ex-badges">
             <div class="badge-row">
               <span class="badge target">${escapeHtml(ex.target)}</span>
               ${secBadge}
+              ${agonistBadges}
             </div>
             <div class="badge-row">
               <span class="badge">${escapeHtml(ex.sets)} serie</span>
               ${weightBadgeHtml}
               <span class="badge">${escapeHtml(ex.reps)} powt.</span>
               <span class="badge rir">RIR ${meta.rir}</span>
-              <span class="badge rest">⏱ ${meta.restText}</span>
+              <span class="badge rest">⏱ ${escapeHtml(restLabel)}</span>
             </div>
           </div>
         </div>
@@ -3885,11 +3987,17 @@ function toggleSet(exId, setIdx, totalSets){
 
   if(!wasDone){
     const meta = getWeekMeta(week);
-    startRestTimer(meta.rest);
-
     const dayPlan = getPlanForWeek(week)[day];
+    const finished = dayPlan.exercises.find(item => item.id === exId);
+    const decision = ForgePlan.restAfterCompletedSet(finished || {}, dayPlan.exercises, setIdx, prog.setsDone, meta.rest);
+    if(decision.restSec > 0) startRestTimer(decision.restSec);
+    if(decision.partnerId){
+      const partnerCard = document.getElementById(`ex-${decision.partnerId}`);
+      if(partnerCard) partnerCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
     const exDone = prog.setsDone[exId].every(Boolean);
-    if(exDone){
+    if(exDone && !decision.partnerId){
       const curExIdx = dayPlan.exercises.findIndex(e => e.id === exId);
       const nextEx = dayPlan.exercises[curExIdx + 1];
       setTimeout(() => {
@@ -3922,7 +4030,10 @@ function updateSessionDOM(){
   dayPlan.exercises.forEach((ex, exIdx) => {
     const setsDone = prog.setsDone[ex.id] || [];
     const allDone = setsDone.every(Boolean) && setsDone.length === ex.sets;
-    const isCurrent = !allDone && dayPlan.exercises.slice(0, exIdx).every(e => prog.setsDone[e.id]?.every(Boolean));
+    const isCurrent = !allDone && dayPlan.exercises.slice(0, exIdx).every(e => {
+      if(ex.superset && e.superset === ex.superset) return true;
+      return prog.setsDone[e.id]?.every(Boolean);
+    });
 
     const card = document.getElementById(`ex-${ex.id}`);
     if(card){
@@ -4355,11 +4466,12 @@ function renderVolumeAndChart(){
         const fullId = `w${state.currentWeek}_${ex.id}`;
         const doneCount = (prog.setsDone[fullId] || []).filter(Boolean).length;
         if(doneCount > 0){
-          const target = ex.target || 'Inne';
+          const view = ForgePlan.resolveExerciseForWeek(ex, state.currentWeek);
+          const target = view.target || 'Inne';
           volumeMap[target] = (volumeMap[target] || 0) + (doneCount * 1.0);
 
-          const secondary = ex.secondary || 'Brak';
-          if(secondary && secondary !== 'Brak' && volumeMap[secondary] !== undefined){
+          const secondary = view.secondary || 'Brak';
+          if(secondary && secondary !== 'Brak'){
             volumeMap[secondary] = (volumeMap[secondary] || 0) + (doneCount * 0.5);
           }
         }
@@ -4369,8 +4481,11 @@ function renderVolumeAndChart(){
 
   const maxSets = Math.max(1, ...Object.values(volumeMap));
   const container = document.getElementById('volumeMuscleBars');
-  container.innerHTML = Object.entries(volumeMap).map(([m, sets]) => {
-    if(sets === 0 && m === 'Inne') return '';
+  const volumeNames = MUSCLE_TARGETS.filter(name => volumeMap[name]).concat(
+    Object.keys(volumeMap).filter(name => volumeMap[name] && !MUSCLE_TARGETS.includes(name))
+  );
+  container.innerHTML = volumeNames.map(m => {
+    const sets = volumeMap[m];
     const pct = Math.round((sets / maxSets) * 100);
     const displaySets = Number.isInteger(sets) ? sets : sets.toFixed(1);
     const info = getLandmarkInfo(sets);
@@ -4428,7 +4543,9 @@ function collectChartExerciseNames(planFilter){
     names.push(trimmed);
   };
   (state.customDays || []).forEach(day => {
-    (day.exercises || []).forEach(ex => add(ex.name));
+    (day.exercises || []).forEach(ex => {
+      ForgePlan.exerciseNames(ex).forEach(add);
+    });
   });
   if(planFilter === 'all'){
     (state.history || []).forEach(rec => {
@@ -5521,27 +5638,25 @@ function renderEditorPlannedVolume(){
   const w = state.editorWeek || 1;
   state.customDays.forEach(d => {
     (d.exercises || []).forEach(ex => {
-      const sets = (ex.setsByWeek && ex.setsByWeek[w] !== undefined && ex.setsByWeek[w] !== '')
-        ? (parseInt(ex.setsByWeek[w], 10) || 0)
-        : (w === 1 ? (parseInt(ex.sets, 10) || 0) : 0);
-      const target = ex.target || 'Inne';
-      if(volumeMap[target] !== undefined){
-        volumeMap[target] += (sets * 1.0);
-      } else {
-        volumeMap['Inne'] = (volumeMap['Inne'] || 0) + (sets * 1.0);
-      }
+      const view = ForgePlan.resolveExerciseForWeek(ex, w);
+      const sets = Number(view.sets) || 0;
+      const target = view.target || 'Inne';
+      volumeMap[target] = (volumeMap[target] || 0) + sets;
 
-      const secondary = ex.secondary || 'Brak';
-      if(secondary && secondary !== 'Brak' && volumeMap[secondary] !== undefined){
-        volumeMap[secondary] += (sets * 0.5);
+      const secondary = view.secondary || 'Brak';
+      if(secondary && secondary !== 'Brak'){
+        volumeMap[secondary] = (volumeMap[secondary] || 0) + (sets * 0.5);
       }
     });
   });
 
   const maxSets = Math.max(1, ...Object.values(volumeMap));
+  const volumeNames = MUSCLE_TARGETS.filter(name => volumeMap[name]).concat(
+    Object.keys(volumeMap).filter(name => volumeMap[name] && !MUSCLE_TARGETS.includes(name))
+  );
 
-  container.innerHTML = Object.entries(volumeMap).map(([m, sets]) => {
-    if(sets === 0 && m === 'Inne') return '';
+  container.innerHTML = volumeNames.map(m => {
+    const sets = volumeMap[m];
     const pct = Math.round((sets / maxSets) * 100);
     const displaySets = Number.isInteger(sets) ? sets : sets.toFixed(1);
     const info = getLandmarkInfo(sets);
@@ -5582,7 +5697,7 @@ function renderEditorWeekSelector(){
 
   const w = state.editorWeek;
   const meta = getWeekMeta(w);
-  if(badge) badge.textContent = `Tydzień ${w}`;
+  if(badge) badge.textContent = meta.label || `Tydzień ${w}`;
 
   const restOptions = [
     { s: 60, l: '1 min' },
@@ -5605,7 +5720,7 @@ function renderEditorWeekSelector(){
           </select>
         </div>
         <div class="week-meta-field">
-          <label style="display:block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); margin-bottom:4px;">Przerwa</label>
+          <label style="display:block; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint); margin-bottom:4px;">Przerwa domyślna</label>
           <select onchange="updateWeekMeta(${w}, 'rest', this.value)">
             ${restOptions.map(opt => `<option value="${opt.s}" ${meta.rest === opt.s ? 'selected' : ''}>${opt.l}</option>`).join('')}
           </select>
@@ -5868,9 +5983,10 @@ function applyLibraryExerciseToSlot(libId){
   if(!item) return;
   const { dayIdx, exIdx } = exPickerTarget;
   const ex = state.customDays[dayIdx].exercises[exIdx];
-  ex.name = item.name;
-  ex.target = item.target;
-  ex.secondary = item.secondary || 'Brak';
+  const week = state.editorWeek || 1;
+  writeExerciseWeekField(ex, week, 'name', item.name);
+  writeExerciseWeekField(ex, week, 'target', item.target);
+  writeExerciseWeekField(ex, week, 'secondary', item.secondary || 'Brak');
   saveState(true);
   closeExercisePickerModal();
   renderEditor();
@@ -5880,20 +5996,21 @@ function applyLibraryExerciseToSlot(libId){
 
 function saveExerciseToLibrary(dayIdx, exIdx){
   const ex = state.customDays[dayIdx].exercises[exIdx];
-  if(!ex || !ex.name || !ex.name.trim()){
+  const view = ex ? ForgePlan.resolveExerciseForWeek(ex, state.editorWeek || 1) : null;
+  if(!view || !view.name || !view.name.trim()){
     showToast('Wpisz najpierw nazwę ćwiczenia');
     return;
   }
   ensureExerciseLibraryInitialized();
   ensureWorkoutLibraryInitialized();
-  const dupIdx = state.exerciseLibrary.findIndex(e => e.name.trim().toLowerCase() === ex.name.trim().toLowerCase());
+  const dupIdx = state.exerciseLibrary.findIndex(e => e.name.trim().toLowerCase() === view.name.trim().toLowerCase());
   if(dupIdx !== -1){
-    state.exerciseLibrary[dupIdx] = { ...state.exerciseLibrary[dupIdx], name: ex.name, target: ex.target, secondary: ex.secondary || 'Brak' };
+    state.exerciseLibrary[dupIdx] = { ...state.exerciseLibrary[dupIdx], name: view.name, target: view.target, secondary: view.secondary || 'Brak' };
     showToast('Zaktualizowano ćwiczenie w bibliotece');
   } else {
     state.exerciseLibrary.push({
       id: 'lib_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
-      name: ex.name, target: ex.target, secondary: ex.secondary || 'Brak'
+      name: view.name, target: view.target, secondary: view.secondary || 'Brak'
     });
     showToast('Zapisano ćwiczenie w bibliotece');
   }
@@ -5918,9 +6035,10 @@ function openWorkoutPreview(libId){
       listEl.innerHTML = `<div class="exlib-empty">Ten szablon nie ma jeszcze żadnych ćwiczeń.</div>`;
     } else {
       listEl.innerHTML = item.exercises.map(ex => {
-        const sets = ex.sets || '';
-        const reps = ex.reps || '';
-        const weight = (ex.weight !== undefined && ex.weight !== null && ex.weight !== '') ? `${ex.weight} kg` : '';
+        const view = ForgePlan.resolveExerciseForWeek(ex, 1);
+        const sets = view.sets || '';
+        const reps = view.reps || '';
+        const weight = (view.weight !== undefined && view.weight !== null && view.weight !== '') ? `${view.weight} kg` : '';
         const specsParts = [];
         if(sets) specsParts.push(`${sets} ${sets == 1 ? 'seria' : 'serie'}`);
         if(reps) specsParts.push(`${reps} powt.`);
@@ -5928,13 +6046,13 @@ function openWorkoutPreview(libId){
         const specs = specsParts.join(' · ');
         return `
           <div class="wprev-ex-row">
-            <div class="wprev-ex-name">${escapeHtml(ex.name || 'Bez nazwy')}</div>
+            <div class="wprev-ex-name">${escapeHtml(view.name || 'Bez nazwy')}</div>
             <div class="wprev-ex-badges">
-              <span class="badge target">${escapeHtml(ex.target || 'Inne')}</span>
-              ${ex.secondary && ex.secondary !== 'Brak' ? `<span class="badge secondary-target">${escapeHtml(ex.secondary)}</span>` : ''}
+              <span class="badge target">${escapeHtml(view.target || 'Inne')}</span>
+              ${view.secondary && view.secondary !== 'Brak' ? `<span class="badge secondary-target">${escapeHtml(view.secondary)}</span>` : ''}
             </div>
             ${specs ? `<div class="wprev-ex-specs">${escapeHtml(specs)}</div>` : ''}
-            ${ex.note ? `<div class="wprev-ex-note">${escapeHtml(ex.note)}</div>` : ''}
+            ${view.note ? `<div class="wprev-ex-note">${escapeHtml(view.note)}</div>` : ''}
           </div>
         `;
       }).join('');
@@ -5967,7 +6085,8 @@ function workoutMuscleBadgesHtml(template){
   const seen = new Set();
   const order = [];
   (template.exercises || []).forEach(ex => {
-    if(ex.target && !seen.has(ex.target)){ seen.add(ex.target); order.push(ex.target); }
+    const target = ForgePlan.resolveExerciseForWeek(ex, 1).target;
+    if(target && !seen.has(target)){ seen.add(target); order.push(target); }
   });
   return order.slice(0, 4).map(m => `<span class="badge target">${escapeHtml(m)}</span>`).join('');
 }
@@ -6290,9 +6409,13 @@ function renderEditor(){
     const w = state.editorWeek || 1;
     let exercisesHtml = (d.exercises || []).map((ex, exIdx) => {
       ensureExerciseWeeks(ex);
-      const setsVal = (ex.setsByWeek && ex.setsByWeek[w] !== undefined && ex.setsByWeek[w] !== '') ? ex.setsByWeek[w] : (w === 1 ? ex.sets : '');
-      const weightVal = (ex.weightsByWeek && ex.weightsByWeek[w] !== undefined && ex.weightsByWeek[w] !== null && ex.weightsByWeek[w] !== '') ? ex.weightsByWeek[w] : (w === 1 && ex.weight !== undefined && ex.weight !== null ? ex.weight : '');
-      const repsVal = (ex.repsByWeek && ex.repsByWeek[w] !== undefined && ex.repsByWeek[w] !== null && ex.repsByWeek[w] !== '') ? ex.repsByWeek[w] : (w === 1 ? ex.reps : '');
+      const view = ForgePlan.resolveExerciseForWeek(ex, w);
+      const activeBlock = ForgePlan.blockForWeek(ex, w);
+      const blockHint = (ex.blocks && ex.blocks.length > 1 && activeBlock)
+        ? `Blok od tygodnia ${activeBlock.fromWeek}. Zmiana nazwy dotyczy tego bloku.`
+        : '';
+      const targetChoices = MUSCLE_TARGETS.includes(view.target) ? MUSCLE_TARGETS : MUSCLE_TARGETS.concat([view.target]);
+      const secondary = view.secondary || 'Brak';
 
       return `
       <div class="edit-ex-item" data-day-index="${dayIdx}" data-ex-index="${exIdx}">
@@ -6301,47 +6424,74 @@ function renderEditor(){
           <button class="btn-save-lib" onclick="saveExerciseToLibrary(${dayIdx}, ${exIdx})" title="Zapisz do biblioteki">💾</button>
           <button class="btn-del-ex" onclick="deleteEditorExercise(${dayIdx}, ${exIdx})" title="Usuń ćwiczenie">✕</button>
         </div>
-        <input class="edit-ex-name-input" type="text" value="${escapeHtml(ex.name)}" placeholder="Wpisz nazwę ćwiczenia..." 
+        <input class="edit-ex-name-input" type="text" value="${escapeHtml(view.name)}" placeholder="Wpisz nazwę ćwiczenia..." 
           oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'name', this.value)"
           onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'name', this.value)">
+        ${blockHint ? `<div style="font-size:11px; color:var(--text-faint); margin:-2px 0 8px;">${escapeHtml(blockHint)}</div>` : ''}
         <div class="edit-ex-bottom-row">
           <div class="edit-subfield">
             <label>Główna (1.0)</label>
             <select onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'target', this.value)">
-              ${MUSCLE_TARGETS.map(m => `<option value="${m}" ${ex.target === m ? 'selected' : ''}>${m}</option>`).join('')}
+              ${targetChoices.map(m => `<option value="${escapeHtml(m)}" ${view.target === m ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('')}
             </select>
           </div>
           <div class="edit-subfield">
             <label>Pomocnicza (0.5)</label>
             <select onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'secondary', this.value)">
-              <option value="Brak" ${(!ex.secondary || ex.secondary === 'Brak') ? 'selected' : ''}>Brak</option>
-              ${MUSCLE_TARGETS.map(m => `<option value="${m}" ${ex.secondary === m ? 'selected' : ''}>${m}</option>`).join('')}
+              <option value="Brak" ${secondary === 'Brak' ? 'selected' : ''}>Brak</option>
+              ${MUSCLE_TARGETS.map(m => `<option value="${escapeHtml(m)}" ${secondary === m ? 'selected' : ''}>${escapeHtml(m)}</option>`).join('')}
             </select>
           </div>
+        </div>
+        <div class="edit-ex-note-row">
+          <label>Agoniści (opis, po przecinku)</label>
+          <input type="text" value="${escapeHtml((view.agonists || []).join(', '))}"
+            oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'agonists', this.value)"
+            onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'agonists', this.value)">
         </div>
         <div class="edit-ex-specs-row">
           <div class="edit-subfield">
             <label>Serie</label>
-            <input class="mono" type="number" min="0" max="15" value="${escapeHtml(setsVal)}"
+            <input class="mono" type="number" min="0" max="15" value="${escapeHtml(view.sets)}"
               oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'sets', this.value)"
               onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'sets', this.value)">
           </div>
           <div class="edit-subfield">
             <label>Ciężar (kg)</label>
-            <input class="mono" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" value="${escapeHtml(weightVal)}"
+            <input class="mono" type="text" inputmode="decimal" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" value="${escapeHtml(view.weight)}"
               oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this)"
               onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'weight', this, true)">
           </div>
           <div class="edit-subfield">
             <label>Powtórzenia</label>
-            <input class="mono" type="text" value="${escapeHtml(repsVal)}"
+            <input class="mono" type="text" value="${escapeHtml(view.reps)}"
               oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'reps', this.value)"
               onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'reps', this.value)">
           </div>
         </div>
+        <div class="edit-ex-specs-row">
+          <div class="edit-subfield">
+            <label>Przerwa (s)</label>
+            <input class="mono" type="number" min="0" max="600" value="${view.restSec || ''}"
+              oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'restSec', this.value)"
+              onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'restSec', this.value)">
+          </div>
+          <div class="edit-subfield">
+            <label>Superseria</label>
+            <input type="text" value="${escapeHtml(view.superset || '')}" placeholder="np. a7"
+              oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'superset', this.value)"
+              onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'superset', this.value)">
+          </div>
+          <div class="edit-subfield">
+            <label>Slot</label>
+            <input type="text" value="${escapeHtml(view.supersetSlot || '')}" placeholder="7a"
+              oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'supersetSlot', this.value)"
+              onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'supersetSlot', this.value)">
+          </div>
+        </div>
         <div class="edit-ex-note-row">
           <label>Notatka techniczna / ustawienia (opcjonalnie)</label>
-          <input type="text" value="${escapeHtml(ex.note || '')}" 
+          <input type="text" value="${escapeHtml(view.note || '')}" 
             oninput="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)"
             onchange="updateEditorExercise(${dayIdx}, ${exIdx}, 'note', this.value)">
         </div>
@@ -6465,18 +6615,10 @@ function updateEditorExercise(dayIdx, exIdx, field, val, commit){
 
   if(field === 'sets'){
     val = val === '' ? '' : (parseInt(val, 10) || 0);
-    ex.setsByWeek[w] = val;
-    if(w === 1) ex.sets = val;
   } else if(field === 'weight'){
     val = readWeightField(val, !!commit);
-    ex.weightsByWeek[w] = val;
-    if(w === 1) ex.weight = val;
-  } else if(field === 'reps'){
-    ex.repsByWeek[w] = val;
-    if(w === 1) ex.reps = val;
-  } else {
-    ex[field] = val;
   }
+  writeExerciseWeekField(ex, w, field, val);
 
   saveState(true);
   renderHome();

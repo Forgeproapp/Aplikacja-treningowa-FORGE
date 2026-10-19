@@ -1,7 +1,8 @@
-const CACHE_NAME = 'forge-pro-cache-v10';
+const CACHE_NAME = 'forge-pro-cache-v11';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './js/forge-plan.js',
   './manifest.json',
   './favicon.ico',
   './favicon-16.png',

@@ -65,12 +65,13 @@
     else if (weekNum === 1 && ex.weight !== undefined && ex.weight !== null) weight = ex.weight;
 
     const agonists = (block && block.agonists) || ex.agonists || [];
+    const agonistList = Array.isArray(agonists) ? agonists.filter(Boolean) : [];
     return {
       id: ex.id,
       name: (block && block.name) || ex.name || '',
       target: (block && block.target) || ex.target || 'Inne',
-      secondary: (block && block.secondary) || ex.secondary || 'Brak',
-      agonists: Array.isArray(agonists) ? agonists.filter(Boolean) : [],
+      secondary: helperMuscle(block || ex, agonistList),
+      agonists: agonistList,
       sets,
       reps,
       weight,
@@ -138,8 +139,24 @@
     return Number(value);
   }
 
+  function helperMuscle(bucket, agonists) {
+    const chosen = bucket && bucket.secondary;
+    if (chosen && chosen !== 'Brak') return chosen;
+    return (agonists && agonists[0]) || 'Brak';
+  }
+
+  function fillBlankSecondary(bucket) {
+    if (!bucket) return;
+    const agonists = Array.isArray(bucket.agonists) ? bucket.agonists.filter(Boolean) : [];
+    if ((!bucket.secondary || bucket.secondary === 'Brak') && agonists[0]) {
+      bucket.secondary = agonists[0];
+    }
+  }
+
   function ensureWeekSlots(ex, totalWeeks) {
     const total = Math.max(Number(totalWeeks) || 1, 1);
+    fillBlankSecondary(ex);
+    if (Array.isArray(ex.blocks)) ex.blocks.forEach(fillBlankSecondary);
     if (!ex.weightsByWeek) ex.weightsByWeek = {};
     if (Array.isArray(ex.blocks) && ex.blocks.length) {
       for (let week = 1; week <= total; week++) {

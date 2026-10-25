@@ -1126,6 +1126,14 @@
   }
   .confirm-overlay.open{opacity:1; pointer-events:auto;}
   #confirmModalOverlay{ z-index:200; }
+  #secondaryFillModalOverlay{ z-index:160; }
+  .fill-preview-body{max-height:52vh; overflow:auto; margin:10px 0 14px; text-align:left;}
+  .fill-preview-table{width:100%; border-collapse:collapse; font-size:12px;}
+  .fill-preview-table th, .fill-preview-table td{
+    border-bottom:1px solid var(--line-soft); padding:6px 4px; vertical-align:top; text-align:left;
+  }
+  .fill-preview-table th{font-size:10px; text-transform:uppercase; letter-spacing:0.04em; color:var(--text-faint);}
+  .fill-preview-note{font-size:12px; color:var(--text-dim); line-height:1.4; margin:0 0 8px;}
 
   .workout-complete-modal{
     text-align:center; max-width:380px;
@@ -1775,11 +1783,24 @@
       <div style="font-size:16px; font-weight:800; color:var(--text);">Biblioteka Ćwiczeń</div>
       <span class="badge mono" id="libManagerCountBadge">0 ćwiczeń</span>
     </div>
+    <button class="plan-action-btn" style="width:100%; margin-bottom:10px;" onclick="openSecondaryFillPreview()">Uzupełnij pomocnicze z biblioteki startowej</button>
     <input type="text" class="exlib-search" id="editorExLibSearchInput" placeholder="Szukaj ćwiczenia w bibliotece..." oninput="renderExerciseLibraryManager()">
     <div id="editorExerciseLibraryList" class="exlib-list" style="max-height:440px;"></div>
     <div class="confirm-actions">
       <button class="confirm-btn cancel" onclick="closeExerciseLibraryModal()">Zamknij</button>
       <button class="confirm-btn primary-confirm" onclick="openLibraryExerciseModal()">+ Dodaj</button>
+    </div>
+  </div>
+</div>
+
+<!-- Podgląd uzupełnienia partii pomocniczej -->
+<div class="confirm-overlay" id="secondaryFillModalOverlay">
+  <div class="confirm-modal" style="max-width:460px;">
+    <div style="font-size:16px; font-weight:800; margin-bottom:6px; color:var(--text);">Uzupełnić pomocnicze?</div>
+    <div id="secondaryFillPreviewBody" class="fill-preview-body"></div>
+    <div class="confirm-actions">
+      <button class="confirm-btn cancel" onclick="closeSecondaryFillPreview()">Anuluj</button>
+      <button class="confirm-btn primary-confirm" id="secondaryFillSaveBtn" onclick="confirmSecondaryFill()">Zapisz zmiany</button>
     </div>
   </div>
 </div>
@@ -5794,6 +5815,99 @@ function openExerciseLibraryModal(){
 function closeExerciseLibraryModal(){
   const modal = document.getElementById('libraryManagerModalOverlay');
   if(modal) modal.classList.remove('open');
+}
+
+let pendingSecondaryProposal = null;
+
+function closeSecondaryFillPreview(){
+  pendingSecondaryProposal = null;
+  const modal = document.getElementById('secondaryFillModalOverlay');
+  if(modal) modal.classList.remove('open');
+}
+
+function renderSecondaryFillPreview(proposal, loadError){
+  const body = document.getElementById('secondaryFillPreviewBody');
+  const saveBtn = document.getElementById('secondaryFillSaveBtn');
+  if(!body) return;
+  const changes = (proposal && proposal.changes) || [];
+  const unmatched = (proposal && proposal.unmatched) || [];
+  const blocked = (proposal && proposal.blocked) || [];
+  const error = loadError || (proposal && proposal.error) || '';
+  let html = '';
+  if(error){
+    html += `<p class="fill-preview-note">${escapeHtml(error)}</p>`;
+  }
+  if(!error && changes.length === 0){
+    html += `<p class="fill-preview-note">Nie ma pustych pól do uzupełnienia.</p>`;
+  }
+  if(changes.length){
+    html += `<p class="fill-preview-note">Zapis dotyczy tylko pustych pól. Wpisane ręcznie wartości zostają.</p>`;
+    html += `<table class="fill-preview-table"><thead><tr><th>Ćwiczenie</th><th>Pole</th><th>Było</th><th>Będzie</th></tr></thead><tbody>`;
+    html += changes.map(change => `<tr>
+      <td>${escapeHtml(change.exerciseName)}<div style="color:var(--text-faint);">${escapeHtml(change.place)}</div></td>
+      <td>${escapeHtml(change.fieldLabel)}</td>
+      <td>${escapeHtml(change.oldValue)}</td>
+      <td>${escapeHtml(change.newLabel)}</td>
+    </tr>`).join('');
+    html += `</tbody></table>`;
+  }
+  if(unmatched.length){
+    html += `<p class="fill-preview-note" style="margin-top:12px;">Nie dopasowano po dokładnej nazwie:</p><ul class="fill-preview-note">`;
+    html += unmatched.map(row => `<li>${escapeHtml(row.name)} — ${escapeHtml(row.place)}. ${escapeHtml(row.reason || '')}</li>`).join('');
+    html += `</ul>`;
+  }
+  if(blocked.length){
+    html += `<p class="fill-preview-note" style="margin-top:12px;">Pominięte, bo partii nie ma w mapie albo brak agonistów:</p><ul class="fill-preview-note">`;
+    html += blocked.map(row => `<li>${escapeHtml(row.name)} — ${escapeHtml(row.place)}, ${escapeHtml(row.field)}. ${escapeHtml(row.reason || '')}</li>`).join('');
+    html += `</ul>`;
+  }
+  body.innerHTML = html;
+  if(saveBtn) saveBtn.style.display = changes.length && !error ? '' : 'none';
+}
+
+async function openSecondaryFillPreview(){
+  ensureExerciseLibraryInitialized();
+  syncCurrentPlanToSaved();
+  const modal = document.getElementById('secondaryFillModalOverlay');
+  if(modal) modal.classList.add('open');
+  renderSecondaryFillPreview(null, 'Czytam bibliotekę startową…');
+  const saveBtn = document.getElementById('secondaryFillSaveBtn');
+  if(saveBtn) saveBtn.style.display = 'none';
+  let catalog;
+  try {
+    const response = await fetch('./docs/exercises.hypertrophy.json', { cache: 'no-cache' });
+    if(!response.ok) throw new Error('Brak pliku docs/exercises.hypertrophy.json w aplikacji.');
+    catalog = await response.json();
+  } catch(err){
+    pendingSecondaryProposal = null;
+    renderSecondaryFillPreview(null, err && err.message ? err.message : 'Nie udało się odczytać biblioteki startowej.');
+    return;
+  }
+  const logic = await import('./src/logic/secondary-from-library.mjs');
+  pendingSecondaryProposal = logic.proposeSecondaryFills({
+    library: state.exerciseLibrary,
+    plans: state.savedPlans,
+    catalog
+  });
+  renderSecondaryFillPreview(pendingSecondaryProposal, '');
+}
+
+async function confirmSecondaryFill(){
+  if(!pendingSecondaryProposal || !pendingSecondaryProposal.changes.length) return;
+  const logic = await import('./src/logic/secondary-from-library.mjs');
+  const result = logic.applySecondaryFills(state.exerciseLibrary, state.savedPlans, pendingSecondaryProposal.changes);
+  state.exerciseLibrary = result.library;
+  state.savedPlans = result.plans;
+  const current = state.savedPlans.find(plan => plan.id === state.currentPlanId);
+  if(current){
+    state.customDays = JSON.parse(JSON.stringify(current.customDays || []));
+  }
+  const savedCount = result.applied.length;
+  closeSecondaryFillPreview();
+  saveState();
+  render();
+  renderExerciseLibraryManager();
+  showToast(savedCount ? `Uzupełniono ${savedCount} pól` : 'Nic nie zapisano');
 }
 
 function renderExerciseLibraryManager(){

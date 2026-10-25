@@ -144,6 +144,29 @@ test('każde ćwiczenie ma partię z listy i przerwę', () => {
   });
 });
 
+test('partia pomocnicza to pierwszy agonista i liczy się osobno od opisu', () => {
+  const plan = ForgePlan.buildAdvanced3Day12WeekPlan();
+  plan.customDays.forEach((day) => {
+    day.exercises.forEach((ex) => {
+      [1, 7, 12].forEach((week) => {
+        const view = ForgePlan.resolveExerciseForWeek(ex, week);
+        assert.equal(view.secondary, view.agonists[0] || 'Brak', view.name + ' tyg. ' + week);
+      });
+    });
+  });
+  const byId = {};
+  plan.customDays.forEach((day) => day.exercises.forEach((ex) => { byId[ex.id] = ex; }));
+  const squat = ForgePlan.resolveExerciseForWeek(byId.adv_a1, 1);
+  assert.equal(squat.secondary, 'Pośladki');
+  assert.deepEqual(squat.agonists, ['Pośladki']);
+  const incline = ForgePlan.resolveExerciseForWeek(byId.adv_a2, 1);
+  assert.equal(incline.secondary, 'Barki – przód');
+  assert.deepEqual(incline.agonists, ['Barki – przód', 'Triceps']);
+  const lateral = ForgePlan.resolveExerciseForWeek(byId.adv_a4, 1);
+  assert.equal(lateral.secondary, 'Brak');
+  assert.deepEqual(lateral.agonists, []);
+});
+
 test('nieznany preset zwraca null', () => {
   assert.equal(ForgePlan.buildPreset('inny'), null);
 });

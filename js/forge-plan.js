@@ -182,7 +182,7 @@
       name,
       target,
       agonists: agonists || [],
-      secondary: 'Brak',
+      secondary: (agonists && agonists[0]) || 'Brak',
       setsByWeek: setsFrom(fromWeek, sets),
       reps,
       restSec,

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'forge-pro-cache-v13';
+const CACHE_NAME = 'forge-pro-cache-v14';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -70,8 +70,15 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Pliki aplikacji pobieramy z pominięciem cache przeglądarki (z rewalidacją),
+  // żeby po wdrożeniu nowa wersja była widoczna od razu na każdym urządzeniu.
+  const sameOrigin = new URL(event.request.url).origin === self.location.origin;
+  const networkFetch = sameOrigin
+    ? fetch(event.request, { cache: 'no-cache' })
+    : fetch(event.request);
+
   event.respondWith(
-    fetch(event.request)
+    networkFetch
       .then((response) => {
         // Kopiuj świeżą wersję do cache
         if (canCacheResponse(response)) {

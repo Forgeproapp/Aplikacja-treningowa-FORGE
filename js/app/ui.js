@@ -8,6 +8,8 @@ function switchTab(tab){
   document.getElementById('screen-stats').classList.toggle('active', tab === 'stats');
   document.getElementById('screen-history').classList.toggle('active', tab === 'history');
   document.getElementById('screen-session').classList.remove('active');
+  // Reset przewijania: na iOS (PWA) pasek fixed potrafi "podskoczyć", gdy krótsza zakładka obcina scroll
+  window.scrollTo(0, 0);
 
   if(tab === 'editor') renderEditor();
   if(tab === 'stats') switchStatsSubtab('volume');

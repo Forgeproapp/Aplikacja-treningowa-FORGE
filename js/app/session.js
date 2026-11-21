@@ -47,15 +47,12 @@ function renderSession(){
     const lastPerf = findLastExercisePerformance(ex.name);
 
     const assignedWeight = (ex.weight !== undefined && ex.weight !== null && ex.weight !== '') ? ex.weight : null;
-    const displayWeight = assignedWeight ? `${assignedWeight} kg` : (lastPerf && lastPerf.firstWeight ? `${lastPerf.firstWeight} kg` : null);
-    const weightBadgeHtml = displayWeight ? `<span class="badge" style="color:var(--gold-pale);">${escapeHtml(displayWeight)}</span>` : '';
-
-    const secBadge = (ex.secondary && ex.secondary !== 'Brak') ? `<span class="badge secondary-target">+ ${escapeHtml(ex.secondary)} (0.5)</span>` : '';
-    const agonistBadges = (ex.agonists || []).map(muscle => `<span class="badge secondary-target">agonista: ${escapeHtml(muscle)}</span>`).join('');
     const noteHtml = (ex.note && ex.note.trim() !== '') ? `<div class="ex-note-display" style="margin-top:6px; margin-bottom:4px;">📝 <span>${escapeHtml(ex.note.trim())}</span></div>` : '';
-    const restLabel = ex.restSec
-      ? (ForgePlan.formatRestSeconds(ex.restSec) + (ex.superset ? ' · superseria' : ''))
-      : meta.restText;
+    const restValue = ex.restSec ? ForgePlan.formatRestSeconds(ex.restSec) : meta.restText;
+    const restCaption = ex.superset ? 'przerwa · superseria' : 'przerwa';
+    const weightStatHtml = assignedWeight
+      ? `<div class="ex-stat"><span class="ex-stat-val">${escapeHtml(assignedWeight)}</span><span class="ex-stat-lbl">kg</span></div>`
+      : '';
     const slotHtml = ex.supersetSlot ? `<span class="badge superset-slot">${escapeHtml(ex.supersetSlot)}</span> ` : '';
 
     html += `<div class="exercise-card ${ex.superset ? 'superset' : ''} ${isCurrent ? 'current' : ''} ${allDone ? 'done' : ''}" id="ex-${escapeHtml(ex.id)}">
@@ -63,19 +60,12 @@ function renderSession(){
         <div style="width:100%;">
           <div class="ex-name">${slotHtml}${escapeHtml(ex.name)}</div>
           ${noteHtml}
-          <div class="ex-badges">
-            <div class="badge-row">
-              <span class="badge target">${escapeHtml(ex.target)}</span>
-              ${secBadge}
-              ${agonistBadges}
-            </div>
-            <div class="badge-row">
-              <span class="badge">${escapeHtml(ex.sets)} serie</span>
-              ${weightBadgeHtml}
-              <span class="badge">${escapeHtml(ex.reps)} powt.</span>
-              <span class="badge rir">RIR ${meta.rir}</span>
-              <span class="badge rest">⏱ ${escapeHtml(restLabel)}</span>
-            </div>
+          <div class="ex-stats">
+            <div class="ex-stat"><span class="ex-stat-val">${escapeHtml(ex.sets)}</span><span class="ex-stat-lbl">serie</span></div>
+            <div class="ex-stat"><span class="ex-stat-val">${escapeHtml(ex.reps)}</span><span class="ex-stat-lbl">powtórzenia</span></div>
+            <div class="ex-stat"><span class="ex-stat-val">${escapeHtml(meta.rir)}</span><span class="ex-stat-lbl">RIR</span></div>
+            <div class="ex-stat"><span class="ex-stat-val">${escapeHtml(restValue)}</span><span class="ex-stat-lbl">${restCaption}</span></div>
+            ${weightStatHtml}
           </div>
         </div>
       </div>`;

@@ -1,8 +1,22 @@
-const CACHE_NAME = 'forge-pro-cache-v11';
+const CACHE_NAME = 'forge-pro-cache-v12';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './js/forge-plan.js',
+  './css/app.css',
+  './js/firebase.js',
+  './js/app/core.js',
+  './js/app/plans.js',
+  './js/app/storage.js',
+  './js/app/home.js',
+  './js/app/session.js',
+  './js/app/stats.js',
+  './js/app/sheets.js',
+  './js/app/editor.js',
+  './js/app/history.js',
+  './js/app/wiki.js',
+  './js/app/ui.js',
+  './js/app/main.js',
   './manifest.json',
   './favicon.ico',
   './favicon-16.png',
